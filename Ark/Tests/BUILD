@@ -11,5 +11,8 @@ cc_test(
 		"@gtest//:gtest",
 		"@gtest//:gtest_main",
 		"//Ark:Ark",
+	],
+	defines = [
+		"SIMD=SSE"
 	]
 )

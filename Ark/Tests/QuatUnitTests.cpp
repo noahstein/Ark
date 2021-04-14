@@ -14,7 +14,6 @@ Copyright
 	Copyright (c) 2021 Noah Stein. All Rights Reserverd.
 ========================================================================*/
 
-#define SIMD SSE	// Temporary until build sets this
 
 //========================================================================
 // Dependencies
