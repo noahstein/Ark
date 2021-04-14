@@ -50,7 +50,7 @@ namespace ark
 		};
 
 		template<Quaternion Q>
-		auto operator-(const Q& q) -> QuaternionNegation<Q>
+		inline auto operator-(const Q& q) -> QuaternionNegation<Q>
 		{
 			return QuaternionNegation(q);
 		}
@@ -74,7 +74,7 @@ namespace ark
 		};
 
 		template<Quaternion Q>
-		auto operator*(const Q& q) -> QuaternionConjugate<Q>
+		inline auto operator*(const Q& q) -> QuaternionConjugate<Q>
 		{
 			return QuaternionConjugate(q);
 		}
@@ -109,7 +109,7 @@ namespace ark
 		};
 
 		template<Quaternion QL, Quaternion QR>
-		auto operator+(const QL& lhs, const QR& rhs) -> QuaternionAddition<QL, QR>
+		inline auto operator+(const QL& lhs, const QR& rhs) -> QuaternionAddition<QL, QR>
 		{
 			return QuaternionAddition(lhs, rhs);
 		}
@@ -134,7 +134,7 @@ namespace ark
 		};
 
 		template<Quaternion QL, Quaternion QR>
-		auto operator-(const QL& lhs, const QR& rhs) -> QuaternionSubtraction<QL, QR>
+		inline auto operator-(const QL& lhs, const QR& rhs) -> QuaternionSubtraction<QL, QR>
 		{
 			return QuaternionSubtraction(lhs, rhs);
 		}
