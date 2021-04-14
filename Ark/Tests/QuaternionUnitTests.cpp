@@ -1,10 +1,10 @@
 ﻿/*========================================================================
-File:
-	QuaternionUnitTests.cpp
-
 Description
 	Unit tests for functions related to the ark::math::Quaternion concept, 
 	and all basic functionality implemented against that concept.
+
+Copyright
+	Copyright (c) 2021 Noah Stein. All Rights Reserverd.
 ========================================================================*/
 
 

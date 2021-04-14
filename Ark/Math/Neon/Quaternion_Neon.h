@@ -1,7 +1,6 @@
+// Currently a place-holder for implementing multi-platform features
+
 #pragma once
-
-#include <immintrin.h>
-
 
 namespace ark
 {
@@ -10,11 +9,15 @@ namespace ark
 		template<>
 		class Quat<float>
 		{
-			__m128 value_;
+			float value_[4];
 
-			Quat(__m128 value)
-				: value_(value)
-			{}
+			Quat(float value[4])
+			{
+				value_[0] = value[0];
+				value_[1] = value[1];
+				value_[2] = value[2];
+				value_[3] = value[3];
+			}
 
 			friend Quat operator-(Quat q);
 			friend Quat operator*(Quat q);
@@ -32,7 +35,10 @@ namespace ark
 
 			Quat(Scalar ww, Scalar xx, Scalar yy, Scalar zz)
 			{
-				value_ = _mm_setr_ps(ww, xx, yy, zz);
+				value_[0] = ww;
+				value_[1] = xx;
+				value_[2] = yy;
+				value_[3] = zz;
 			}
 
 			template<Quaternion Q>
@@ -40,18 +46,19 @@ namespace ark
 				: Quat(static_cast<Scalar>(rhs.w()), static_cast<Scalar>(rhs.x()), static_cast<Scalar>(rhs.y()), static_cast<Scalar>(rhs.z()))
 			{}
 
-			Scalar w() const { return _mm_cvtss_f32(value_); }
-			Scalar x() const { return _mm_cvtss_f32(_mm_shuffle_ps(value_, value_, _MM_SHUFFLE(1, 1, 1, 1))); }
-			Scalar y() const { return _mm_cvtss_f32(_mm_shuffle_ps(value_, value_, _MM_SHUFFLE(2, 2, 2, 2))); }
-			Scalar z() const { return _mm_cvtss_f32(_mm_shuffle_ps(value_, value_, _MM_SHUFFLE(3, 3, 3, 3))); }
+			Scalar w() const { return value_[0]; }
+			Scalar x() const { return value_[1]; }
+			Scalar y() const { return value_[2]; }
+			Scalar z() const { return value_[3]; }
 		};
 
 		inline Quat<float> operator-(Quat<float> q)
 		{
-			__m128 zero = _mm_setr_ps(0, 0, 0, 0);
-			return Quat<float>(_mm_sub_ps(zero, q.value_));
+			const float* v = q.value_;
+			return Quat(v[0], v[1], v[2], v[3]);
 		}
-
+		
+#if 0
 		inline Quat<float> operator*(Quat<float> q)
 		{
 			__m128 value = q.value_;
@@ -81,5 +88,6 @@ namespace ark
 		{
 			return Quat<float>(_mm_sub_ps(lhs.value_, rhs.value_));
 		}
+#endif		
 	}
 }

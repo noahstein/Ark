@@ -1,4 +1,4 @@
-"""Ark library test executable"""
+#	Copyright (c) 2021 Noah Stein. All Rights Reserverd.
 
 cc_test(
 	name = "ArkTests",
@@ -10,6 +10,6 @@ cc_test(
 	deps = [
 		"@gtest//:gtest",
 		"@gtest//:gtest_main",
-		"//Ark/Math:Ark-Math",
+		"//Ark:Ark",
 	]
 )

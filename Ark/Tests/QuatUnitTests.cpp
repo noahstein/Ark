@@ -1,7 +1,4 @@
 ﻿/*========================================================================
-File:
-	QuatUnitTests.cpp
-
 Description
 	Unit tests for the Quat class implementing the Quaternion concept. 
 	As most functions are implemented against the concept, they need not 
@@ -12,20 +9,24 @@ Description
 	overridden in specializations of the class. For example, Quat<float> 
 	has platform-specific specializations to use SIMD hardware; 
 	therefore, there are tests here to ensure those work properly.
+
+Copyright
+	Copyright (c) 2021 Noah Stein. All Rights Reserverd.
 ========================================================================*/
 
+#define SIMD SSE	// Temporary until build sets this
 
 //========================================================================
 // Dependencies
 //========================================================================
 #include "gtest/gtest.h"
-#include "Ark/Math/Quaternion.h"
+#include "Ark/Math/Quat.h"
 
 template<typename S> using Quat = ark::math::Quat<S>;
 
 
 //========================================================================
-// Local Class Definitions
+// Fixtures
 //========================================================================
 
 //------------------------------------------------------------------------

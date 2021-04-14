@@ -1,13 +1,12 @@
 #	Copyright (c) 2021 Noah Stein. All Rights Reserverd.
 
 cc_library(
-	name = "Ark-Math",
-	srcs = [
-	],
+	name = "Ark",
 	hdrs = [
-		"Quaternion.h",
-		"Quat.h",
-		"SSE/Quat_SSE.h",
+		"Ark.h",
+	],
+	deps = [
+		"//Ark/Math:Ark-Math"
 	],
 	visibility = ["//visibility:public"],
 )
