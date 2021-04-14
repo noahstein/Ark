@@ -4,7 +4,8 @@ cc_test(
 	name = "ArkTests",
 	size = "small",
 	srcs = [
-		"QuaternionUnitTests.cpp"
+		"QuaternionUnitTests.cpp",
+		"QuatUnitTests.cpp",
 	],
 	deps = [
 		"@gtest//:gtest",

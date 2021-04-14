@@ -7,6 +7,7 @@ Description
 	and all basic functionality implemented against that concept.
 ========================================================================*/
 
+
 //========================================================================
 // Dependencies
 //========================================================================
@@ -67,7 +68,7 @@ namespace ark
 using Quat = ark::math::TestQuat;
 
 //------------------------------------------------------------------------
-// Quaternion test fixture
+// Quaternion Test Fixture
 //------------------------------------------------------------------------
 class QuaternionUnitTests : public testing::Test
 {
