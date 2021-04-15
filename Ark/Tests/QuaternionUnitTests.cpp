@@ -303,3 +303,27 @@ TEST_F(QuaternionUnitTests, Magnitude)
 	// Then
 	EXPECT_FLOAT_EQ(r, 24.24871130596428);
 }
+
+TEST_F(QuaternionUnitTests, LeftInverse)
+{
+	// When
+	Quat r = Inverse(q1) * q1;
+
+	// Then
+	EXPECT_NEAR(r.w(), 1, 0.00001);
+	EXPECT_NEAR(r.x(), 0, 0.00001);
+	EXPECT_NEAR(r.y(), 0, 0.00001);
+	EXPECT_NEAR(r.z(), 0, 0.00001);
+}
+
+TEST_F(QuaternionUnitTests, RightInverse)
+{
+	// When
+	Quat r = q1 * Inverse(q1);
+
+	// Then
+	EXPECT_NEAR(r.w(), 1, 0.00001);
+	EXPECT_NEAR(r.x(), 0, 0.00001);
+	EXPECT_NEAR(r.y(), 0, 0.00001);
+	EXPECT_NEAR(r.z(), 0, 0.00001);
+}

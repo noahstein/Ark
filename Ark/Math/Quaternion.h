@@ -292,7 +292,7 @@ namespace ark
 		template<Quaternion Q>
 		inline auto operator/(const Q& q, typename Q::Scalar s) -> QuaternionScalarDivision<Q>
 		{
-			
+
 			return QuaternionScalarDivision(q, s);
 		}
 		
@@ -349,7 +349,7 @@ namespace ark
 		}
 
 		//----------------------------------------------------------------
-		//	Dot Product Function
+		//	Dot Product Function: Dot(q)
 		//----------------------------------------------------------------
 		template<Quaternion QL, Quaternion QR>
 		inline auto Dot(const QL& l, const QR& r) -> typename QuaternionBinaryExpr<QL, QR>::Scalar
@@ -358,12 +358,21 @@ namespace ark
 		}
 
 		//----------------------------------------------------------------
-		//	Magnitude Function
+		//	Magnitude Function: Magnitude(q)
 		//----------------------------------------------------------------
 		template<Quaternion Q>
 		inline auto Magnitude(const Q& q) -> typename QuaternionUnaryExpr<Q>::Scalar
 		{
 			return std::sqrt(Dot(q, q));
+		}
+
+		//----------------------------------------------------------------
+		// Quaternion Inverse Function: Inverse(q)
+		//----------------------------------------------------------------
+		template<typename Q>
+		inline auto Inverse(const Q& q) -> Q
+		{
+			return *q / Dot(q,q);
 		}
 	}
 }
