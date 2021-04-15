@@ -348,6 +348,7 @@ namespace ark
 			return QuaternionMultiplication(lhs, rhs);
 		}
 
+
 		//----------------------------------------------------------------
 		//	Dot Product Function: Dot(q)
 		//----------------------------------------------------------------
@@ -356,6 +357,7 @@ namespace ark
 		{
 			return l.w() * r.w() + l.x() * r.x() + l.y() * r.y() + l.z() * r.z();
 		}
+
 
 		//----------------------------------------------------------------
 		//	Magnitude Function: Magnitude(q)
@@ -366,13 +368,48 @@ namespace ark
 			return std::sqrt(Dot(q, q));
 		}
 
+
 		//----------------------------------------------------------------
-		// Quaternion Inverse Function: Inverse(q)
+		//	Quaternion Inverse Function: Inverse(q)
 		//----------------------------------------------------------------
-		template<typename Q>
+		template<Quaternion Q>
 		inline auto Inverse(const Q& q) -> Q
 		{
 			return *q / Dot(q,q);
+		}
+
+
+		//----------------------------------------------------------------
+		//	Quaternion Division Expression: q1 / q2
+		//----------------------------------------------------------------
+		template<Quaternion QL, Quaternion QR>
+		class QuaternionDivision : public QuaternionBinaryExpr<QL, QR>
+		{
+			QL l_;
+			QR r_;
+
+		public:
+			using Scalar = typename QuaternionBinaryExpr<QL, QR>::Scalar;
+
+			QuaternionDivision(const QL& lhs, const QR& rhs)
+				: l_(lhs), r_(rhs)
+			{}
+
+			// TODO: Optimize these.
+			Scalar w() const { return (l_ * Inverse(r_)).w(); }
+			Scalar x() const { return (l_ * Inverse(r_)).x(); }
+			Scalar y() const { return (l_ * Inverse(r_)).y(); }
+			Scalar z() const { return (l_ * Inverse(r_)).z(); }
+		};
+
+
+		//----------------------------------------------------------------
+		//	Quaternion Division Operator: q1 / q2
+		//----------------------------------------------------------------
+		template<Quaternion QL, Quaternion QR>
+		inline auto operator/(const QL& lhs, const QR& rhs) -> QuaternionDivision<QL, QR>
+		{
+			return QuaternionDivision(lhs, rhs);
 		}
 	}
 }

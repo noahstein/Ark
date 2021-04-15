@@ -327,3 +327,15 @@ TEST_F(QuaternionUnitTests, RightInverse)
 	EXPECT_NEAR(r.y(), 0, 0.00001);
 	EXPECT_NEAR(r.z(), 0, 0.00001);
 }
+
+TEST_F(QuaternionUnitTests, Division)
+{
+	// When
+	Quat r = q1 / q1;
+
+	// Then
+	EXPECT_NEAR(r.w(), 1, 0.00001);
+	EXPECT_NEAR(r.x(), 0, 0.00001);
+	EXPECT_NEAR(r.y(), 0, 0.00001);
+	EXPECT_NEAR(r.z(), 0, 0.00001);
+}
