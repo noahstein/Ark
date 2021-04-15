@@ -256,5 +256,25 @@ namespace ark
 		{
 			return QuaternionScalarMultiplication(s, q);
 		}
+
+
+		//----------------------------------------------------------------
+		//	Quaternion Equality Operator: q1 == q2
+		//----------------------------------------------------------------
+		template<Quaternion QL, Quaternion QR>
+		inline auto operator==(const QL& lhs, const QR& rhs) -> bool
+		{
+			return lhs.w() == rhs.w() && lhs.x() == rhs.x() && lhs.y() == rhs.y() && lhs.z() == rhs.z();
+		}
+
+
+		//----------------------------------------------------------------
+		//	Quaternion Equality Operator: q1 == q2
+		//----------------------------------------------------------------
+		template<Quaternion QL, Quaternion QR>
+		inline auto operator!=(const QL& lhs, const QR& rhs) -> bool
+		{
+			return !(lhs == rhs);
+		}
 	}
 }

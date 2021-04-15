@@ -161,3 +161,21 @@ TEST_F(QuaternionUnitTests, QuaternionScalarMultiplication)
 	EXPECT_EQ(qr.y(), 21);
 	EXPECT_EQ(qr.z(), 57);
 }
+
+TEST_F(QuaternionUnitTests, InequalityCheckSame)
+{
+	// When
+	bool result = q1 != q1;
+
+	// Then
+	EXPECT_FALSE(result);
+}
+
+TEST_F(QuaternionUnitTests, InequalityCheckDifferent)
+{
+	// When
+	bool result = q1 != q2;
+
+	// Then
+	EXPECT_TRUE(result);
+}
