@@ -29,39 +29,41 @@ namespace ark
 		//----------------------------------------------------------------
 		class TestQuat
 		{
-			int w_, x_, y_, z_;
+		public:
+			using Scalar = float;
+
+		private:
+			Scalar w_, x_, y_, z_;
 
 		public:
-			using Scalar = int;
-
 			TestQuat()
 			{}
 
-			TestQuat(int ww, int xx, int yy, int zz)
+			TestQuat(Scalar ww, Scalar xx, Scalar yy, Scalar zz)
 				: w_(ww), x_(xx), y_(yy), z_(zz)
 			{}
 
 			template<ark::math::Quaternion Q>
 			TestQuat(const Q& rhs)
-				: TestQuat(static_cast<int>(rhs.w()), static_cast<int>(rhs.x()), static_cast<int>(rhs.y()), static_cast<int>(rhs.z()))
+				: TestQuat(static_cast<Scalar>(rhs.w()), static_cast<Scalar>(rhs.x()), static_cast<Scalar>(rhs.y()), static_cast<Scalar>(rhs.z()))
 			{}
 
 			template<ark::math::Quaternion Q>
 			// Put in convertible test from Q::S -> S
 			TestQuat& operator=(const Q& rhs)
 			{
-				x_ = int(rhs.x());
-				y_ = int(rhs.y());
-				w_ = int(rhs.w());
-				z_ = int(rhs.z());
+				x_ = Scalar(rhs.x());
+				y_ = Scalar(rhs.y());
+				w_ = Scalar(rhs.w());
+				z_ = Scalar(rhs.z());
 
 				return *this;
 			}
 
-			int w() const { return w_; }
-			int x() const { return x_; }
-			int y() const { return y_; }
-			int z() const { return z_; }
+			Scalar w() const { return w_; }
+			Scalar x() const { return x_; }
+			Scalar y() const { return y_; }
+			Scalar z() const { return z_; }
 		};
 	}
 }
@@ -275,7 +277,7 @@ TEST_F(QuaternionUnitTests, I_x_K_eq_MinusJ)
 TEST_F(QuaternionUnitTests, DotProduct)
 {
 	// When
-	int r = Dot(q1, q2);
+	float r = Dot(q1, q2);
 
 	// Then
 	EXPECT_EQ(r, 870);
