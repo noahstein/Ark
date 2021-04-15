@@ -175,6 +175,18 @@ TEST_F(QuaternionUnitTests, QuaternionScalarMultiplication)
 	EXPECT_EQ(qr.z(), 57);
 }
 
+TEST_F(QuaternionUnitTests, QuaternionScalarDivision)
+{
+	// When
+	qr = q1 / 2;
+
+	// Then
+	EXPECT_EQ(qr.w(), 1.5);
+	EXPECT_EQ(qr.x(), 6.5);
+	EXPECT_EQ(qr.y(), 3.5);
+	EXPECT_EQ(qr.z(), 9.5);
+}
+
 TEST_F(QuaternionUnitTests, InequalityCheckSame)
 {
 	// When

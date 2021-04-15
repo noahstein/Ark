@@ -262,6 +262,41 @@ namespace ark
 
 
 		//----------------------------------------------------------------
+		//	Quaternion Scalar Division Expression: q / s
+		//----------------------------------------------------------------
+		template<Quaternion Q>
+		class QuaternionScalarDivision : public QuaternionExpr
+		{
+		public:
+			using Scalar = typename Q::Scalar;
+
+		private:
+			Q q_;
+			Scalar s_;
+
+		public:
+			QuaternionScalarDivision(const Q& q, Scalar s)
+				: q_(q), s_(s)
+			{}
+
+			Scalar w() const { return q_.w() / s_; }
+			Scalar x() const { return q_.x() / s_; }
+			Scalar y() const { return q_.y() / s_; }
+			Scalar z() const { return q_.z() / s_; }
+		};
+
+
+		//----------------------------------------------------------------
+		//	Quaternion Scalar Division Operator
+		//----------------------------------------------------------------
+		template<Quaternion Q>
+		inline auto operator/(const Q& q, typename Q::Scalar s) -> QuaternionScalarDivision<Q>
+		{
+			
+			return QuaternionScalarDivision(q, s);
+		}
+		
+		//----------------------------------------------------------------
 		//	Quaternion Equality Operator: q1 == q2
 		//----------------------------------------------------------------
 		template<Quaternion QL, Quaternion QR>
