@@ -218,16 +218,18 @@ namespace ark
 		//----------------------------------------------------------------
 		//	Quaternion Scalar Multiplication Expression: s * q, q *s
 		//----------------------------------------------------------------
-		template<typename S, Quaternion Q>
+		template<Quaternion Q>
 		class QuaternionScalarMultiplication : public QuaternionExpr
 		{
-			S s_;
+		public:
+			using Scalar = typename Q::Scalar;
+
+		private:
+			Scalar s_;
 			Q q_;
 
 		public:
-			using Scalar = typename std::common_type<S, typename Q::Scalar>::type;
-
-			QuaternionScalarMultiplication(S s, const Q& q)
+			QuaternionScalarMultiplication(Scalar s, const Q& q)
 				: s_(s), q_(q)
 			{}
 
@@ -241,8 +243,8 @@ namespace ark
 		//----------------------------------------------------------------
 		//	Quaternion Scalar-Quaternion Multiplication Operator
 		//----------------------------------------------------------------
-		template<typename S, Quaternion Q>
-		inline auto operator*(S s, const Q& q) -> QuaternionScalarMultiplication<S, Q>
+		template<Quaternion Q>
+		inline auto operator*(typename Q::Scalar s, const Q& q) -> QuaternionScalarMultiplication<Q>
 		{
 			return QuaternionScalarMultiplication(s, q);
 		}
@@ -251,8 +253,8 @@ namespace ark
 		//----------------------------------------------------------------
 		//	Quaternion Quaternion-Scalar Multiplication Operator
 		//----------------------------------------------------------------
-		template<Quaternion Q, typename S>
-		inline auto operator*(const Q& q, S s) -> QuaternionScalarMultiplication<S, Q>
+		template<Quaternion Q>
+		inline auto operator*(const Q& q, typename Q::Scalar s) -> QuaternionScalarMultiplication<Q>
 		{
 			return QuaternionScalarMultiplication(s, q);
 		}
@@ -275,6 +277,35 @@ namespace ark
 		inline auto operator!=(const QL& lhs, const QR& rhs) -> bool
 		{
 			return !(lhs == rhs);
+		}
+
+
+		//----------------------------------------------------------------
+		//	Quaternion Multiplication Expression: q1 * q2
+		//----------------------------------------------------------------
+		template<Quaternion QL, Quaternion QR>
+		class QuaternionMultiplication : public QuaternionBinaryExpr<QL, QR>
+		{
+			QL l_;
+			QR r_;
+
+		public:
+			using Scalar = typename QuaternionBinaryExpr<QL, QR>::Scalar;
+
+			QuaternionMultiplication(const QL& lhs, const QR& rhs)
+				: l_(lhs), r_(rhs)
+			{}
+
+			Scalar w() const { return l_.w() * r_.w() - l_.x() * r_.x() - l_.y() * r_.y() - l_.z() * r_.z(); }
+			Scalar x() const { return l_.w() * r_.x() + l_.x() * r_.w() + l_.y() * r_.z() - l_.z() * r_.y(); }
+			Scalar y() const { return l_.w() * r_.y() - l_.x() * r_.z() + l_.y() * r_.w() + l_.z() * r_.x(); }
+			Scalar z() const { return l_.w() * r_.z() + l_.x() * r_.y() - l_.y() * r_.x() + l_.z() * r_.w(); }
+		};
+
+		template<Quaternion QL, Quaternion QR>
+		inline auto operator*(const QL& lhs, const QR& rhs) -> QuaternionMultiplication<QL, QR>
+		{
+			return QuaternionMultiplication(lhs, rhs);
 		}
 	}
 }

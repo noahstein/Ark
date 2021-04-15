@@ -75,6 +75,12 @@ class QuaternionUnitTests : public testing::Test
 protected:
 	void SetUp() override
 	{
+
+		q_one = Quat(1, 0, 0, 0);
+		qi = Quat(0, 1, 0, 0);
+		qj = Quat(0, 0, 1, 0);
+		qk = Quat(0, 0, 0, 1);
+
 		q1 = Quat(3, 13, 7, 19);
 		q2 = Quat(5, 11, 23, 29);
 	}
@@ -82,6 +88,11 @@ protected:
 	Quat q1;
 	Quat q2;
 	Quat qr;
+
+	Quat q_one;
+	Quat qi;
+	Quat qj;
+	Quat qk;
 };
 
 
@@ -178,4 +189,90 @@ TEST_F(QuaternionUnitTests, InequalityCheckDifferent)
 
 	// Then
 	EXPECT_TRUE(result);
+}
+
+
+//------------------------------------------------------------------------
+//	Multiplication
+//------------------------------------------------------------------------
+
+TEST_F(QuaternionUnitTests, I_x_I_eq_MinusOne)
+{
+	// When
+	qr = qi * qi;
+
+	// Then
+	EXPECT_EQ(qr, -q_one);
+}
+
+TEST_F(QuaternionUnitTests, J_x_J_eq_MinusOne)
+{
+	// When
+	qr = qj * qj;
+
+	// Then
+	EXPECT_EQ(qr, -q_one);
+}
+
+TEST_F(QuaternionUnitTests, K_x_K_eq_MinusOne)
+{
+	// When
+	qr = qk * qk;
+
+	// Then
+	EXPECT_EQ(qr, -q_one);
+}
+
+TEST_F(QuaternionUnitTests, I_x_J_eq_K)
+{
+	// When
+	qr = qi * qj;
+
+	// Then
+	EXPECT_EQ(qr, qk);
+}
+
+TEST_F(QuaternionUnitTests, J_x_K_eq_I)
+{
+	// When
+	qr = qj * qk;
+
+	// Then
+	EXPECT_EQ(qr, qi);
+}
+
+TEST_F(QuaternionUnitTests, K_x_I_eq_J)
+{
+	// When
+	qr = qk * qi;
+
+	// Then
+	EXPECT_EQ(qr, qj);
+}
+
+TEST_F(QuaternionUnitTests, J_x_I_eq_MinusK)
+{
+	// When
+	qr = qj * qi;
+
+	// Then
+	EXPECT_EQ(qr, -qk);
+}
+
+TEST_F(QuaternionUnitTests, K_x_J_eq_MinusI)
+{
+	// When
+	qr = qk * qj;
+
+	// Then
+	EXPECT_EQ(qr, -qi);
+}
+
+TEST_F(QuaternionUnitTests, I_x_K_eq_MinusJ)
+{
+	// When
+	qr = qi * qk;
+
+	// Then
+	EXPECT_EQ(qr, -qj);
 }
