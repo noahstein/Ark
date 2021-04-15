@@ -26,6 +26,7 @@ Copyright
 //	Dependencies
 //========================================================================
 #include <concepts>
+#include <cmath>
 #include <type_traits>
 
 
@@ -319,6 +320,15 @@ namespace ark
 		inline auto Dot(const QL& l, const QR& r) -> typename QuaternionBinaryExpr<QL, QR>::Scalar
 		{
 			return l.w() * r.w() + l.x() * r.x() + l.y() * r.y() + l.z() * r.z();
+		}
+
+		//----------------------------------------------------------------
+		//	Magnitude Function
+		//----------------------------------------------------------------
+		template<Quaternion Q>
+		inline auto Magnitude(const Q& q) -> typename QuaternionUnaryExpr<Q>::Scalar
+		{
+			return std::sqrt(Dot(q, q));
 		}
 	}
 }

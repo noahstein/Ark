@@ -282,3 +282,12 @@ TEST_F(QuaternionUnitTests, DotProduct)
 	// Then
 	EXPECT_EQ(r, 870);
 }
+
+TEST_F(QuaternionUnitTests, Magnitude)
+{
+	// When
+	float r = Magnitude(q1);
+
+	// Then
+	EXPECT_FLOAT_EQ(r, 24.24871130596428);
+}
