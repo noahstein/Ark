@@ -302,10 +302,23 @@ namespace ark
 			Scalar z() const { return l_.w() * r_.z() + l_.x() * r_.y() - l_.y() * r_.x() + l_.z() * r_.w(); }
 		};
 
+
+		//----------------------------------------------------------------
+		//	Quaternion Multiplication Operator
+		//----------------------------------------------------------------
 		template<Quaternion QL, Quaternion QR>
 		inline auto operator*(const QL& lhs, const QR& rhs) -> QuaternionMultiplication<QL, QR>
 		{
 			return QuaternionMultiplication(lhs, rhs);
+		}
+
+		//----------------------------------------------------------------
+		//	Dot Product Function
+		//----------------------------------------------------------------
+		template<Quaternion QL, Quaternion QR>
+		inline auto Dot(const QL& l, const QR& r) -> typename QuaternionBinaryExpr<QL, QR>::Scalar
+		{
+			return l.w() * r.w() + l.x() * r.x() + l.y() * r.y() + l.z() * r.z();
 		}
 	}
 }

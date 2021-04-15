@@ -191,11 +191,6 @@ TEST_F(QuaternionUnitTests, InequalityCheckDifferent)
 	EXPECT_TRUE(result);
 }
 
-
-//------------------------------------------------------------------------
-//	Multiplication
-//------------------------------------------------------------------------
-
 TEST_F(QuaternionUnitTests, I_x_I_eq_MinusOne)
 {
 	// When
@@ -275,4 +270,13 @@ TEST_F(QuaternionUnitTests, I_x_K_eq_MinusJ)
 
 	// Then
 	EXPECT_EQ(qr, -qj);
+}
+
+TEST_F(QuaternionUnitTests, DotProduct)
+{
+	// When
+	int r = Dot(q1, q2);
+
+	// Then
+	EXPECT_EQ(r, 870);
 }
