@@ -1,13 +1,11 @@
 #	Copyright (c) 2021 Noah Stein. All Rights Reserverd.
 
 cc_library(
-	name = "Ark",
-	hdrs = [
-		"Ark.h",
+	name = "Ark-Hal",
+	srcs = [
 	],
-	deps = [
-		"//Ark/Hal:Ark-Hal",
-		"//Ark/Math:Ark-Math",
+	hdrs = [
+		"Hal.h",
 	],
 	visibility = ["//visibility:public"],
 )
