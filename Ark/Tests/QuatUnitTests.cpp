@@ -52,7 +52,7 @@ protected:
 
 TEST(QuatUnitTests, DefaultConstructor)
 {
-	Quat<int> q();
+	Quat<int> q;
 	SUCCEED();
 }
 

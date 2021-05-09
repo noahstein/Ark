@@ -14,7 +14,15 @@ Copyright
 //========================================================================
 //	Platform-specific Inclusion
 //========================================================================
-#define INCLUDE_STRINGIZE(S) #S
-#define INCLUDE_BUILD_FILENAME(T, F) INCLUDE_STRINGIZE(T/F ## _ ## T.h)
-#define INCLUDE_HAL(T, F) INCLUDE_BUILD_FILENAME(T, F)
-#define INCLUDE_SIMD(F) INCLUDE_HAL(HAL_SIMD, F)
+
+// Add quatoation marks around a string
+#define INCLUDE_STRINGIZE(String) #String
+
+// Build a platform-specific header file name
+#define INCLUDE_BUILD_FILENAME(Type, File) INCLUDE_STRINGIZE(File ## _ ## Type.h)
+
+// Include a platform-specific hardware abstraction layer header file
+#define INCLUDE_HAL(Type, File) INCLUDE_BUILD_FILENAME(Type, File)
+
+// Include a platform-specific SIMD header file F
+#define INCLUDE_SIMD(File) INCLUDE_HAL(HAL_SIMD, File)

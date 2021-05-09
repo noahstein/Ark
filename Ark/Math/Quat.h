@@ -15,7 +15,7 @@ Copyright
 //	Dependencies
 //========================================================================
 #include "Quaternion.h"
-#include "Ark/Ark.h"
+#include "Ark/Hal/Simd/Simd.h"
 
 
 //========================================================================
@@ -28,7 +28,7 @@ namespace ark
 		//----------------------------------------------------------------
 		// Simple 4-component quaternion implementation
 		//----------------------------------------------------------------
-		template<typename S>
+		template<typename S, typename I = ark::hal::HAL_SIMD>
 		class Quat
 		{
 			S w_, x_, y_, z_;

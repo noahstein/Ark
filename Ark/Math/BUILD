@@ -7,7 +7,7 @@ cc_library(
 	hdrs = [
 		"Quaternion.h",
 		"Quat.h",
-		"SSE/Quat_SSE.h",
+		"Quat_SSE.h",
 	],
 	visibility = ["//visibility:public"],
 )

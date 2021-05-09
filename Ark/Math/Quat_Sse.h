@@ -26,7 +26,7 @@ namespace ark
 		//	SSE-optimized Quat specialization for float components
 		//----------------------------------------------------------------
 		template<>
-		class Quat<float>
+		class Quat<float, ark::hal::Sse>
 		{
 			__m128 value_;
 
@@ -34,7 +34,7 @@ namespace ark
 				: value_(value)
 			{}
 
-			friend Quat operator-(Quat q);
+			friend Quat<float, ark::hal::HAL_SIMD> operator-(Quat<float, ark::hal::Sse> q);
 			friend Quat operator*(Quat q);
 
 			friend Quat operator*(Quat lhs, float rhs);
@@ -68,10 +68,11 @@ namespace ark
 		//----------------------------------------------------------------
 		//	Negation
 		//----------------------------------------------------------------
-		inline Quat<float> operator-(Quat<float> q)
+		inline Quat<float, ark::hal::HAL_SIMD> operator-(Quat<float, ark::hal::Sse> q)
 		{
+			std::cerr << "SSE negation";
 			__m128 value = q.value_;
-			return Quat<float>(_mm_sub_ps(_mm_xor_ps(value, value), value));
+			return Quat<float, ark::hal::HAL_SIMD>(_mm_sub_ps(_mm_xor_ps(value, value), value));
 		}
 
 
