@@ -30,17 +30,20 @@ namespace ark
 		{
 			__m128 value_;
 
-			Quat(__m128 value)
-				: value_(value)
-			{}
-
-			friend Quat<float, ark::hal::HAL_SIMD> operator-(Quat<float, ark::hal::Sse> q);
+			friend Quat<float, ark::hal::Sse> operator-(Quat<float, ark::hal::Sse> q);
 			friend Quat operator*(Quat q);
 
 			friend Quat operator*(Quat lhs, float rhs);
 			friend Quat operator*(float lhs, Quat rhs);
 			friend Quat operator+(Quat lhs, Quat rhs);
 			friend Quat operator-(Quat lhs, Quat rhs);
+
+		protected:
+			Quat(__m128 value)
+				: value_(value)
+			{}
+
+			__m128 Value() const { return value_; }
 
 		public:
 			using Scalar = float;
@@ -58,30 +61,30 @@ namespace ark
 				: Quat(static_cast<Scalar>(rhs.w()), static_cast<Scalar>(rhs.x()), static_cast<Scalar>(rhs.y()), static_cast<Scalar>(rhs.z()))
 			{}
 
-			Scalar w() const { return _mm_cvtss_f32(value_); }
-			Scalar x() const { return _mm_cvtss_f32(_mm_shuffle_ps(value_, value_, _MM_SHUFFLE(1, 1, 1, 1))); }
-			Scalar y() const { return _mm_cvtss_f32(_mm_shuffle_ps(value_, value_, _MM_SHUFFLE(2, 2, 2, 2))); }
-			Scalar z() const { return _mm_cvtss_f32(_mm_shuffle_ps(value_, value_, _MM_SHUFFLE(3, 3, 3, 3))); }
+			Scalar w() const { return _mm_cvtss_f32(Value()); }
+			Scalar x() const { return _mm_cvtss_f32(_mm_shuffle_ps(Value(), Value(), _MM_SHUFFLE(1, 1, 1, 1))); }
+			Scalar y() const { return _mm_cvtss_f32(_mm_shuffle_ps(Value(), Value(), _MM_SHUFFLE(2, 2, 2, 2))); }
+			Scalar z() const { return _mm_cvtss_f32(_mm_shuffle_ps(Value(), Value(), _MM_SHUFFLE(3, 3, 3, 3))); }
 		};
 
 
 		//----------------------------------------------------------------
 		//	Negation
 		//----------------------------------------------------------------
-		inline Quat<float, ark::hal::HAL_SIMD> operator-(Quat<float, ark::hal::Sse> q)
+		inline Quat<float, ark::hal::Sse> operator-(Quat<float, ark::hal::Sse> q)
 		{
 			std::cerr << "SSE negation";
-			__m128 value = q.value_;
-			return Quat<float, ark::hal::HAL_SIMD>(_mm_sub_ps(_mm_xor_ps(value, value), value));
+			__m128 value = q.Value();
+			return Quat<float, ark::hal::Sse>(_mm_sub_ps(_mm_xor_ps(value, value), value));
 		}
 
 
 		//----------------------------------------------------------------
 		//	Conjugate
 		//----------------------------------------------------------------
-		inline Quat<float> operator*(Quat<float> q)
+		inline Quat<float, ark::hal::Sse> operator*(Quat<float, ark::hal::Sse> q)
 		{
-			__m128 result = _mm_move_ss((-q).value_, q.value_);
+			__m128 result = _mm_move_ss((-q).Value(), q.Value());
 			return result;
 		}
 
@@ -89,38 +92,38 @@ namespace ark
 		//----------------------------------------------------------------
 		//	Addition
 		//----------------------------------------------------------------
-		inline Quat<float> operator+(Quat<float> lhs, Quat<float> rhs)
+		inline Quat<float, ark::hal::Sse> operator+(Quat<float, ark::hal::Sse> lhs, Quat<float, ark::hal::Sse> rhs)
 		{
-			return Quat<float>(_mm_add_ps(lhs.value_, rhs.value_));
+			return Quat<float, ark::hal::Sse>(_mm_add_ps(lhs.Value(), rhs.Value()));
 		}
 
 
 		//----------------------------------------------------------------
 		//	Subtraction
 		//----------------------------------------------------------------
-		inline Quat<float> operator-(Quat<float> lhs, Quat<float> rhs)
+		inline Quat<float, ark::hal::Sse> operator-(Quat<float, ark::hal::Sse> lhs, Quat<float, ark::hal::Sse> rhs)
 		{
-			return Quat<float>(_mm_sub_ps(lhs.value_, rhs.value_));
+			return Quat<float, ark::hal::Sse>(_mm_sub_ps(lhs.Value(), rhs.Value()));
 		}
 
 
 		//----------------------------------------------------------------
 		//	Quaternion-Scalar Multiplication
 		//----------------------------------------------------------------
-		inline Quat<float> operator*(Quat<float> lhs, float rhs)
+		inline Quat<float, ark::hal::Sse> operator*(Quat<float, ark::hal::Sse> lhs, float rhs)
 		{
 			__m128 scalar = _mm_set_ps(rhs, rhs, rhs, rhs);
-			return _mm_mul_ps(scalar, lhs.value_);
+			return _mm_mul_ps(scalar, lhs.Value());
 		}
 
 
 		//----------------------------------------------------------------
 		//	Scalar-Quaternion Multiplication
 		//----------------------------------------------------------------
-		inline Quat<float> operator*(float lhs, Quat<float> rhs)
+		inline Quat<float, ark::hal::Sse> operator*(float lhs, Quat<float, ark::hal::Sse> rhs)
 		{
 			__m128 scalar = _mm_set_ps(lhs, lhs, lhs, lhs);
-			return _mm_mul_ps(scalar, rhs.value_);
+			return _mm_mul_ps(scalar, rhs.Value());
 		}
 	}
 }

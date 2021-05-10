@@ -21,7 +21,7 @@ Copyright
 #include "gtest/gtest.h"
 #include "Ark/Math/Quat.h"
 
-template<typename S> using Quat = ark::math::Quat<S>;
+template<typename S> using Quat = ark::math::Quat<S, ark::hal::Sse2>;
 
 
 //========================================================================
