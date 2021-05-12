@@ -58,6 +58,12 @@ namespace ark
 		//----------------------------------------------------------------
 		class QuaternionExpr
 		{
+		protected:
+			template<typename S>
+			struct Cache
+			{
+				S w, x, y, z;
+			};
 		};
 
 	
@@ -385,21 +391,29 @@ namespace ark
 		template<Quaternion QL, Quaternion QR>
 		class QuaternionDivision : public QuaternionBinaryExpr<QL, QR>
 		{
-			QL l_;
-			QR r_;
-
 		public:
 			using Scalar = typename QuaternionBinaryExpr<QL, QR>::Scalar;
 
+		private:			
+			QL l_;
+			QR r_;
+			QuaternionExpr::Cache<Scalar> cache_;	// TODO: "QuaternionExpr" should be unneceessary.
+
+		public:
 			QuaternionDivision(const QL& lhs, const QR& rhs)
 				: l_(lhs), r_(rhs)
-			{}
+			{
+				auto result = lhs * Inverse(rhs);
+				cache_.w = result.w();
+				cache_.x = result.x();
+				cache_.y = result.y();
+				cache_.z = result.z();
+			}
 
-			// TODO: Optimize these.
-			Scalar w() const { return (l_ * Inverse(r_)).w(); }
-			Scalar x() const { return (l_ * Inverse(r_)).x(); }
-			Scalar y() const { return (l_ * Inverse(r_)).y(); }
-			Scalar z() const { return (l_ * Inverse(r_)).z(); }
+			Scalar w() const { return cache_.w; }
+			Scalar x() const { return cache_.x; }
+			Scalar y() const { return cache_.y; }
+			Scalar z() const { return cache_.z; }
 		};
 
 
