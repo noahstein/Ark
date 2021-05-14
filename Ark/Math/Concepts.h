@@ -31,6 +31,7 @@ namespace ark::math
 	template<typename T>
 	concept Arithmetic = std::is_arithmetic_v<T>;
 
+
 	/*--------------------------------------------------------------------
 		The MutuallyArithmetic concept defines when two individually 
 		arithmetic types may validly be used together in arithmetic 
