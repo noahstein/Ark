@@ -29,6 +29,7 @@ Copyright
 #include <cmath>
 #include <type_traits>
 
+#include "Concepts.h"
 
 //========================================================================
 //	Code
@@ -43,7 +44,8 @@ namespace ark
 		template<typename Q>
 		concept Quaternion = requires(Q q)
 		{
-			typename Q::Scalar;	// The type of the components
+			typename Q::Scalar;
+			Arithmetic<typename Q::Scalar>;
 
 			// Accessor to the w, x, y, and z components
 			{ q.w() } -> std::same_as<typename Q::Scalar>;
@@ -70,7 +72,7 @@ namespace ark
 		//----------------------------------------------------------------
 		//	The base class of all quaternion 1-argument expressions.
 		//----------------------------------------------------------------
-		template<class Q>
+		template<Quaternion Q>
 		class QuaternionUnaryExpr : public QuaternionExpr
 		{
 		public:
@@ -145,7 +147,8 @@ namespace ark
 		//----------------------------------------------------------------
 		//	The base class for all quaternion 2-argument expressions
 		//----------------------------------------------------------------
-		template<typename QL, typename QR>
+		template<Quaternion QL, Quaternion QR>
+		requires MutuallyArithmetic<typename QL::Scalar, typename QR::Scalar>
 		class QuaternionBinaryExpr : public QuaternionExpr
 		{
 			using SL = typename QL::Scalar;
@@ -271,7 +274,7 @@ namespace ark
 		//	Quaternion Scalar Division Expression: q / s
 		//----------------------------------------------------------------
 		template<Quaternion Q>
-		class QuaternionScalarDivision : public QuaternionExpr
+		class QuaternionScalarDivision : public QuaternionUnaryExpr<Q>
 		{
 		public:
 			using Scalar = typename Q::Scalar;

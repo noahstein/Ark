@@ -5,6 +5,7 @@ cc_library(
 	srcs = [
 	],
 	hdrs = [
+		"Concepts.h",
 		"Quaternion.h",
 		"Quat.h",
 		"Quat_Sse.h",
