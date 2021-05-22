@@ -350,17 +350,6 @@ namespace ark::math
 
 
 	/*--------------------------------------------------------------------
-		Vector Equality Operator: v1 != v2
-	--------------------------------------------------------------------*/
-	template<Vector VL, Vector VR>
-	requires SameDimension<VL, VR>
-	inline auto operator!=(const VL& lhs, const VR& rhs) -> bool
-	{
-		return !(lhs == rhs);
-	}
-
-
-	/*--------------------------------------------------------------------
 		Dot Product Function: Dot(v)
 	--------------------------------------------------------------------*/
 	template<Vector VL, Vector VR>

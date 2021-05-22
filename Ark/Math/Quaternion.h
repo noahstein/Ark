@@ -315,16 +315,6 @@ namespace ark
 
 
 		//----------------------------------------------------------------
-		//	Quaternion Equality Operator: q1 == q2
-		//----------------------------------------------------------------
-		template<Quaternion QL, Quaternion QR>
-		inline auto operator!=(const QL& lhs, const QR& rhs) -> bool
-		{
-			return !(lhs == rhs);
-		}
-
-
-		//----------------------------------------------------------------
 		//	Quaternion Multiplication Expression: q1 * q2
 		//----------------------------------------------------------------
 		template<Quaternion QL, Quaternion QR>
