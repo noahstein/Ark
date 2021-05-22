@@ -69,4 +69,6 @@ namespace ark::math
 /*========================================================================
 	Platform-optimized Specializations
 ========================================================================*/
-//#include INCLUDE_SIMD(Vec)
+#if __has_include(INCLUDE_SIMD(Vec))
+#include INCLUDE_SIMD(Vec)
+#endif

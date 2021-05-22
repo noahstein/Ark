@@ -71,4 +71,6 @@ namespace ark
 //========================================================================
 //	Platform-optimized Specializations
 //========================================================================
+#if __has_include(INCLUDE_SIMD(Quat))
 #include INCLUDE_SIMD(Quat)
+#endif
