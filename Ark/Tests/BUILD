@@ -4,6 +4,8 @@ cc_test(
 	name = "ArkTests",
 	size = "small",
 	srcs = [
+		"MatrixUnitTests.cpp",
+		"MtxUnitTests.cpp",
 		"QuaternionUnitTests.cpp",
 		"QuatUnitTests.cpp",
 		"VectorUnitTests.cpp",

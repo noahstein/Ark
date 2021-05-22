@@ -6,6 +6,8 @@ cc_library(
 	],
 	hdrs = [
 		"Concepts.h",
+		"Matrix.h",
+		"Mtx.h",
 		"Quaternion.h",
 		"Quat.h",
 		"Quat_Sse.h",
