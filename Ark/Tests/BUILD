@@ -6,6 +6,8 @@ cc_test(
 	srcs = [
 		"QuaternionUnitTests.cpp",
 		"QuatUnitTests.cpp",
+		"VectorUnitTests.cpp",
+		"VecUnitTests.cpp",
 	],
 	deps = [
 		"@gtest//:gtest",
