@@ -11,16 +11,16 @@ Copyright
 #pragma once
 
 
-//========================================================================
-//	Dependencies
-//========================================================================
+/*========================================================================
+	Dependencies
+========================================================================*/
 #include "Quaternion.h"
 #include "Ark/Hal/Simd/Simd.h"
 
 
-//========================================================================
-//	Code
-//========================================================================
+/*========================================================================
+	Code
+========================================================================*/
 namespace ark
 {
 	namespace math
@@ -31,31 +31,34 @@ namespace ark
 		template<typename S, typename I = ark::hal::HAL_SIMD>
 		class Quat
 		{
-			S w_, x_, y_, z_;
-
 		public:
 			using Scalar = S;
 
-			Quat()
+		private:
+			Scalar w_, x_, y_, z_;
+
+		public:
+			Quat() noexcept
 			{}
 
-			Quat(Scalar ww, Scalar xx, Scalar yy, Scalar zz)
-				: w_(ww), x_(xx), y_(yy), z_(zz)
+			Quat(Scalar w, Scalar x, Scalar y, Scalar z) noexcept(std::is_nothrow_copy_constructible_v<Scalar>)
+				: w_(w), x_(x), y_(y), z_(z)
 			{}
 
 			template<Quaternion Q>
-			Quat(const Q& rhs)
-				: Quat(static_cast<S>(rhs.w()), static_cast<S>(rhs.x()), static_cast<S>(rhs.y()), static_cast<S>(rhs.z()))
+				requires std::convertible_to<typename Q::Scalar, Scalar>
+			Quat(const Q& rhs) noexcept(std::is_nothrow_convertible_v<typename Q::Scalar, Scalar>)
+				: Quat(Scalar{rhs.w()}, Scalar{rhs.x()}, Scalar{rhs.y()}, Scalar{rhs.z()})
 			{}
 
 			template<Quaternion Q>
-			// Put in convertible test from Q::S -> S
-			Quat& operator=(const Q& rhs)
+				requires std::convertible_to<typename Q::Scalar, Scalar>
+			Quat& operator=(const Q& rhs) noexcept(std::is_nothrow_convertible_v<typename Q::Scalar, Scalar>)
 			{
-				w_ = Scalar(rhs.w());
-				x_ = Scalar(rhs.x());
-				y_ = Scalar(rhs.y());
-				z_ = Scalar(rhs.z());
+				w_ = Scalar{rhs.w()};
+				x_ = Scalar{rhs.x()};
+				y_ = Scalar{rhs.y()};
+				z_ = Scalar{rhs.z()};
 
 				return *this;
 			}
