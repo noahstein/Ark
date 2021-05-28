@@ -36,8 +36,8 @@ class VecFloatUnitTests : public testing::Test
 protected:
 	void SetUp() override
 	{
-		v1 = Vec<float>({3.2f, 13.5f, 7.3f});
-		v2 = Vec<float>({5, 11, 23});
+		v1 = Vec<float>{3.2f, 13.5f, 7.3f};
+		v2 = Vec<float>{5, 11, 23};
 	}
 	Vec<float> v1;
 	Vec<float> v2;
@@ -55,14 +55,62 @@ TEST(VecUnitTests, DefaultConstructor)
 	SUCCEED();
 }
 
+
+TEST(VecUnitTests, ElementConstructor)
+{
+	// When
+	auto v = Vec<float>{2.0f, 3.0f, 5.0f};
+
+	// Then
+	EXPECT_EQ(v(0), 2.0f);
+	EXPECT_EQ(v(1), 3.0f);
+	EXPECT_EQ(v(2), 5.0f);
+}
+
+
+TEST(VecUnitTests, VectorCopyConstructor)
+{
+	// Given
+	auto v1 = Vec<float>{2.0f, 3.0f, 5.0f};
+
+	// When
+	Vec<int> v2{v1};
+
+	// Then
+	EXPECT_EQ(v2(0), 2);
+	EXPECT_EQ(v2(1), 3);
+	EXPECT_EQ(v2(2), 5);
+}
+
+
+TEST(VecUnitTests, OperatorEqual)
+{
+	// Given
+	auto v1 = Vec<float>{2.0f, 3.0f, 5.0f};
+	ark::math::Vec<int, 3> v2{10, 11, 12};
+	ark::math::Vec<int, 3> v3;
+
+	// When
+	v3 = v2 = v1;
+
+	// Then
+	EXPECT_EQ(v2(0), 2);
+	EXPECT_EQ(v2(1), 3);
+	EXPECT_EQ(v2(2), 5);
+
+	EXPECT_EQ(v3(0), 2);
+	EXPECT_EQ(v3(1), 3);
+	EXPECT_EQ(v3(2), 5);
+}
+
+
 TEST(VecUnitTests, Accessor)
 {
 	// When
-	Vec<float> v({1.0f, 2.0f, 3.0f});
+	Vec<float> v{1.0f, 2.0f, 3.0f};
 
 	// Then
 	EXPECT_EQ(v(0), 1.0f);
 	EXPECT_EQ(v(1), 2.0f);
 	EXPECT_EQ(v(2), 3.0f);
 }
-

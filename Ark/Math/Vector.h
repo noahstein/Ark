@@ -7,7 +7,7 @@ Description
 	vector class oinly needs to define the type of its scalars and 
 	accessors to its elements, and it will not only automatically have 
 	a full set of operations, it will interact with any other mix of 
-	quaternion classes, as long as the scalar types may interact 
+	vector classes, as long as the scalar types may interact 
 	arithmetically.
 	
 	Additionally, any specific vector class may define its own 
@@ -72,7 +72,7 @@ namespace ark::math
 		typename V::Scalar;
 		Arithmetic<typename V::Scalar>;
 
-		{ V::Size() } -> std::same_as<std::size_t>;
+		{ v.Size() } -> std::same_as<std::size_t>;
 		{ v(1) } -> std::same_as<typename V::Scalar>;
 	};
 
@@ -126,7 +126,7 @@ namespace ark::math
 	class VectorUnaryExpr : public VectorExpr
 	{
 	public:
-		using Scalar = typename V::Scalar;
+		using Scalar = V::Scalar;
 	};
 
 
@@ -134,7 +134,7 @@ namespace ark::math
 		Base class of 2-argument vector expressions
 	--------------------------------------------------------------------*/
 	template<Vector VL, Vector VR>
-	requires MutuallyArithmetic<typename VL::Scalar, typename VR::Scalar>
+		requires MutuallyArithmetic<typename VL::Scalar, typename VR::Scalar>
 		&& SameDimension<VL, VR>
 	class VectorBinaryExpr : public VectorExpr
 	{
@@ -144,30 +144,30 @@ namespace ark::math
 	public:
 		using Scalar = typename std::common_type<SL, SR>::type;
 
-		static constexpr std::size_t Size() { return VL::Size(); }
+		static constexpr std::size_t Size() noexcept { return VL::Size(); }
 	};
 
 
 	/*====================================================================
 		Expression Function Classes
 	====================================================================*/
-	
+
 	/*--------------------------------------------------------------------
 		Vector Negation Expression: -v
 	--------------------------------------------------------------------*/
-	template<typename V>
-	class VectorNegation : VectorUnaryExpr<V>
+	template<Vector V>
+	class VectorNegation : public VectorUnaryExpr<V>
 	{
-		V v_;
+		V const & v_;
 
 	public:
 		using Scalar = typename VectorUnaryExpr<V>::Scalar;
 
-		VectorNegation(const V& v)
+		constexpr VectorNegation(const V& v) noexcept
 			: v_(v)
 		{}
 
-		static constexpr size_t Size() { return V::Size(); }
+		static constexpr size_t Size() noexcept { return V::Size(); }
 		constexpr Scalar operator()(size_t index) const
 		{
 			return -v_(index);
@@ -179,7 +179,7 @@ namespace ark::math
 		Vector Negation Operator: -v
 	----------------------------------------------------------------*/
 	template<Vector V>
-	inline auto operator-(const V& v) -> VectorNegation<V>
+	inline constexpr auto operator-(const V& v) noexcept -> VectorNegation<V>
 	{
 		return VectorNegation(v);
 	}
@@ -189,22 +189,21 @@ namespace ark::math
 		Vector Addition Expression: v1 + v2
 	--------------------------------------------------------------------*/
 	template<Vector VL, Vector VR>
-	requires SameDimension<VL, VR>
 	class VectorAddition : public VectorBinaryExpr<VL, VR>
 	{
 		using Expr = typename VectorBinaryExpr<VL, VR>;
 
-		VL l_;
-		VR r_;
+		VL const & l_;
+		VR const & r_;
 
 	public:
 		using Scalar = Expr::Scalar;
 
-		VectorAddition(const VL& lhs, const VR& rhs)
+		constexpr VectorAddition(const VL& lhs, const VR& rhs) noexcept
 			: l_(lhs), r_(rhs)
 		{}
 
-		Scalar operator()(std::size_t index) const { return l_(index) + r_(index); }
+		constexpr Scalar operator()(std::size_t index) const { return l_(index) + r_(index); }
 	};
 
 
@@ -212,8 +211,7 @@ namespace ark::math
 		Vector Addition Operator: v1 + v2
 	--------------------------------------------------------------------*/
 	template<Vector VL, Vector VR>
-	requires SameDimension<VL, VR>
-	inline auto operator+(const VL& lhs, const VR& rhs) -> VectorAddition<VL, VR>
+	inline constexpr auto operator+(const VL& lhs, const VR& rhs) noexcept -> VectorAddition<VL, VR>
 	{
 		return VectorAddition(lhs, rhs);
 	}
@@ -223,22 +221,21 @@ namespace ark::math
 		Vector Subtraction Expression: v1 - v2
 	--------------------------------------------------------------------*/
 	template<Vector VL, Vector VR>
-	requires SameDimension<VL, VR>
 	class VectorSubtraction : public VectorBinaryExpr<VL, VR>
 	{
-		VL l_;
-		VR r_;
+		VR const & r_;
+		VL const & l_;
 
 		using Expr = VectorBinaryExpr<VL, VR>;
 
 	public:
 		using Scalar = typename Expr::Scalar;
 
-		VectorSubtraction(const VL& lhs, const VR& rhs)
+		constexpr VectorSubtraction(const VL& lhs, const VR& rhs) noexcept
 			: l_(lhs), r_(rhs)
 		{}
 
-		static constexpr std::size_t Size() { return Expr::Size(); }
+		static constexpr std::size_t Size() noexcept { return Expr::Size(); }
 		constexpr Scalar operator()(std::size_t index) const { return l_(index) - r_(index); }
 	};
 
@@ -247,8 +244,7 @@ namespace ark::math
 		Vector Subtraction Operator: v1 - v2
 	--------------------------------------------------------------------*/
 	template<Vector VL, Vector VR>
-	requires SameDimension<VL, VR>
-	inline auto operator-(const VL& lhs, const VR& rhs) -> VectorSubtraction<VL, VR>
+	inline constexpr auto operator-(const VL& lhs, const VR& rhs) noexcept -> VectorSubtraction<VL, VR>
 	{
 		return VectorSubtraction(lhs, rhs);
 	}
@@ -264,15 +260,15 @@ namespace ark::math
 		using Scalar = typename V::Scalar;
 
 	private:
-		Scalar s_;
-		V v_;
+		Scalar const & s_;
+		V const & v_;
 
 	public:
-		VectorScalarMultiplication(Scalar s, const V& v)
+		constexpr VectorScalarMultiplication(Scalar s, const V& v) noexcept 
 			: s_(s), v_(v)
 		{}
 
-		static constexpr std::size_t Size() { return V::Size(); }
+		static constexpr std::size_t Size() noexcept { return V::Size(); }
 		constexpr Scalar operator()(std::size_t index) const { return v_(index) * s_; }
 	};
 
@@ -281,7 +277,7 @@ namespace ark::math
 		Scalar-Vector Multiplication Operator: s * v
 	--------------------------------------------------------------------*/
 	template<Vector V>
-	inline auto operator*(typename V::Scalar s, const V& v) -> VectorScalarMultiplication<V>
+	inline constexpr auto operator*(typename V::Scalar s, const V& v) noexcept -> VectorScalarMultiplication<V>
 	{
 		return VectorScalarMultiplication(s, v);
 	}
@@ -291,7 +287,7 @@ namespace ark::math
 		Vector-Scalar Multiplication Operator: v * s
 	--------------------------------------------------------------------*/
 	template<Vector V>
-	inline auto operator*(const V& v, typename V::Scalar s) -> VectorScalarMultiplication<V>
+	inline constexpr auto operator*(const V& v, typename V::Scalar s) noexcept -> VectorScalarMultiplication<V>
 	{
 		return VectorScalarMultiplication(s, v);
 	}
@@ -307,15 +303,15 @@ namespace ark::math
 		using Scalar = typename V::Scalar;
 
 	private:
-		V v_;
-		Scalar s_;
+		V const v_;
+		Scalar const s_;
 
 	public:
-		VectorScalarDivision(const V& v, Scalar s)
+		constexpr VectorScalarDivision(const V& v, Scalar s) noexcept
 			: v_(v), s_(s)
 		{}
 
-		static constexpr std::size_t Size() { return V::Size(); }
+		static constexpr std::size_t Size() noexcept { return V::Size(); }
 		constexpr Scalar operator()(std::size_t index) const { return v_(index) / s_; }
 	};
 
@@ -324,7 +320,7 @@ namespace ark::math
 		Vector-Scalar Division Operator: v / s
 	--------------------------------------------------------------------*/
 	template<Vector V>
-	inline auto operator/(const V& v, typename V::Scalar s) -> VectorScalarDivision<V>
+	inline constexpr auto operator/(const V& v, typename V::Scalar s) noexcept -> VectorScalarDivision<V>
 	{
 
 		return VectorScalarDivision(v, s);
@@ -335,8 +331,8 @@ namespace ark::math
 		Vector Equality Operator: v1 == v2
 	--------------------------------------------------------------------*/
 	template<Vector VL, Vector VR>
-	requires SameDimension<VL, VR>
-	inline auto operator==(const VL& lhs, const VR& rhs) -> bool
+		requires SameDimension<VL, VR>
+	inline constexpr auto operator==(const VL& lhs, const VR& rhs) -> bool
 	{
 		for (std::size_t i = 0; i < VL::Size(); ++i)
 		{
@@ -353,8 +349,8 @@ namespace ark::math
 		Dot Product Function: Dot(v)
 	--------------------------------------------------------------------*/
 	template<Vector VL, Vector VR>
-	requires SameDimension<VL, VR>
-	inline auto Dot(const VL& l, const VR& r) -> typename VectorBinaryExpr<VL, VR>::Scalar
+		requires SameDimension<VL, VR>
+	inline constexpr auto Dot(const VL& l, const VR& r) -> typename VectorBinaryExpr<VL, VR>::Scalar
 	{
 		typename VectorBinaryExpr<VL, VR>::Scalar result{0};
 		for (std::size_t i = 0; i < VL::Size(); ++i)
@@ -369,7 +365,7 @@ namespace ark::math
 		Magnitude Function: Magnitude(v)
 	--------------------------------------------------------------------*/
 	template<Vector V>
-	inline auto Magnitude(const V& v) -> typename VectorUnaryExpr<V>::Scalar
+	inline constexpr auto Magnitude(const V& v) -> typename VectorUnaryExpr<V>::Scalar
 	{
 		return std::sqrt(Dot(v, v));
 	}
@@ -379,8 +375,8 @@ namespace ark::math
 		2D Cross Product Function: Cross(v)
 	--------------------------------------------------------------------*/
 	template<Vector VL, Vector VR>
-	requires OfKnownDimension<VL, 2> && OfKnownDimension<VR, 2>
-	inline auto Cross(const VL& lhs, const VR& rhs) -> typename VectorBinaryExpr<VL, VR>::Scalar
+		requires OfKnownDimension<VL, 2> && OfKnownDimension<VR, 2>
+	inline constexpr auto Cross(const VL& lhs, const VR& rhs) -> typename VectorBinaryExpr<VL, VR>::Scalar
 	{
 		return lhs(0) * rhs(1) - lhs(1) * rhs(0);
 	}
@@ -390,7 +386,7 @@ namespace ark::math
 		3D Cross Product Expression: v1 x v2
 	--------------------------------------------------------------------*/
 	template<Vector VL, Vector VR>
-	requires OfKnownDimension<VL, 3> && OfKnownDimension<VR, 3>
+		requires OfKnownDimension<VL, 3> && OfKnownDimension<VR, 3>
 	class VectorCrossProduct3D : public VectorBinaryExpr<VL, VR>
 	{
 		using Expr = VectorBinaryExpr<VL, VR>;
@@ -399,13 +395,13 @@ namespace ark::math
 		using Scalar = typename Expr::Scalar;
 
 	private:
-		VL l_;
-		VR r_;
+		VL const l_;
+		VR const r_;
 
 		Scalar result[3];
 
 	public:
-		VectorCrossProduct3D(const VL& lhs, const VR& rhs)
+		constexpr VectorCrossProduct3D(const VL& lhs, const VR& rhs) noexcept
 			: l_(lhs), r_(rhs)
 		{
 			result[0] = lhs(1) * rhs(2) - lhs(2) * rhs(1);
@@ -413,7 +409,7 @@ namespace ark::math
 			result[2] = lhs(0) * rhs(1) - lhs(1) * rhs(0);
 		}
 
-		static constexpr std::size_t Size() { return 3; }
+		static constexpr std::size_t Size() noexcept { return 3; }
 		constexpr Scalar operator()(std::size_t index) const { return result[index]; }
 	};
 
@@ -422,8 +418,8 @@ namespace ark::math
 		3D Cross Product Function: Cross(v1, v2)
 	--------------------------------------------------------------------*/
 	template<Vector VL, Vector VR>
-	requires OfKnownDimension<VL, 3> && OfKnownDimension<VR, 3>
-	inline auto Cross(const VL& lhs, const VR& rhs) -> VectorCrossProduct3D<VL, VR>
+		requires OfKnownDimension<VL, 3> && OfKnownDimension<VR, 3>
+	inline constexpr auto Cross(const VL& lhs, const VR& rhs) noexcept -> VectorCrossProduct3D<VL, VR>
 	{
 		return VectorCrossProduct3D(lhs, rhs);
 	}

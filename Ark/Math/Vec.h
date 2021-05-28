@@ -29,37 +29,50 @@ namespace ark::math
 	template<typename S, int N, typename I = ark::hal::HAL_SIMD>
 	class Vec
 	{
-		S data_[N];
-
 	public:
 		using Scalar = S;
 
-		Vec()
-		{}
+	private:
+		Scalar data_[N];
 
-		constexpr Vec(const S(&values)[N])
+	public:
+		constexpr Vec() noexcept(std::is_nothrow_constructible_v<Scalar>) = default;
+
+		template<typename ... T>
+			requires (sizeof...(T) == N)
+		constexpr Vec(T && ... values) noexcept((std::is_nothrow_convertible_v<T, Scalar> && ...))
 		{
-			size_t i = 0;
-			for (auto v : values)
+			auto Set = [this, i = 0] <typename T> (T && value) mutable
 			{
-				data_[i++] = v;
+				data_[i++] = static_cast<Scalar>(std::forward<T>(value));
+			};
+
+			(Set(values), ...);
+		}
+
+		template<Vector V>
+			requires SameDimension<Vec, V>	
+		constexpr Vec(const V& rhs) noexcept(std::is_nothrow_convertible_v<typename V::Scalar, Scalar>)
+		{
+			for (std::size_t i = 0; i < Size(); ++i)
+			{
+				data_[i] = static_cast<Scalar>(rhs(i));
 			}
 		}
 
 		template<Vector V>
-		Vec(const V& rhs)
-		{}
-
-		template<Vector V>
-		requires std::convertible_to<typename V::Scalar, Scalar> && (V::N == N)
-		Vec& operator=(const Vec& rhs)
+			requires std::convertible_to<typename V::Scalar, Scalar> && (V::N == N)
+		constexpr Vec& operator=(const Vec& rhs) noexcept(std::is_nothrow_convertible_v<typename V::Scalar, Scalar>)
 		{
-
+			for (std::size_t i = 0; i < Size(); ++i)
+			{
+				data_[i] = static_cast<Scalar>(rhs(i));
+			}
 			return *this;
 		}
 
-		static constexpr size_t Size() { return N; }
-		constexpr S operator()(size_t index) const
+		static constexpr size_t Size() noexcept { return N; }
+		constexpr Scalar operator()(size_t index) const noexcept(std::is_nothrow_copy_constructible_v<Scalar>)
 		{
 			return data_[index];
 		}
