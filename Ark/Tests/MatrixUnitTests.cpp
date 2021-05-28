@@ -55,16 +55,21 @@ namespace ark::math
 			}
 		}
 
-		constexpr TestMtx(const Scalar(&values)[R * C])
+		template<typename ... T>
+			requires (sizeof...(T) == R * C)
+		constexpr TestMtx(T && ... values)
 		{
-			std::size_t i = 0;
-			for (std::size_t r = 0; r < R; ++r)
+			auto Set = [this, r = 0, c = 0] <typename T> (T && value) mutable
 			{
-				for (std::size_t c = 0; c < C; ++c)
+				data_[r][c] = static_cast<Scalar>(std::forward<T>(value));
+				if (++c == Width())
 				{
-					data_[r][c] = values[i++];					
+					c = 0;
+					++r;
 				}
-			}
+			};
+
+			(Set(values), ...);
 		}
 
 		template<ark::math::Matrix M>
@@ -123,6 +128,7 @@ TEST_F(MatrixUnitTests, Negate)
 	EXPECT_EQ(mr(1,1 ), -7.0f);
 }
 
+
 TEST_F(MatrixUnitTests, Add)
 {
 	// When
@@ -134,6 +140,7 @@ TEST_F(MatrixUnitTests, Add)
 	EXPECT_EQ(mr(1, 0), 22.0f);
 	EXPECT_EQ(mr(1,1 ), 26.0f);
 }
+
 
 TEST_F(MatrixUnitTests, Subtract)
 {
@@ -147,6 +154,7 @@ TEST_F(MatrixUnitTests, Subtract)
 	EXPECT_EQ(mr(1,1 ), -12.0f);
 }
 
+
 TEST_F(MatrixUnitTests, ScalarMatrixMultiplication)
 {
 	// When
@@ -158,6 +166,7 @@ TEST_F(MatrixUnitTests, ScalarMatrixMultiplication)
 	EXPECT_EQ(mr(1, 0), 50.0f);
 	EXPECT_EQ(mr(1,1 ), 70.0f);
 }
+
 
 TEST_F(MatrixUnitTests, MatrixScalarMultiplication)
 {
@@ -171,6 +180,7 @@ TEST_F(MatrixUnitTests, MatrixScalarMultiplication)
 	EXPECT_EQ(mr(1,1 ), 70.0f);
 }
 
+
 TEST_F(MatrixUnitTests, MatrixScalarDivision)
 {
 	// When
@@ -183,6 +193,7 @@ TEST_F(MatrixUnitTests, MatrixScalarDivision)
 	EXPECT_EQ(mr(1,1 ), 3.5f);
 }
 
+
 TEST_F(MatrixUnitTests, EqualityCheckSame)
 {
 	// When
@@ -191,6 +202,7 @@ TEST_F(MatrixUnitTests, EqualityCheckSame)
 	// Then
 	EXPECT_TRUE(result);
 }
+
 
 TEST_F(MatrixUnitTests, EqualityCheckDifferent)
 {
@@ -201,6 +213,7 @@ TEST_F(MatrixUnitTests, EqualityCheckDifferent)
 	EXPECT_FALSE(result);
 }
 
+
 TEST_F(MatrixUnitTests, InequalityCheckSame)
 {
 	// When
@@ -210,6 +223,7 @@ TEST_F(MatrixUnitTests, InequalityCheckSame)
 	EXPECT_FALSE(result);
 }
 
+
 TEST_F(MatrixUnitTests, InequalityCheckDifferent)
 {
 	// When
@@ -218,6 +232,7 @@ TEST_F(MatrixUnitTests, InequalityCheckDifferent)
 	// Then
 	EXPECT_TRUE(result);
 }
+
 
 TEST_F(MatrixUnitTests, Multiplication)
 {
@@ -231,6 +246,7 @@ TEST_F(MatrixUnitTests, Multiplication)
 	EXPECT_EQ(mr(1,1 ), 198.0f);
 }
 
+
 TEST_F(MatrixUnitTests, Determinant2x2)
 {
 	// When
@@ -239,6 +255,7 @@ TEST_F(MatrixUnitTests, Determinant2x2)
 	// Then
 	EXPECT_EQ(result, -1.0f);
 }
+
 
 TEST_F(MatrixUnitTests, Determinant3x3)
 {
@@ -252,6 +269,7 @@ TEST_F(MatrixUnitTests, Determinant3x3)
 	// Then
 	EXPECT_EQ(result, -12.0f);
 }
+
 
 TEST_F(MatrixUnitTests, Determinant4x45)
 {

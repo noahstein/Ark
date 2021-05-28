@@ -153,7 +153,7 @@ namespace ark::math
 	/*--------------------------------------------------------------------
 		Base class of 1-argument matrix expressions
 	--------------------------------------------------------------------*/
-	template<class M>
+	template<Matrix M>
 	class MatrixUnaryExpr : public MatrixExpr
 	{
 	public:
@@ -183,20 +183,20 @@ namespace ark::math
 	/*--------------------------------------------------------------------
 		Matrix Negation Expression: -m
 	--------------------------------------------------------------------*/
-	template<typename M>
-	class MatrixNegation : MatrixUnaryExpr<M>
+	template<Matrix M>
+	class MatrixNegation : public MatrixUnaryExpr<M>
 	{
-		M m_;
+		M const & m_;
 
 	public:
 		using Scalar = typename MatrixUnaryExpr<M>::Scalar;
 
-		MatrixNegation(const M& m)
+		constexpr MatrixNegation(const M& m) noexcept
 			: m_(m)
 		{}
 
-		static constexpr size_t Width() { return M::Width(); }
-		static constexpr size_t Height() { return M::Height(); }
+		static constexpr size_t Width() noexcept { return M::Width(); }
+		static constexpr size_t Height() noexcept { return M::Height(); }
 		constexpr Scalar operator()(std::size_t row, std::size_t column) const
 		{
 			return -m_(row, column);
@@ -208,7 +208,7 @@ namespace ark::math
 		Matrix Negation Operator: -m
 	----------------------------------------------------------------*/
 	template<Matrix M>
-	inline auto operator-(const M& m) -> MatrixNegation<M>
+	inline constexpr auto operator-(const M& m) noexcept -> MatrixNegation<M>
 	{
 		return MatrixNegation(m);
 	}
@@ -218,24 +218,24 @@ namespace ark::math
 		Matrix Addition Expression: m1 + m2
 	--------------------------------------------------------------------*/
 	template<Matrix ML, Matrix MR>
-	requires SameSize<ML, MR>
+		requires SameSize<ML, MR>
 	class MatrixAddition : public MatrixBinaryExpr<ML, MR>
 	{
 		using Expr = typename MatrixBinaryExpr<ML, MR>;
 
-		ML l_;
-		MR r_;
+		ML const & l_;
+		MR const & r_;
 
 	public:
 		using Scalar = Expr::Scalar;
 
-		MatrixAddition(const ML& lhs, const MR& rhs)
+		constexpr MatrixAddition(const ML& lhs, const MR& rhs) noexcept
 			: l_(lhs), r_(rhs)
 		{}
 
-		static constexpr size_t Width() { return ML::Width(); }
-		static constexpr size_t Height() { return ML::Height(); }
-		Scalar operator()(std::size_t row, std::size_t column) const
+		static constexpr size_t Width() noexcept { return ML::Width(); }
+		static constexpr size_t Height() noexcept { return ML::Height(); }
+		constexpr Scalar operator()(std::size_t row, std::size_t column) const
 		{
 			return l_(row, column) + r_(row, column);
 		}
@@ -246,8 +246,8 @@ namespace ark::math
 		Matrix Addition Operator: m1 + m2
 	--------------------------------------------------------------------*/
 	template<Matrix ML, Matrix MR>
-	requires SameSize<ML, MR>
-	inline auto operator+(const ML& lhs, const MR& rhs) -> MatrixAddition<ML, MR>
+		requires SameSize<ML, MR>
+	inline constexpr auto operator+(const ML& lhs, const MR& rhs) noexcept -> MatrixAddition<ML, MR>
 	{
 		return MatrixAddition(lhs, rhs);
 	}
@@ -257,24 +257,24 @@ namespace ark::math
 		Matrix Subtraction Expression: m1 - m2
 	--------------------------------------------------------------------*/
 	template<Matrix ML, Matrix MR>
-	requires SameSize<ML, MR>
+		requires SameSize<ML, MR>
 	class MatrixSubtraction : public MatrixBinaryExpr<ML, MR>
 	{
 		using Expr = typename MatrixBinaryExpr<ML, MR>;
 
-		ML l_;
-		MR r_;
+		ML const & l_;
+		MR const & r_;
 
 	public:
 		using Scalar = Expr::Scalar;
 
-		MatrixSubtraction(const ML& lhs, const MR& rhs)
+		constexpr MatrixSubtraction(const ML& lhs, const MR& rhs) noexcept
 			: l_(lhs), r_(rhs)
 		{}
 
-		static constexpr size_t Width() { return ML::Width(); }
-		static constexpr size_t Height() { return ML::Height(); }
-		Scalar operator()(std::size_t row, std::size_t column) const
+		static constexpr size_t Width() noexcept { return ML::Width(); }
+		static constexpr size_t Height() noexcept { return ML::Height(); }
+		constexpr Scalar operator()(std::size_t row, std::size_t column) const
 		{
 			return l_(row, column) - r_(row, column);
 		}
@@ -285,8 +285,8 @@ namespace ark::math
 		Matrix Subtraction Operator: m1 - m2
 	--------------------------------------------------------------------*/
 	template<Matrix ML, Matrix MR>
-	requires SameSize<ML, MR>
-	inline auto operator-(const ML& lhs, const MR& rhs) -> MatrixSubtraction<ML, MR>
+		requires SameSize<ML, MR>
+	inline constexpr auto operator-(const ML& lhs, const MR& rhs) noexcept -> MatrixSubtraction<ML, MR>
 	{
 		return MatrixSubtraction(lhs, rhs);
 	}
@@ -298,19 +298,19 @@ namespace ark::math
 	template<Matrix M, typename S>
 	class MatrixScalarMultiplication : public MatrixExpr
 	{
-		M m_;
+		M const & m_;
 		S s_;
 
 	public:
 		using Scalar = std::common_type<typename M::Scalar, S>::type;
 
-		MatrixScalarMultiplication(const M& m, S s)
+		constexpr MatrixScalarMultiplication(const M& m, S s) noexcept
 			: m_(m), s_(s)
 		{}
 
-		static constexpr size_t Width() { return M::Width(); }
-		static constexpr size_t Height() { return M::Height(); }
-		Scalar operator()(std::size_t row, std::size_t column) const
+		static constexpr size_t Width() noexcept { return M::Width(); }
+		static constexpr size_t Height() noexcept { return M::Height(); }
+		constexpr Scalar operator()(std::size_t row, std::size_t column) const
 		{
 			return s_ * m_(row, column);
 		}
@@ -321,8 +321,8 @@ namespace ark::math
 		Scalar-Matrix Multiplication Operator: s * m
 	--------------------------------------------------------------------*/
 	template<typename S, Matrix M>
-	requires MutuallyArithmetic<S, typename M::Scalar>
-	inline auto operator*(S lhs, const M& rhs) -> MatrixScalarMultiplication<M, S>
+		requires MutuallyArithmetic<S, typename M::Scalar>
+	inline constexpr auto operator*(S lhs, const M& rhs) noexcept -> MatrixScalarMultiplication<M, S>
 	{
 		return MatrixScalarMultiplication(rhs, lhs);
 	}
@@ -332,8 +332,8 @@ namespace ark::math
 		Matrix-Scalar Multiplication Operator: m * s
 	--------------------------------------------------------------------*/
 	template<Matrix M, typename S>
-	requires MutuallyArithmetic<S, typename M::Scalar>
-	inline auto operator*(const M& lhs, S rhs) -> MatrixScalarMultiplication<M, S>
+		requires MutuallyArithmetic<S, typename M::Scalar>
+	inline constexpr auto operator*(const M& lhs, S rhs) noexcept -> MatrixScalarMultiplication<M, S>
 	{
 		return MatrixScalarMultiplication(lhs, rhs);
 	}
@@ -345,19 +345,19 @@ namespace ark::math
 	template<Matrix M, typename S>
 	class MatrixScalarDivision : public MatrixExpr
 	{
-		M m_;
+		M const & m_;
 		S s_;
 
 	public:
 		using Scalar = std::common_type<typename M::Scalar, S>::type;
 
-		MatrixScalarDivision(const M& m, S s)
+		constexpr MatrixScalarDivision(const M& m, S s) noexcept
 			: m_(m), s_(s)
 		{}
 
-		static constexpr size_t Width() { return M::Width(); }
-		static constexpr size_t Height() { return M::Height(); }
-		Scalar operator()(std::size_t row, std::size_t column) const
+		static constexpr size_t Width() noexcept { return M::Width(); }
+		static constexpr size_t Height() noexcept { return M::Height(); }
+		constexpr Scalar operator()(std::size_t row, std::size_t column) const
 		{
 			return m_(row, column) / s_;
 		}
@@ -368,7 +368,7 @@ namespace ark::math
 		Matrix-Scalar Division Operator: m / s
 	--------------------------------------------------------------------*/
 	template<Matrix M, typename S>
-	inline auto operator/(const M& lhs, S rhs) -> MatrixScalarDivision<M, S>
+	inline constexpr auto operator/(const M& lhs, S rhs) noexcept -> MatrixScalarDivision<M, S>
 	{
 		return MatrixScalarDivision(lhs, rhs);
 	}
@@ -377,8 +377,8 @@ namespace ark::math
 		Matrix Equalaity Operator: m1 == m2
 	--------------------------------------------------------------------*/
 	template<Matrix ML, Matrix MR>
-	requires SameSize<ML, MR>
-	inline auto operator == (const ML& lhs, const MR& rhs) -> bool
+		requires SameSize<ML, MR>
+	inline constexpr auto operator == (const ML& lhs, const MR& rhs) noexcept -> bool
 	{
 		for (std::size_t r = 0; r < ML::Height(); ++r)
 		{
@@ -398,22 +398,22 @@ namespace ark::math
 		Matrix Multiplication Expression: m1 * m2
 	--------------------------------------------------------------------*/
 	template<Matrix ML, Matrix MR>
-	requires MatrixMultiplicationSizes<ML, MR>
+		requires MatrixMultiplicationSizes<ML, MR>
 	class MatrixMultiplication : public MatrixBinaryExpr<ML, MR>
 	{
-		ML l_;
-		MR r_;
+		ML const & l_;
+		MR const & r_;
 
 	public:
 		using Scalar = typename MatrixBinaryExpr<ML, MR>::Scalar;
 
-		MatrixMultiplication(const ML& lhs, const MR& rhs)
+		constexpr MatrixMultiplication(const ML& lhs, const MR& rhs) noexcept
 			: l_(lhs), r_(rhs)
 		{}
 
-		static constexpr size_t Width() { return MR::Width(); }
-		static constexpr size_t Height() { return ML::Height(); }
-		Scalar operator()(std::size_t row, std::size_t column) const
+		static constexpr size_t Width() noexcept { return MR::Width(); }
+		static constexpr size_t Height() noexcept { return ML::Height(); }
+		constexpr Scalar operator()(std::size_t row, std::size_t column) const
 		{
 			Scalar result = 0;
 			for (std::size_t i = 0; i < ML::Width(); ++i)
@@ -429,7 +429,7 @@ namespace ark::math
 		Matrix Multiplication Operator: m * m
 	--------------------------------------------------------------------*/
 	template<Matrix ML, Matrix MR>
-	inline auto operator*(const ML& lhs, const MR& rhs) -> MatrixMultiplication<ML, MR>
+	inline constexpr auto operator*(const ML& lhs, const MR& rhs) noexcept -> MatrixMultiplication<ML, MR>
 	{
 		return MatrixMultiplication(lhs, rhs);
 	}
@@ -439,8 +439,8 @@ namespace ark::math
 		2x2 Matrix Determinant Function: Det(m)
 	--------------------------------------------------------------------*/
 	template<Matrix M>
-	requires MatrixOfKnownSize<M, 2, 2>
-	inline auto Det(const M& m) -> typename M::Scalar
+		requires MatrixOfKnownSize<M, 2, 2>
+	inline constexpr auto Det(const M& m) -> typename M::Scalar
 	{
 		return m(0, 0) * m(1, 1) - m(0, 1) * m(1, 0);
 	}
@@ -450,8 +450,8 @@ namespace ark::math
 		3x3 Matrix Determinant Function: Det(m)
 	--------------------------------------------------------------------*/
 	template<Matrix M>
-	requires MatrixOfKnownSize<M, 3, 3>
-	inline auto Det(const M& m) -> typename M::Scalar
+		requires MatrixOfKnownSize<M, 3, 3>
+	inline constexpr auto Det(const M& m) -> typename M::Scalar
 	{
 		return
 			  m(0, 0) * (m(1, 1) * m(2, 2) - m(1, 2) * m(2,1))
@@ -464,8 +464,8 @@ namespace ark::math
 		4x4 Matrix Determinant Function: Det(m)
 	--------------------------------------------------------------------*/
 	template<Matrix M>
-	requires MatrixOfKnownSize<M, 4, 4>
-	inline auto Det(const M& m) -> typename M::Scalar
+		requires MatrixOfKnownSize<M, 4, 4>
+	inline constexpr auto Det(const M& m) -> typename M::Scalar
 	{
 		return
 			m(0,0) *

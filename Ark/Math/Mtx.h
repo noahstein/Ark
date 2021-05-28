@@ -29,28 +29,36 @@ namespace ark::math
 	template<typename S, int R, int C, typename I = ark::hal::HAL_SIMD>
 	class Mtx
 	{
-		S data_[R][C];
-
 	public:
 		using Scalar = S;
 
-		Mtx()
+	private:
+		S data_[R][C];
+
+	public:
+		constexpr Mtx()
 		{}
 
-		constexpr Mtx(const S(&values)[R * C])
+		template<typename ... T>
+			requires (sizeof...(T) == R * C)
+		constexpr Mtx(T && ... values)
 		{
-			std::size_t i = 0;
-			for (std::size_t r = 0; r < R; ++r)
+			auto Set = [this, r = 0, c = 0] <typename T> (T && value) mutable
 			{
-				for (std::size_t c = 0; c < C; ++c)
+				data_[r][c] = static_cast<Scalar>(std::forward<T>(value));
+				if (++c == Width())
 				{
-					data_[r][c] = values[i++];					
+					c = 0;
+					++r;
 				}
-			}
+			};
+
+			(Set(values), ...);
 		}
 
 		template<Matrix M>
-		requires std::convertible_to<typename M::Scalar, Scalar> && (M::N == N)
+			requires std::convertible_to<typename M::Scalar, Scalar>
+			&& (M::N == N)
 		constexpr Mtx& operator=(const Mtx& rhs)
 		{
 			for (std::size_t r = 0; r < rhs.Height(); ++r)
