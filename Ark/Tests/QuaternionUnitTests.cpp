@@ -320,7 +320,7 @@ namespace ark::math::test
 		float r = Norm(q1);
 
 		// Then
-		EXPECT_FLOAT_EQ(r, 24.24871130596428);
+		EXPECT_FLOAT_EQ(r, 24.24871130596428f);
 	}
 
 

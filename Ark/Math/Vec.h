@@ -71,6 +71,15 @@ namespace ark::math
 			return *this;
 		}
 
+		constexpr Vec& operator=(const Scalar value)
+		{
+			static_assert(value == 0, "0 is the only valid scalar value that may be used to construct a vector.");
+			for (std::size_t i = 0; i < Size(); ++i)
+			{
+				data_[i] = value;
+			}
+		}
+
 		static constexpr size_t Size() noexcept { return N; }
 		constexpr Scalar operator()(size_t index) const noexcept(std::is_nothrow_copy_constructible_v<Scalar>)
 		{

@@ -36,8 +36,8 @@ class QuatFloatUnitTests : public testing::Test
 protected:
 	void SetUp() override
 	{
-		q1 = Quat(3, 13, 7, 19);
-		q2 = Quat(5, 11, 23, 29);
+		q1 = Quat<float>(3, 13, 7, 19);
+		q2 = Quat<float>(5, 11, 23, 29);
 	}
 
 	Quat<float> q1;
