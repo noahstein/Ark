@@ -253,18 +253,19 @@ namespace ark::math
 	/*--------------------------------------------------------------------
 		Vector-Scalar Multiplication Expression: s * v, v * s
 	--------------------------------------------------------------------*/
-	template<Vector V>
+	template<Vector V, typename S>
+		requires MutuallyArithmetic<typename V::Scalar, S>
 	class VectorScalarMultiplication : public VectorExpr
 	{
 	public:
-		using Scalar = typename V::Scalar;
+		using Scalar = S;
 
 	private:
 		Scalar const & s_;
 		V const & v_;
 
 	public:
-		constexpr VectorScalarMultiplication(Scalar s, const V& v) noexcept 
+		constexpr VectorScalarMultiplication(const Scalar & s, const V & v) noexcept 
 			: s_(s), v_(v)
 		{}
 
@@ -276,8 +277,9 @@ namespace ark::math
 	/*--------------------------------------------------------------------
 		Scalar-Vector Multiplication Operator: s * v
 	--------------------------------------------------------------------*/
-	template<Vector V>
-	inline constexpr auto operator*(typename V::Scalar s, const V& v) noexcept -> VectorScalarMultiplication<V>
+	template<typename S, Vector V>
+		requires MutuallyArithmetic<S, typename V::Scalar>
+	inline constexpr auto operator*(const S & s, const V & v) noexcept -> VectorScalarMultiplication<V, S>
 	{
 		return VectorScalarMultiplication(s, v);
 	}
@@ -286,8 +288,8 @@ namespace ark::math
 	/*--------------------------------------------------------------------
 		Vector-Scalar Multiplication Operator: v * s
 	--------------------------------------------------------------------*/
-	template<Vector V>
-	inline constexpr auto operator*(const V& v, typename V::Scalar s) noexcept -> VectorScalarMultiplication<V>
+	template<Vector V, typename S>
+	inline constexpr auto operator*(const V & v, const S & s) noexcept -> VectorScalarMultiplication<V, S>
 	{
 		return VectorScalarMultiplication(s, v);
 	}
@@ -296,18 +298,19 @@ namespace ark::math
 	/*--------------------------------------------------------------------
 		Vector-Scalar Division Expression: v / s
 	--------------------------------------------------------------------*/
-	template<Vector V>
+	template<Vector V, typename S>
+		requires MutuallyArithmetic<typename V::Scalar, S>
 	class VectorScalarDivision : public VectorExpr
 	{
 	public:
-		using Scalar = typename V::Scalar;
+		using Scalar = S;
 
 	private:
-		V const v_;
-		Scalar const s_;
+		V const & v_;
+		Scalar const & s_;
 
 	public:
-		constexpr VectorScalarDivision(const V& v, Scalar s) noexcept
+		constexpr VectorScalarDivision(const V& v, const Scalar & s) noexcept
 			: v_(v), s_(s)
 		{}
 
@@ -319,8 +322,9 @@ namespace ark::math
 	/*--------------------------------------------------------------------
 		Vector-Scalar Division Operator: v / s
 	--------------------------------------------------------------------*/
-	template<Vector V>
-	inline constexpr auto operator/(const V& v, typename V::Scalar s) noexcept -> VectorScalarDivision<V>
+	template<Vector V, typename S>
+		requires MutuallyArithmetic<typename V::Scalar, S>
+	inline constexpr auto operator/(const V & v, const S & s) noexcept -> VectorScalarDivision<V, S>
 	{
 
 		return VectorScalarDivision(v, s);
