@@ -29,7 +29,7 @@ namespace ark::math
 	/*--------------------------------------------------------------------
 	 Simple, Dense Statically-sized Vector
 	--------------------------------------------------------------------*/
-	template<typename S, std::size_t N, typename I = ark::hal::HAL_SIMD>
+	template<typename S, std::size_t N, typename I = ark::hal::simd::HAL_SIMD>
 	class Vec
 	{
 	public:

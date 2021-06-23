@@ -1,13 +1,19 @@
 /*========================================================================
 Description
-	SIMD tag for the x86/x64 Intel SSE 1.0 ISA.
+	SIMD tag for the x86/x64 Intel SSE 2.0 ISA.
 
 Copyright
 	Copyright (c) 2021 Noah Stein. All Rights Reserved.
 ========================================================================*/
 
-#if !defined(ARK_HAL_SIMD_SSE_H_INCLUDE_GUARD)
-#define ARK_HAL_SIMD_SSE_H_INCLUDE_GUARD
+#if !defined(ARK_HAL_SIMD_SSE2_H_INCLUDE_GUARD)
+#define ARK_HAL_SIMD_SSE2_H_INCLUDE_GUARD
+
+
+//========================================================================
+//	Dependencies
+//========================================================================
+#include "Sse.h"
 
 
 //========================================================================
@@ -15,7 +21,7 @@ Copyright
 //========================================================================
 namespace ark::hal::simd
 {
-	class Sse : public None
+	class Sse2 : public Sse
 	{
 	};
 }

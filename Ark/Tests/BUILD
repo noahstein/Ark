@@ -1,7 +1,7 @@
 #	Copyright (c) 2021 Noah Stein. All Rights Reserved.
 
 cc_test(
-	name = "ArkTests",
+	name = "Tests",
 	size = "small",
 	srcs = [
 		"MatrixUnitTests.cpp",
@@ -17,6 +17,6 @@ cc_test(
 		"//Ark:Ark",
 	],
 	defines = [
-		"HAL_SIMD=Sse2"
+		"HAL_SIMD=None"
 	]
 )

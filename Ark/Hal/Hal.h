@@ -26,6 +26,9 @@ Platform-specific Inclusion
 // Build a platform-specific header file name
 #define INCLUDE_BUILD_FILENAME(Type, File) INCLUDE_STRINGIZE(File ## _ ## Type.h)
 
+// Include a local file based on platform config, e.g. SIMD -> "Sse2.h"
+#define INCLUDE_HAL_LOCAL(File) INCLUDE_STRINGIZE(File.h)
+
 // Include a platform-specific hardware abstraction layer header file
 #define INCLUDE_HAL(Type, File) INCLUDE_BUILD_FILENAME(Type, File)
 

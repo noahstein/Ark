@@ -27,7 +27,7 @@ namespace ark::math
 	/*--------------------------------------------------------------------
 	 Simple, Dense Statically-sized Matrix
 	--------------------------------------------------------------------*/
-	template<typename S, int R, int C, typename I = ark::hal::HAL_SIMD>
+	template<typename S, int R, int C, typename I = ark::hal::simd::HAL_SIMD>
 	class Mtx
 	{
 	public:

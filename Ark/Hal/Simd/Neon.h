@@ -19,14 +19,11 @@ Copyright
 //========================================================================
 //	Code
 //========================================================================
-namespace ark
+namespace ark::hal::simd
 {
-	namespace hal
+	class Neon : public None
 	{
-		class Neon : public Simd
-		{
-		};
-	}
+	};
 }
 
 

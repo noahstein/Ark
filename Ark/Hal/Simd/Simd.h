@@ -1,6 +1,9 @@
 /*========================================================================
 Description
-	SIMD ISA tag.
+	SIMD base ISA tag. Specific SIMD architecture tags will derive from 
+	this tag. These tags will get defined in architecture-specific files, 
+	not mererly one per architecture, but one per architecture revision 
+	to ensure maximum encapsulation.
 
 Copyright
 	Copyright (c) 2021 Noah Stein. All Rights Reserved.
@@ -19,41 +22,21 @@ Copyright
 //========================================================================
 //	Code
 //========================================================================
-namespace ark
+namespace ark::hal::simd
 {
-	namespace hal
+	class None
 	{
-		class Simd
-		{
-		};
-
-		// TODO: Remove when include worked out
-		class Sse : public Simd
-		{
-		};
-
-		class Sse2 : public Sse
-		{
-		};
-
-		class Sse3 : public Sse2
-		{
-		};
-
-		class Ssse3 : public Sse3
-		{
-		};
-
-		class Sse4_1 : public Ssse3
-		{
-		};
-
-		class Sse4_2 : public Sse4_1
-		{
-		};
-	}
+	};
 }
 
+
+
+/*========================================================================
+	Platform-optimized Specializations
+========================================================================*/
+#if __has_include(INCLUDE_HAL_LOCAL(HAL_SIMD))
+#include INCLUDE_HAL_LOCAL(HAL_SIMD)
+#endif
 
 //========================================================================
 #endif
