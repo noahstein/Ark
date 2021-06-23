@@ -19,7 +19,8 @@ Copyright
 	Copyright (c) 2021 Noah Stein. All Rights Reserved.
 ========================================================================*/
 
-#pragma once
+#if !defined(ARK_MATH_VECTOR_H_INCLUDE_GUARD)
+#define ARK_MATH_VECTOR_H_INCLUDE_GUARD
 
 
 /*========================================================================
@@ -426,3 +427,7 @@ namespace ark::math
 		return VectorCrossProduct3D(lhs, rhs);
 	}
 }
+
+
+//========================================================================
+#endif

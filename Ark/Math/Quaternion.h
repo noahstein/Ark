@@ -19,7 +19,8 @@ Copyright
 	Copyright (c) 2021 Noah Stein. All Rights Reserved.
 ========================================================================*/
 
-#pragma once
+#if !defined(ARK_MATH_QUATERNION_H_INCLUDE_GUARD)
+#define ARK_MATH_QUATERNION_H_INCLUDE_GUARD
 
 
 /*========================================================================
@@ -437,3 +438,7 @@ namespace ark::math
 		return QuaternionDivision(lhs, rhs);
 	}
 }
+
+
+//========================================================================
+#endif

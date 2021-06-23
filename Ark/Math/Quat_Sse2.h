@@ -6,7 +6,8 @@ Copyright
 	Copyright (c) 2021 Noah Stein. All Rights Reserved.
 ========================================================================*/
 
-#pragma once
+#if !defined(ARK_MATH_QUAT_SSE2_H_INCLUDE_GUARD)
+#define ARK_MATH_QUAT_SSE2_H_INCLUDE_GUARD
 
 
 //========================================================================
@@ -46,3 +47,7 @@ namespace ark
 		}
 	}
 }
+
+
+//========================================================================
+#endif

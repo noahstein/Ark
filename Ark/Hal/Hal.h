@@ -6,14 +6,19 @@ Copyright
 	Copyright (c) 2021 Noah Stein. All Rights Reserved.
 ========================================================================*/
 
-#pragma once
+#if !defined(ARK_HAL_H_INCLUDE_GUARD)
+#define ARK_HAL_H_INCLUDE_GUARD
 
+
+/*========================================================================
+Dependencies
+========================================================================*/
 #include "Ark/Hal/Hal.h"
 
 
-//========================================================================
-//	Platform-specific Inclusion
-//========================================================================
+/*========================================================================
+Platform-specific Inclusion
+========================================================================*/
 
 // Add quatoation marks around a string
 #define INCLUDE_STRINGIZE(String) #String
@@ -26,3 +31,7 @@ Copyright
 
 // Include a platform-specific SIMD header file F
 #define INCLUDE_SIMD(File) INCLUDE_HAL(HAL_SIMD, File)
+
+
+//========================================================================
+#endif

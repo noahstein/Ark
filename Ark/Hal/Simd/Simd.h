@@ -6,7 +6,9 @@ Copyright
 	Copyright (c) 2021 Noah Stein. All Rights Reserved.
 ========================================================================*/
 
-#pragma once
+#if !defined(ARK_HAL_SIMD_SIMD_H)
+#define ARK_HAL_SIMD_SIMD_H
+
 
 //========================================================================
 //	Dependencies
@@ -51,3 +53,7 @@ namespace ark
 		};
 	}
 }
+
+
+//========================================================================
+#endif

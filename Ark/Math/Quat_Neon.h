@@ -1,6 +1,8 @@
 // Currently a place-holder for implementing multi-platform features
 
-#pragma once
+#if !defined(ARK_MATH_QUAT_NEON_H_INCLUDE_GUARD)
+#define ARK_MATH_QUAT_NEON_H_INCLUDE_GUARD
+
 
 namespace ark
 {
@@ -91,3 +93,7 @@ namespace ark
 #endif		
 	}
 }
+
+
+//========================================================================
+#endif

@@ -8,7 +8,8 @@ Copyright
 	Copyright (c) 2021 Noah Stein. All Rights Reserved.
 ========================================================================*/
 
-#pragma once
+#if !defined(ARK_MATH_MTX_H_INCLUDE_GUARD)
+#define ARK_MATH_MTX_H_INCLUDE_GUARD
 
 
 /*========================================================================
@@ -85,4 +86,8 @@ namespace ark::math
 ========================================================================*/
 #if __has_include(INCLUDE_SIMD(Vec))
 #include INCLUDE_SIMD(Vec)
+#endif
+
+
+//========================================================================
 #endif
