@@ -36,6 +36,8 @@ namespace ark::math
 		friend Quat operator*(float lhs, Quat rhs);
 		friend Quat operator+(Quat lhs, Quat rhs);
 		friend Quat operator-(Quat lhs, Quat rhs);
+		friend Quat operator/(Quat lhs, float rhs);
+		friend Quat operator*(Quat lhs, Quat rhs);
 
 	protected:
 		Quat(__m128 value)
@@ -111,7 +113,7 @@ namespace ark::math
 	//----------------------------------------------------------------
 	inline Quat<float, ark::hal::simd::Sse> operator*(Quat<float, ark::hal::simd::Sse> lhs, float rhs)
 	{
-		__m128 scalar = _mm_set_ps(rhs, rhs, rhs, rhs);
+		__m128 scalar = _mm_set1_ps(rhs);
 		return _mm_mul_ps(scalar, lhs.Value());
 	}
 
@@ -121,8 +123,59 @@ namespace ark::math
 	//----------------------------------------------------------------
 	inline Quat<float, ark::hal::simd::Sse> operator*(float lhs, Quat<float, ark::hal::simd::Sse> rhs)
 	{
-		__m128 scalar = _mm_set_ps(lhs, lhs, lhs, lhs);
+		__m128 scalar = _mm_set1_ps(lhs);
 		return _mm_mul_ps(scalar, rhs.Value());
+	}
+
+
+	//----------------------------------------------------------------
+	//	Quaternion-Scalar Division
+	//----------------------------------------------------------------
+	inline Quat<float, ark::hal::simd::Sse> operator/(Quat<float, ark::hal::simd::Sse> lhs, float rhs)
+	{
+		__m128 scalar = _mm_set1_ps(rhs);
+		__m128 result = _mm_div_ps(lhs.Value(), scalar);
+		return result;
+	}
+
+
+	//----------------------------------------------------------------
+	//	Quaternion Multiplication
+	//----------------------------------------------------------------
+	inline Quat<float, ark::hal::simd::Sse> operator*(Quat<float, ark::hal::simd::Sse> lhs, Quat<float, ark::hal::simd::Sse> rhs)
+	{
+		__m128 l = lhs.Value();
+		__m128 r = rhs.Value();
+		__m128 n = _mm_set1_ps(-0.0);
+		__m128 z = _mm_setzero_ps();
+		__m128 s = _mm_shuffle_ps(z, n, _MM_SHUFFLE(0, 0, 0, 0));
+
+		__m128 l_w = _mm_shuffle_ps(l, l, _MM_SHUFFLE(0, 0, 0, 0));
+		__m128 a_w = _mm_mul_ps(l_w, r);
+
+		__m128 l_x = _mm_shuffle_ps(l, l, _MM_SHUFFLE(1, 1, 1, 1));
+		__m128 r_b = _mm_shuffle_ps(r, r, _MM_SHUFFLE(2, 3, 0, 1));
+		__m128 r_j = _mm_shuffle_ps(s, s, _MM_SHUFFLE(0, 2, 0, 2));
+		__m128 r_t = _mm_xor_ps(r_b, r_j);
+		__m128 a_x = _mm_mul_ps(l_x, r_t);
+
+		__m128 l_y = _mm_shuffle_ps(l, l, _MM_SHUFFLE(2, 2, 2, 2));
+		__m128 r_c = _mm_shuffle_ps(r, r, _MM_SHUFFLE(1, 0, 3, 2));
+		__m128 r_k = _mm_shuffle_ps(s, s, _MM_SHUFFLE(2, 0, 0, 2));
+		__m128 r_u = _mm_xor_ps(r_c, r_k);
+		__m128 a_y = _mm_mul_ps(l_y, r_u);
+
+		__m128 l_z = _mm_shuffle_ps(l, l, _MM_SHUFFLE(3, 3, 3, 3));
+		__m128 r_d = _mm_shuffle_ps(r, r, _MM_SHUFFLE(0, 1, 2, 3));
+		__m128 r_l = _mm_shuffle_ps(s, s, _MM_SHUFFLE(0, 0, 2, 2));
+		__m128 r_v = _mm_xor_ps(r_d, r_l);
+		__m128 a_z = _mm_mul_ps(l_z, r_v);
+
+		__m128 a_1 = _mm_add_ps(a_w, a_x);
+		__m128 a_2 = _mm_add_ps(a_y, a_z);
+		__m128 a = _mm_add_ps(a_1, a_2);
+
+		return a;
 	}
 }
 
