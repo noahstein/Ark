@@ -1,6 +1,6 @@
 /*========================================================================
 Description
-	Unit tests for functions related to the ark::math::Quaternion concept, 
+	Unit tests for functions related to the ark::math::Quaternion concept,
 	and all basic functionality implemented against that concept.
 
 Copyright
@@ -21,10 +21,10 @@ Copyright
 namespace ark::math
 {
 	/*--------------------------------------------------------------------
-		TestVec class implements the Vector concept in a simple way to 
+		TestVec class implements the Vector concept in a simple way to
 		test the functionality implemented against the concept
 	--------------------------------------------------------------------*/
-	template<int N>
+	template<std::size_t N>
 	class TestVec
 	{
 	public:
@@ -32,6 +32,11 @@ namespace ark::math
 
 	private:
 		Scalar data_[N];
+
+		static constexpr auto Range()
+		{
+			return std::views::iota(std::size_t{ 0 }, N);
+		}
 
 	public:
 		static constexpr std::size_t Size() { return N; } const
@@ -42,28 +47,18 @@ namespace ark::math
 		template<ark::math::Vector V>
 		TestVec(const V& rhs)
 		{
-			for (std::size_t i = 0; i < rhs.Size(); ++i)
-			{
-				data_[i] = rhs(i);
-			}
+			std::ranges::for_each(Range(), [&](std::size_t i) { data_[i] = static_cast<Scalar>(rhs(i)); });
 		}
 
 		constexpr TestVec(const Scalar(&values)[N])
 		{
-			size_t i = 0;
-			for (auto v : values)
-			{
-				data_[i++] = v;
-			}
+			std::ranges::for_each(Range(), [&](std::size_t i) { data_[i] = static_cast<Scalar>(values[i]); });
 		}
 
 		template<ark::math::Vector V>
 		const TestVec& operator=(const V& rhs)
 		{
-			for (std::size_t i = 0; i < rhs.Size(); ++i)
-			{
-				data_[i] = rhs(i);
-			}
+			std::ranges::for_each(Range(), [&](std::size_t i) { data_[i] = static_cast<Scalar>(rhs(i)); });
 			return *this;
 		}
 	};

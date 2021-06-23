@@ -1,7 +1,7 @@
 /*========================================================================
 Description
-	Straightforward implementation of the Vector concept. This 
-	implementation will include platform-specific specializations 
+	Straightforward implementation of the Vector concept. This
+	implementation will include platform-specific specializations
 	defined in other header files.
 
 Copyright
@@ -14,6 +14,8 @@ Copyright
 /*========================================================================
 	Dependencies
 ========================================================================*/
+#include <ranges>
+
 #include "Vector.h"
 #include "Ark/Hal/Simd/Simd.h"
 
@@ -26,7 +28,7 @@ namespace ark::math
 	/*--------------------------------------------------------------------
 	 Simple, Dense Statically-sized Vector
 	--------------------------------------------------------------------*/
-	template<typename S, int N, typename I = ark::hal::HAL_SIMD>
+	template<typename S, std::size_t N, typename I = ark::hal::HAL_SIMD>
 	class Vec
 	{
 	public:
@@ -34,6 +36,12 @@ namespace ark::math
 
 	private:
 		Scalar data_[N];
+
+	protected:
+		static constexpr auto Range()
+		{
+			return std::views::iota(std::size_t{ 0 }, N);
+		}
 
 	public:
 		constexpr Vec() noexcept(std::is_nothrow_constructible_v<Scalar>) = default;
@@ -51,33 +59,26 @@ namespace ark::math
 		}
 
 		template<Vector V>
-			requires SameDimension<Vec, V>	
+			requires std::convertible_to<typename V::Scalar, Scalar>
+			&& SameDimension<Vec, V>
 		constexpr Vec(const V& rhs) noexcept(std::is_nothrow_convertible_v<typename V::Scalar, Scalar>)
 		{
-			for (std::size_t i = 0; i < Size(); ++i)
-			{
-				data_[i] = static_cast<Scalar>(rhs(i));
-			}
+			std::ranges::for_each(Range(), [&](std::size_t i) { data_[i] = static_cast<Scalar>(rhs(i)); });
 		}
 
 		template<Vector V>
-			requires std::convertible_to<typename V::Scalar, Scalar> && (V::N == N)
+			requires std::convertible_to<typename V::Scalar, Scalar>
+				&& SameDimension<Vec, V>
 		constexpr Vec& operator=(const Vec& rhs) noexcept(std::is_nothrow_convertible_v<typename V::Scalar, Scalar>)
 		{
-			for (std::size_t i = 0; i < Size(); ++i)
-			{
-				data_[i] = static_cast<Scalar>(rhs(i));
-			}
+			std::ranges::for_each(Range(), [&](std::size_t i) { data_[i] = static_cast<Scalar>(rhs(i)); });
 			return *this;
 		}
 
-		constexpr Vec& operator=(const Scalar value)
+		constexpr Vec& operator=(int value)
 		{
 			static_assert(value == 0, "0 is the only valid scalar value that may be used to construct a vector.");
-			for (std::size_t i = 0; i < Size(); ++i)
-			{
-				data_[i] = value;
-			}
+			std::ranges::for_each(Range(), [&](std::size_t i) { data_[i] = static_cast<Scalar>(value); });
 		}
 
 		static constexpr size_t Size() noexcept { return N; }

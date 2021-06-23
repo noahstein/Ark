@@ -1,18 +1,18 @@
 /*========================================================================
 Description
 	Defines the Vector concept to represent the abstract definition
-	of the structure of a mathematical vector. From there, this file 
-	implements many common vector functions on that abstraction. Due 
-	to this implementation to the abstraction, each new concrete 
-	vector class oinly needs to define the type of its scalars and 
-	accessors to its elements, and it will not only automatically have 
-	a full set of operations, it will interact with any other mix of 
-	vector classes, as long as the scalar types may interact 
+	of the structure of a mathematical vector. From there, this file
+	implements many common vector functions on that abstraction. Due
+	to this implementation to the abstraction, each new concrete
+	vector class oinly needs to define the type of its scalars and
+	accessors to its elements, and it will not only automatically have
+	a full set of operations, it will interact with any other mix of
+	vector classes, as long as the scalar types may interact
 	arithmetically.
-	
-	Additionally, any specific vector class may define its own 
-	operators and implement optimized code for those oeprations. Classes 
-	may implement any operators they so choose and still rely upon the 
+
+	Additionally, any specific vector class may define its own
+	operators and implement optimized code for those oeprations. Classes
+	may implement any operators they so choose and still rely upon the
 	abstract implementations for the rest.
 
 Copyright
@@ -27,6 +27,7 @@ Copyright
 ========================================================================*/
 #include <cmath>
 #include <cstddef>
+#include <ranges>
 #include <type_traits>
 
 #include "Concepts.h"
@@ -45,23 +46,23 @@ namespace ark::math
 		@brief Vector Concept
 
 		@details The Vector concept defines an abstract view of a vector.
-		Please note this concept is a subset of the mathematical 
-		definition of a vector. The mathematical definition includes the 
-		basic arithmetic operations: addition, subtraction,  
-		multiplication by a scalar, etc. Those are no defined here. This 
+		Please note this concept is a subset of the mathematical
+		definition of a vector. The mathematical definition includes the
+		basic arithmetic operations: addition, subtraction,
+		multiplication by a scalar, etc. Those are no defined here. This
 		concept models the definition of a vector as an array of numbers.
-		Even the definitional arithmetic operations are implemented 
-		against this definition thus providing maximum reuse and 
+		Even the definitional arithmetic operations are implemented
+		against this definition thus providing maximum reuse and
 		minimizing the amount of unnecessary duplicated code.
 
 		As such, a class models a vector if it meets 3 criteria:
 
-		1) It defines a type Scalar to indicate the type of all its 
-		components. The Scalar must be an arithmetic type as the 
+		1) It defines a type Scalar to indicate the type of all its
+		components. The Scalar must be an arithmetic type as the
 		mathematical concept defines addition and multiplication of
 		it components.
 
-		2) It defines a static member function Size() to indicate its 
+		2) It defines a static member function Size() to indicate its
 		dimensionality, that is, it's number of components.
 
 		3) It has an operator() to return the values of its components.
@@ -80,8 +81,8 @@ namespace ark::math
 	/*--------------------------------------------------------------------
 		@brief SameDimension Concept
 
-		@details Most binary vector arithmetic operations are defined 
-		only when both vectors are of the same dimension. This concept 
+		@details Most binary vector arithmetic operations are defined
+		only when both vectors are of the same dimension. This concept
 		requires two classes be of the saem dimension.
 	--------------------------------------------------------------------*/
 	template<typename VL, typename VR>
@@ -94,10 +95,10 @@ namespace ark::math
 	/*--------------------------------------------------------------------
 		@brief OfKnownDimension Concept
 
-		@details Model a vector of specific, known dimension. For example, 
-		the cross product is only defined for 2- and 3-dimensional 
-		vectors, and the the different dimensions have different 
-		semantics. This concept provides a simple means of restricting 
+		@details Model a vector of specific, known dimension. For example,
+		the cross product is only defined for 2- and 3-dimensional
+		vectors, and the the different dimensions have different
+		semantics. This concept provides a simple means of restricting
 		and differentiating the two functions.
 	--------------------------------------------------------------------*/
 	template<typename V, int N>
@@ -145,7 +146,11 @@ namespace ark::math
 		using Scalar = typename std::common_type<SL, SR>::type;
 
 		static constexpr std::size_t Size() noexcept { return VL::Size(); }
-	};
+		static constexpr auto Range()
+		{
+			return std::views::iota(std::size_t{ 0 }, Size());
+		}
+};
 
 
 	/*====================================================================
@@ -265,7 +270,7 @@ namespace ark::math
 		V const & v_;
 
 	public:
-		constexpr VectorScalarMultiplication(const Scalar & s, const V & v) noexcept 
+		constexpr VectorScalarMultiplication(const Scalar & s, const V & v) noexcept
 			: s_(s), v_(v)
 		{}
 
@@ -326,7 +331,6 @@ namespace ark::math
 		requires MutuallyArithmetic<typename V::Scalar, S>
 	inline constexpr auto operator/(const V & v, const S & s) noexcept -> VectorScalarDivision<V, S>
 	{
-
 		return VectorScalarDivision(v, s);
 	}
 
@@ -338,14 +342,9 @@ namespace ark::math
 		requires SameDimension<VL, VR>
 	inline constexpr auto operator==(const VL& lhs, const VR& rhs) -> bool
 	{
-		for (std::size_t i = 0; i < VL::Size(); ++i)
-		{
-			if (lhs(i) != rhs(i))
-			{
-				return false;
-			}
-		}
-		return true;
+		using Expr = VectorBinaryExpr<VL, VR>;
+		bool result = std::ranges::all_of(Expr::Range(), [&](std::size_t i) { return lhs(i) == rhs(i); });
+		return result;
 	}
 
 
@@ -356,11 +355,9 @@ namespace ark::math
 		requires SameDimension<VL, VR>
 	inline constexpr auto Dot(const VL& l, const VR& r) -> typename VectorBinaryExpr<VL, VR>::Scalar
 	{
-		typename VectorBinaryExpr<VL, VR>::Scalar result{0};
-		for (std::size_t i = 0; i < VL::Size(); ++i)
-		{
-			result += l(i) * r(i);
-		}
+		using Expr = VectorBinaryExpr<VL, VR>;
+		typename Expr::Scalar result{0};
+		std::ranges::for_each(Expr::Range(), [&](std::size_t i) { result += l(i) * r(i); });
 		return result;
 	}
 
