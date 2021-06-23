@@ -3,7 +3,7 @@ Description
 	Optimized specializations of Quat for CPUs with SSE2 instructions.
 
 Copyright
-	Copyright (c) 2021 Noah Stein. All Rights Reserverd.
+	Copyright (c) 2021 Noah Stein. All Rights Reserved.
 ========================================================================*/
 
 #pragma once

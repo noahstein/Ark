@@ -3,7 +3,7 @@ Description
 	SIMD tag for the x86/x64 Intel SSE ISA.
 
 Copyright
-	Copyright (c) 2021 Noah Stein. All Rights Reserverd.
+	Copyright (c) 2021 Noah Stein. All Rights Reserved.
 ========================================================================*/
 
 #pragma once

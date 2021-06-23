@@ -11,7 +11,7 @@ Description
 	therefore, there are tests here to ensure those work properly.
 
 Copyright
-	Copyright (c) 2021 Noah Stein. All Rights Reserverd.
+	Copyright (c) 2021 Noah Stein. All Rights Reserved.
 ========================================================================*/
 
 
