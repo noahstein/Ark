@@ -29,32 +29,14 @@ namespace ark::math
 	{
 		__m128 value_;
 
-		friend Quat<float, ark::hal::simd::Sse> operator-(Quat<float, ark::hal::simd::Sse> q);
-		friend Quat operator*(Quat q);
-
-		friend Quat operator*(Quat lhs, float rhs);
-		friend Quat operator*(float lhs, Quat rhs);
-		friend Quat operator+(Quat lhs, Quat rhs);
-		friend Quat operator-(Quat lhs, Quat rhs);
-		friend Quat operator/(Quat lhs, float rhs);
-		friend Quat operator*(Quat lhs, Quat rhs);
-
-	protected:
-		Quat(__m128 value)
-			: value_(value)
-		{}
-
-		__m128 Value() const { return value_; }
-
 	public:
 		using Scalar = float;
 
-		Quat()
-		{}
+		Quat() = default;
 
-		Quat(Scalar ww, Scalar xx, Scalar yy, Scalar zz)
+		Quat(Scalar w, Scalar x, Scalar y, Scalar z)
 		{
-			value_ = _mm_setr_ps(ww, xx, yy, zz);
+			value_ = _mm_setr_ps(w, x, y, z);
 		}
 
 		template<Quaternion Q>
@@ -62,10 +44,16 @@ namespace ark::math
 			: Quat(static_cast<Scalar>(rhs.w()), static_cast<Scalar>(rhs.x()), static_cast<Scalar>(rhs.y()), static_cast<Scalar>(rhs.z()))
 		{}
 
-		Scalar w() const { return _mm_cvtss_f32(Value()); }
-		Scalar x() const { return _mm_cvtss_f32(_mm_shuffle_ps(Value(), Value(), _MM_SHUFFLE(1, 1, 1, 1))); }
-		Scalar y() const { return _mm_cvtss_f32(_mm_shuffle_ps(Value(), Value(), _MM_SHUFFLE(2, 2, 2, 2))); }
-		Scalar z() const { return _mm_cvtss_f32(_mm_shuffle_ps(Value(), Value(), _MM_SHUFFLE(3, 3, 3, 3))); }
+		Quat(__m128 value)
+			: value_(value)
+		{}
+
+		__m128 SseVal() const { return value_; }
+
+		Scalar w() const { return _mm_cvtss_f32(SseVal()); }
+		Scalar x() const { return _mm_cvtss_f32(_mm_shuffle_ps(SseVal(), SseVal(), _MM_SHUFFLE(1, 1, 1, 1))); }
+		Scalar y() const { return _mm_cvtss_f32(_mm_shuffle_ps(SseVal(), SseVal(), _MM_SHUFFLE(2, 2, 2, 2))); }
+		Scalar z() const { return _mm_cvtss_f32(_mm_shuffle_ps(SseVal(), SseVal(), _MM_SHUFFLE(3, 3, 3, 3))); }
 	};
 
 
@@ -75,7 +63,7 @@ namespace ark::math
 	inline Quat<float, ark::hal::simd::Sse> operator-(Quat<float, ark::hal::simd::Sse> q)
 	{
 		std::cerr << "SSE negation";
-		__m128 value = q.Value();
+		__m128 value = q.SseVal();
 		return Quat<float, ark::hal::simd::Sse>(_mm_sub_ps(_mm_xor_ps(value, value), value));
 	}
 
@@ -85,7 +73,7 @@ namespace ark::math
 	//----------------------------------------------------------------
 	inline Quat<float, ark::hal::simd::Sse> operator*(Quat<float, ark::hal::simd::Sse> q)
 	{
-		__m128 result = _mm_move_ss((-q).Value(), q.Value());
+		__m128 result = _mm_move_ss((-q).SseVal(), q.SseVal());
 		return result;
 	}
 
@@ -104,7 +92,7 @@ namespace ark::math
 	//----------------------------------------------------------------
 	inline Quat<float, ark::hal::simd::Sse> operator+(Quat<float, ark::hal::simd::Sse> lhs, Quat<float, ark::hal::simd::Sse> rhs)
 	{
-		return Quat<float, ark::hal::simd::Sse>(_mm_add_ps(lhs.Value(), rhs.Value()));
+		return Quat<float, ark::hal::simd::Sse>(_mm_add_ps(lhs.SseVal(), rhs.SseVal()));
 	}
 
 
@@ -113,7 +101,7 @@ namespace ark::math
 	//----------------------------------------------------------------
 	inline Quat<float, ark::hal::simd::Sse> operator-(Quat<float, ark::hal::simd::Sse> lhs, Quat<float, ark::hal::simd::Sse> rhs)
 	{
-		return Quat<float, ark::hal::simd::Sse>(_mm_sub_ps(lhs.Value(), rhs.Value()));
+		return Quat<float, ark::hal::simd::Sse>(_mm_sub_ps(lhs.SseVal(), rhs.SseVal()));
 	}
 
 
@@ -123,7 +111,7 @@ namespace ark::math
 	inline Quat<float, ark::hal::simd::Sse> operator*(Quat<float, ark::hal::simd::Sse> lhs, float rhs)
 	{
 		__m128 scalar = _mm_set1_ps(rhs);
-		return _mm_mul_ps(scalar, lhs.Value());
+		return _mm_mul_ps(scalar, lhs.SseVal());
 	}
 
 
@@ -133,7 +121,7 @@ namespace ark::math
 	inline Quat<float, ark::hal::simd::Sse> operator*(float lhs, Quat<float, ark::hal::simd::Sse> rhs)
 	{
 		__m128 scalar = _mm_set1_ps(lhs);
-		return _mm_mul_ps(scalar, rhs.Value());
+		return _mm_mul_ps(scalar, rhs.SseVal());
 	}
 
 
@@ -143,7 +131,7 @@ namespace ark::math
 	inline Quat<float, ark::hal::simd::Sse> operator/(Quat<float, ark::hal::simd::Sse> lhs, float rhs)
 	{
 		__m128 scalar = _mm_set1_ps(rhs);
-		__m128 result = _mm_div_ps(lhs.Value(), scalar);
+		__m128 result = _mm_div_ps(lhs.SseVal(), scalar);
 		return result;
 	}
 
@@ -153,8 +141,8 @@ namespace ark::math
 	//----------------------------------------------------------------
 	inline Quat<float, ark::hal::simd::Sse> operator*(Quat<float, ark::hal::simd::Sse> lhs, Quat<float, ark::hal::simd::Sse> rhs)
 	{
-		__m128 l = lhs.Value();
-		__m128 r = rhs.Value();
+		__m128 l = lhs.SseVal();
+		__m128 r = rhs.SseVal();
 		__m128 n = _mm_set1_ps(-0.0);
 		__m128 z = _mm_setzero_ps();
 		__m128 s = _mm_shuffle_ps(z, n, _MM_SHUFFLE(0, 0, 0, 0));
