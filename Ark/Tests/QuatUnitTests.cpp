@@ -78,6 +78,19 @@ using QuatTypes = ::testing::Types
 TYPED_TEST_SUITE(QuatUnitTest, QuatTypes);
 
 
+#define EXPECT_QUAT_EQ(a, b)	\
+	EXPECT_EQ(a.w(), b.w()); \
+	EXPECT_EQ(a.x(), b.x()); \
+	EXPECT_EQ(a.y(), b.y()); \
+	EXPECT_EQ(a.z(), b.z())
+
+#define EXPECT_QUAT_NEAR(a, b, d)	\
+	EXPECT_NEAR(a.w(), b.w(), d); \
+	EXPECT_NEAR(a.x(), b.x(), d); \
+	EXPECT_NEAR(a.y(), b.y(), d); \
+	EXPECT_NEAR(a.z(), b.z(), d)
+
+
 /*========================================================================
   Tests
 ========================================================================*/
@@ -221,7 +234,7 @@ TYPED_TEST(QuatUnitTest, I_x_I_eq_MinusOne)
 	this->qr = this->qi * this->qi;
 
 	// Then
-	EXPECT_EQ(this->qr, -this->q_one);
+	EXPECT_QUAT_EQ(this->qr, -this->q_one);
 }
 
 
@@ -231,7 +244,7 @@ TYPED_TEST(QuatUnitTest, J_x_J_eq_MinusOne)
 	this->qr = this->qj * this->qj;
 
 	// Then
-	EXPECT_EQ(this->qr, -this->q_one);
+	EXPECT_QUAT_EQ(this->qr, -this->q_one);
 }
 
 
@@ -241,7 +254,7 @@ TYPED_TEST(QuatUnitTest, K_x_K_eq_MinusOne)
 	this->qr = this->qk * this->qk;
 
 	// Then
-	EXPECT_EQ(this->qr, -this->q_one);
+	EXPECT_QUAT_EQ(this->qr, -this->q_one);
 }
 
 
@@ -251,7 +264,7 @@ TYPED_TEST(QuatUnitTest, I_x_J_eq_K)
 	this->qr = this->qi * this->qj;
 
 	// Then
-	EXPECT_EQ(this->qr, this->qk);
+	EXPECT_QUAT_EQ(this->qr, this->qk);
 }
 
 
@@ -261,7 +274,7 @@ TYPED_TEST(QuatUnitTest, J_x_K_eq_I)
 	this->qr = this->qj * this->qk;
 
 	// Then
-	EXPECT_EQ(this->qr, this->qi);
+	EXPECT_QUAT_EQ(this->qr, this->qi);
 }
 
 
@@ -271,7 +284,7 @@ TYPED_TEST(QuatUnitTest, K_x_I_eq_J)
 	this->qr = this->qk * this->qi;
 
 	// Then
-	EXPECT_EQ(this->qr, this->qj);
+	EXPECT_QUAT_EQ(this->qr, this->qj);
 }
 
 
@@ -281,7 +294,7 @@ TYPED_TEST(QuatUnitTest, J_x_I_eq_MinusK)
 	this->qr = this->qj * this->qi;
 
 	// Then
-	EXPECT_EQ(this->qr, -this->qk);
+	EXPECT_QUAT_EQ(this->qr, -this->qk);
 }
 
 
@@ -291,7 +304,7 @@ TYPED_TEST(QuatUnitTest, K_x_J_eq_MinusI)
 	this->qr = this->qk * this->qj;
 
 	// Then
-	EXPECT_EQ(this->qr, -this->qi);
+	EXPECT_QUAT_EQ(this->qr, -this->qi);
 }
 
 
@@ -301,7 +314,7 @@ TYPED_TEST(QuatUnitTest, I_x_K_eq_MinusJ)
 	this->qr = this->qi * this->qk;
 
 	// Then
-	EXPECT_EQ(this->qr, -this->qj);
+	EXPECT_QUAT_EQ(this->qr, -this->qj);
 }
 
 
@@ -311,10 +324,7 @@ TYPED_TEST(QuatUnitTest, MultiplyLeftInverse_eq_1)
 	this->qr = Inverse(this->q1) * this->q1;
 
 	// Then
-	EXPECT_NEAR(this->qr.w(), 1, 0.00001);
-	EXPECT_NEAR(this->qr.x(), 0, 0.00001);
-	EXPECT_NEAR(this->qr.y(), 0, 0.00001);
-	EXPECT_NEAR(this->qr.z(), 0, 0.00001);
+	EXPECT_QUAT_NEAR(this->qr, this->q_one, 0.00001);
 }
 
 
@@ -324,10 +334,7 @@ TYPED_TEST(QuatUnitTest, MultiplyRightInverse_eq_1)
 	this->qr = this->q1 * Inverse(this->q1);
 
 	// Then
-	EXPECT_NEAR(this->qr.w(), 1, 0.00001);
-	EXPECT_NEAR(this->qr.x(), 0, 0.00001);
-	EXPECT_NEAR(this->qr.y(), 0, 0.00001);
-	EXPECT_NEAR(this->qr.z(), 0, 0.00001);
+	EXPECT_QUAT_NEAR(this->qr, this->q_one, 0.00001);
 }
 
 
@@ -337,8 +344,5 @@ TYPED_TEST(QuatUnitTest, Division)
 	this->qr = this->q1 / this->q1;
 
 	// Then
-	EXPECT_NEAR(this->qr.w(), 1, 0.00001);
-	EXPECT_NEAR(this->qr.x(), 0, 0.00001);
-	EXPECT_NEAR(this->qr.y(), 0, 0.00001);
-	EXPECT_NEAR(this->qr.z(), 0, 0.00001);
+	EXPECT_QUAT_NEAR(this->qr, this->q_one, 0.00001);
 }

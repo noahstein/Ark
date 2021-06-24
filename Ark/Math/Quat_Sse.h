@@ -62,7 +62,6 @@ namespace ark::math
 	//----------------------------------------------------------------
 	inline Quat<float, ark::hal::simd::Sse> operator-(Quat<float, ark::hal::simd::Sse> q)
 	{
-		std::cerr << "SSE negation";
 		__m128 value = q.SseVal();
 		return Quat<float, ark::hal::simd::Sse>(_mm_sub_ps(_mm_xor_ps(value, value), value));
 	}
