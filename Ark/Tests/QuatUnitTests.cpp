@@ -146,6 +146,16 @@ TYPED_TEST(QuatUnitTest, Conjugate)
 }
 
 
+TYPED_TEST(QuatUnitTest, DotProduct)
+{
+	// When
+	auto r = Dot(this->q1, this->q2);
+
+	// Then
+	EXPECT_EQ(r, 870);
+}
+
+
 TYPED_TEST(QuatUnitTest, Inverse)
 {
 	// When

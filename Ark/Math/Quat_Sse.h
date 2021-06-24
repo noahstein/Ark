@@ -78,6 +78,21 @@ namespace ark::math
 
 
 	//----------------------------------------------------------------
+	//	Dot
+	//----------------------------------------------------------------
+	inline float Dot(Quat<float, ark::hal::simd::Sse> lhs, Quat<float, ark::hal::simd::Sse> rhs)
+	{
+		__m128 squares = _mm_mul_ps(lhs.SseVal(), rhs.SseVal());
+		__m128 badc = _mm_shuffle_ps(squares, squares, _MM_SHUFFLE(2, 3, 0, 1));
+		__m128 pairs = _mm_add_ps(squares, badc);
+		__m128 bbaa = _mm_shuffle_ps(pairs, pairs, _MM_SHUFFLE(0, 1, 2, 3));
+		__m128 dp = _mm_add_ps(pairs, bbaa);
+		float result = _mm_cvtss_f32(dp);
+		return result;
+	}
+
+
+	//----------------------------------------------------------------
 	//	Inverse
 	//----------------------------------------------------------------
 	inline Quat<float, ark::hal::simd::Sse> Inverse(Quat<float, ark::hal::simd::Sse> q)

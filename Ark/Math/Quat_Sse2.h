@@ -87,6 +87,25 @@ namespace ark::math
 
 
 	//----------------------------------------------------------------
+	//	Dot
+	//----------------------------------------------------------------
+	inline float Dot(Quat<double, ark::hal::simd::Sse2> lhs, Quat<double, ark::hal::simd::Sse2> rhs)
+	{
+		__m128d w2x2 = _mm_mul_pd(lhs.SseWx(), rhs.SseWx());
+		__m128d x2w2 = _mm_shuffle_pd(w2x2, w2x2, _MM_SHUFFLE2(0, 1));
+		__m128d wx2wx2 = _mm_add_pd(w2x2, x2w2);
+
+		__m128d y2z2 = _mm_mul_pd(lhs.SseYz(), rhs.SseYz());
+		__m128d z2y2 = _mm_shuffle_pd(y2z2, y2z2, _MM_SHUFFLE2(0, 1));
+		__m128d yz2yz2 = _mm_add_pd(y2z2, z2y2);
+
+		__m128d dp = _mm_add_pd(wx2wx2, yz2yz2);
+		double result = _mm_cvtsd_f64(dp);
+		return result;
+	}
+
+
+	//----------------------------------------------------------------
 	//	Inverse
 	//----------------------------------------------------------------
 	inline Quat<double, ark::hal::simd::Sse2> Inverse(Quat<double, ark::hal::simd::Sse2> q)
