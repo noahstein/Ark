@@ -102,6 +102,32 @@ TEST_F(QuatFloatUnitTests, Conjugate)
 }
 
 
+TEST_F(QuatFloatUnitTests, LeftInverse)
+{
+	// When
+	qr = Inverse(q1) * q1;
+
+	// Then
+	EXPECT_NEAR(qr.w(), 1, 0.00001);
+	EXPECT_NEAR(qr.x(), 0, 0.00001);
+	EXPECT_NEAR(qr.y(), 0, 0.00001);
+	EXPECT_NEAR(qr.z(), 0, 0.00001);
+}
+
+
+TEST_F(QuatFloatUnitTests, RightInverse)
+{
+	// When
+	qr = q1 * Inverse(q1);
+
+	// Then
+	EXPECT_NEAR(qr.w(), 1, 0.00001);
+	EXPECT_NEAR(qr.x(), 0, 0.00001);
+	EXPECT_NEAR(qr.y(), 0, 0.00001);
+	EXPECT_NEAR(qr.z(), 0, 0.00001);
+}
+
+
 TEST_F(QuatFloatUnitTests, Addition)
 {
 	// When
@@ -254,4 +280,17 @@ TEST_F(QuatFloatUnitTests, I_x_K_eq_MinusJ)
 
 	// Then
 	EXPECT_EQ(qr, -qj);
+}
+
+
+TEST_F(QuatFloatUnitTests, Division)
+{
+	// When
+	qr = q1 / q1;
+
+	// Then
+	EXPECT_NEAR(qr.w(), 1, 0.00001);
+	EXPECT_NEAR(qr.x(), 0, 0.00001);
+	EXPECT_NEAR(qr.y(), 0, 0.00001);
+	EXPECT_NEAR(qr.z(), 0, 0.00001);
 }

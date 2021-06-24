@@ -91,6 +91,15 @@ namespace ark::math
 
 
 	//----------------------------------------------------------------
+	//	Inverse
+	//----------------------------------------------------------------
+	inline Quat<float, ark::hal::simd::Sse> Inverse(Quat<float, ark::hal::simd::Sse> q)
+	{
+		return *q / Dot(q, q);
+	}
+
+
+	//----------------------------------------------------------------
 	//	Addition
 	//----------------------------------------------------------------
 	inline Quat<float, ark::hal::simd::Sse> operator+(Quat<float, ark::hal::simd::Sse> lhs, Quat<float, ark::hal::simd::Sse> rhs)
@@ -176,6 +185,15 @@ namespace ark::math
 		__m128 a = _mm_add_ps(a_1, a_2);
 
 		return a;
+	}
+
+
+	//----------------------------------------------------------------
+	//	Quaternion Division
+	//----------------------------------------------------------------
+	inline Quat<float, ark::hal::simd::Sse> operator/(Quat<float, ark::hal::simd::Sse> lhs, Quat<float, ark::hal::simd::Sse> rhs)
+	{
+		return lhs * Inverse(rhs);
 	}
 }
 
