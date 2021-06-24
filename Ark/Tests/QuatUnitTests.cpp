@@ -15,56 +15,87 @@ Copyright
 ========================================================================*/
 
 
-//========================================================================
-// Dependencies
-//========================================================================
+/*========================================================================
+  Dependencies
+========================================================================*/
 #include "gtest/gtest.h"
 #include "Ark/Math/Quat.h"
 
 template<typename S> using Quat = ark::math::Quat<S, ark::hal::simd::HAL_SIMD>;
 
 
-//========================================================================
-// Fixtures
-//========================================================================
+/*========================================================================
+  Test Suite
+========================================================================*/
 
-//------------------------------------------------------------------------
-// Quat<float> Test Fixture
-//------------------------------------------------------------------------
-class QuatFloatUnitTests : public testing::Test
+/*------------------------------------------------------------------------
+  Quat Parametric Test Fixture
+------------------------------------------------------------------------*/
+template<typename C>
+class QuatUnitTest : public testing::Test
 {
 protected:
-	void SetUp() override
+	using T = typename C::T;
+	using S = typename C::S;
+
+	template<typename U>
+	T t(U u)
 	{
-		q1 = Quat<float>(3, 13, 7, 19);
-		q2 = Quat<float>(5, 11, 23, 29);
+		return static_cast<T>(u);
 	}
 
-	const Quat<float> q_one{ 1.0f, 0.0f, 0.0f, 0.0f };
-	const Quat<float> qi{ 0.0f, 1.0f, 0.0f, 0.0f };
-	const Quat<float> qj{ 0.0f, 0.0f, 1.0f, 0.0f };
-	const Quat<float> qk{ 0.0f, 0.0f, 0.0f, 1.0f };
+	void SetUp() override
+	{
+		q1 = ark::math::Quat<T, S>(3, 13, 7, 19);
+		q2 = ark::math::Quat<T, S>(5, 11, 23, 29);
+	}
 
-	Quat<float> q1;
-	Quat<float> q2;
-	Quat<float> qr;
+	const ark::math::Quat<T, S> q_one{ 1, 0, 0, 0 };
+	const ark::math::Quat<T, S> qi{ 0, 1, 0, 0 };
+	const ark::math::Quat<T, S> qj{ 0, 0, 1, 0 };
+	const ark::math::Quat<T, S> qk{ 0, 0, 0, 1 };
+
+	ark::math::Quat<T, S> q1;
+	ark::math::Quat<T, S> q2;
+	ark::math::Quat<T, S> qr;
 };
 
+#define TI(EL, ISA) struct EL ## ISA { using T = EL; using S = ark::hal::simd::ISA; }
 
-//========================================================================
-// Tests
-//========================================================================
+TI(float, None);
+TI(float, Sse);
+TI(float, Sse2);
+TI(double, None);
+TI(double, Sse);
+TI(double, Sse2);
 
-TEST(QuatUnitTests, DefaultConstructor)
+using QuatTypes = ::testing::Types
+	<
+	floatNone, doubleNone,
+	floatSse, doubleSse,
+	floatSse2, doubleSse2
+	>;
+TYPED_TEST_SUITE(QuatUnitTest, QuatTypes);
+
+
+/*========================================================================
+  Tests
+========================================================================*/
+
+/*------------------------------------------------------------------------
+  Quat Constructors
+------------------------------------------------------------------------*/
+TYPED_TEST(QuatUnitTest, DefaultConstructor)
 {
-	Quat<int> q;
+	ark::math::Quat<typename TypeParam::T, typename TypeParam::S> q;
+	q;
 	SUCCEED();
 }
 
-
-TEST(QuatUnitTests, ElementConstructor)
+TYPED_TEST(QuatUnitTest, ElementConstructor)
 {
-	Quat<int> q(3, 5, 7, 11);
+	ark::math::Quat<typename TypeParam::T, typename TypeParam::S> q(3, 5, 7, 11);
+
 	EXPECT_EQ(q.w(), 3) << "The w element";
 	EXPECT_EQ(q.x(), 5) << "The x element";
 	EXPECT_EQ(q.y(), 7) << "The y element";
@@ -72,225 +103,242 @@ TEST(QuatUnitTests, ElementConstructor)
 }
 
 
-//------------------------------------------------------------------------
-// Quat<float> Tests
-//------------------------------------------------------------------------
+/*------------------------------------------------------------------------
+  Quat Unary Functions
+------------------------------------------------------------------------*/
 
-TEST_F(QuatFloatUnitTests, Negate)
+TYPED_TEST(QuatUnitTest, Negate)
 {
 	// When
-	qr = -q1;
+	this->qr = -this->q1;
 
 	// Then
-	EXPECT_EQ(qr.w(), -3);
-	EXPECT_EQ(qr.x(), -13);
-	EXPECT_EQ(qr.y(), -7);
-	EXPECT_EQ(qr.z(), -19);
+	EXPECT_EQ(this->qr.w(), -3);
+	EXPECT_EQ(this->qr.x(), -13);
+	EXPECT_EQ(this->qr.y(), -7);
+	EXPECT_EQ(this->qr.z(), -19);
 }
 
 
-TEST_F(QuatFloatUnitTests, Conjugate)
+TYPED_TEST(QuatUnitTest, Conjugate)
 {
 	// When
-	qr = *q1;
+	this->qr = *this->q1;
 
 	// Then
-	EXPECT_EQ(qr.w(), 3);
-	EXPECT_EQ(qr.x(), -13);
-	EXPECT_EQ(qr.y(), -7);
-	EXPECT_EQ(qr.z(), -19);
+	EXPECT_EQ(this->qr.w(), 3);
+	EXPECT_EQ(this->qr.x(), -13);
+	EXPECT_EQ(this->qr.y(), -7);
+	EXPECT_EQ(this->qr.z(), -19);
 }
 
 
-TEST_F(QuatFloatUnitTests, LeftInverse)
+TYPED_TEST(QuatUnitTest, Inverse)
 {
 	// When
-	qr = Inverse(q1) * q1;
+	this->qr = Inverse(this->q1);
 
 	// Then
-	EXPECT_NEAR(qr.w(), 1, 0.00001);
-	EXPECT_NEAR(qr.x(), 0, 0.00001);
-	EXPECT_NEAR(qr.y(), 0, 0.00001);
-	EXPECT_NEAR(qr.z(), 0, 0.00001);
+	EXPECT_NEAR(this->qr.w(), 0.005102, 0.00001);
+	EXPECT_NEAR(this->qr.x(), -0.0221088, 0.00001);
+	EXPECT_NEAR(this->qr.y(), -0.0119048, 0.00001);
+	EXPECT_NEAR(this->qr.z(), -0.0323129, 0.00001);
 }
 
 
-TEST_F(QuatFloatUnitTests, RightInverse)
+/*------------------------------------------------------------------------
+  Quat Binary Functions
+------------------------------------------------------------------------*/
+
+TYPED_TEST(QuatUnitTest, Addition)
 {
 	// When
-	qr = q1 * Inverse(q1);
+	this->qr = this->q1 + this->q2;
 
 	// Then
-	EXPECT_NEAR(qr.w(), 1, 0.00001);
-	EXPECT_NEAR(qr.x(), 0, 0.00001);
-	EXPECT_NEAR(qr.y(), 0, 0.00001);
-	EXPECT_NEAR(qr.z(), 0, 0.00001);
+	EXPECT_EQ(this->qr.w(), 8);
+	EXPECT_EQ(this->qr.x(), 24);
+	EXPECT_EQ(this->qr.y(), 30);
+	EXPECT_EQ(this->qr.z(), 48);
 }
 
 
-TEST_F(QuatFloatUnitTests, Addition)
+TYPED_TEST(QuatUnitTest, Subtraction)
 {
 	// When
-	qr = q1 + q2;
+	this->qr = this->q2 - this->q1;
 
 	// Then
-	EXPECT_EQ(qr.w(), 8);
-	EXPECT_EQ(qr.x(), 24);
-	EXPECT_EQ(qr.y(), 30);
-	EXPECT_EQ(qr.z(), 48);
+	EXPECT_EQ(this->qr.w(), 2);
+	EXPECT_EQ(this->qr.x(), -2);
+	EXPECT_EQ(this->qr.y(), 16);
+	EXPECT_EQ(this->qr.z(), 10);
 }
 
 
-TEST_F(QuatFloatUnitTests, Subtraction)
+TYPED_TEST(QuatUnitTest, ScalarQuaternionMultiplication)
 {
 	// When
-	qr = q2 - q1;
+	this->qr = 5 * this->q1;
 
 	// Then
-	EXPECT_EQ(qr.w(), 2);
-	EXPECT_EQ(qr.x(), -2);
-	EXPECT_EQ(qr.y(), 16);
-	EXPECT_EQ(qr.z(), 10);
+	EXPECT_EQ(this->qr.w(), 15);
+	EXPECT_EQ(this->qr.x(), 65);
+	EXPECT_EQ(this->qr.y(), 35);
+	EXPECT_EQ(this->qr.z(), 95);
 }
 
 
-TEST_F(QuatFloatUnitTests, ScalarQuaternionMultiplication)
+TYPED_TEST(QuatUnitTest, QuaternionScalarMultiplication)
 {
 	// When
-	qr = 5 * q1;
+	this->qr = this->q1 * 3;
 
 	// Then
-	EXPECT_EQ(qr.w(), 15);
-	EXPECT_EQ(qr.x(), 65);
-	EXPECT_EQ(qr.y(), 35);
-	EXPECT_EQ(qr.z(), 95);
+	EXPECT_EQ(this->qr.w(), 9);
+	EXPECT_EQ(this->qr.x(), 39);
+	EXPECT_EQ(this->qr.y(), 21);
+	EXPECT_EQ(this->qr.z(), 57);
 }
 
 
-TEST_F(QuatFloatUnitTests, QuaternionScalarMultiplication)
+TYPED_TEST(QuatUnitTest, QuaternionScalarDivision)
 {
 	// When
-	qr = q1 * 3;
+	this->qr = this->q1 / 2;
 
 	// Then
-	EXPECT_EQ(qr.w(), 9);
-	EXPECT_EQ(qr.x(), 39);
-	EXPECT_EQ(qr.y(), 21);
-	EXPECT_EQ(qr.z(), 57);
+	EXPECT_EQ(this->qr.w(), 1.5);
+	EXPECT_EQ(this->qr.x(), 6.5);
+	EXPECT_EQ(this->qr.y(), 3.5);
+	EXPECT_EQ(this->qr.z(), 9.5);
 }
 
 
-TEST_F(QuatFloatUnitTests, QuaternionScalarDivision)
+TYPED_TEST(QuatUnitTest, I_x_I_eq_MinusOne)
 {
 	// When
-	qr = q1 / 2;
+	this->qr = this->qi * this->qi;
 
 	// Then
-	EXPECT_EQ(qr.w(), 1.5);
-	EXPECT_EQ(qr.x(), 6.5);
-	EXPECT_EQ(qr.y(), 3.5);
-	EXPECT_EQ(qr.z(), 9.5);
+	EXPECT_EQ(this->qr, -this->q_one);
 }
 
 
-TEST_F(QuatFloatUnitTests, I_x_I_eq_MinusOne)
+TYPED_TEST(QuatUnitTest, J_x_J_eq_MinusOne)
 {
 	// When
-	qr = qi * qi;
+	this->qr = this->qj * this->qj;
 
 	// Then
-	EXPECT_EQ(qr, -q_one);
+	EXPECT_EQ(this->qr, -this->q_one);
 }
 
 
-TEST_F(QuatFloatUnitTests, J_x_J_eq_MinusOne)
+TYPED_TEST(QuatUnitTest, K_x_K_eq_MinusOne)
 {
 	// When
-	qr = qj * qj;
+	this->qr = this->qk * this->qk;
 
 	// Then
-	EXPECT_EQ(qr, -q_one);
+	EXPECT_EQ(this->qr, -this->q_one);
 }
 
 
-TEST_F(QuatFloatUnitTests, K_x_K_eq_MinusOne)
+TYPED_TEST(QuatUnitTest, I_x_J_eq_K)
 {
 	// When
-	qr = qk * qk;
+	this->qr = this->qi * this->qj;
 
 	// Then
-	EXPECT_EQ(qr, -q_one);
+	EXPECT_EQ(this->qr, this->qk);
 }
 
 
-TEST_F(QuatFloatUnitTests, I_x_J_eq_K)
+TYPED_TEST(QuatUnitTest, J_x_K_eq_I)
 {
 	// When
-	qr = qi * qj;
+	this->qr = this->qj * this->qk;
 
 	// Then
-	EXPECT_EQ(qr, qk);
+	EXPECT_EQ(this->qr, this->qi);
 }
 
 
-TEST_F(QuatFloatUnitTests, J_x_K_eq_I)
+TYPED_TEST(QuatUnitTest, K_x_I_eq_J)
 {
 	// When
-	qr = qj * qk;
+	this->qr = this->qk * this->qi;
 
 	// Then
-	EXPECT_EQ(qr, qi);
+	EXPECT_EQ(this->qr, this->qj);
 }
 
 
-TEST_F(QuatFloatUnitTests, K_x_I_eq_J)
+TYPED_TEST(QuatUnitTest, J_x_I_eq_MinusK)
 {
 	// When
-	qr = qk * qi;
+	this->qr = this->qj * this->qi;
 
 	// Then
-	EXPECT_EQ(qr, qj);
+	EXPECT_EQ(this->qr, -this->qk);
 }
 
 
-TEST_F(QuatFloatUnitTests, J_x_I_eq_MinusK)
+TYPED_TEST(QuatUnitTest, K_x_J_eq_MinusI)
 {
 	// When
-	qr = qj * qi;
+	this->qr = this->qk * this->qj;
 
 	// Then
-	EXPECT_EQ(qr, -qk);
+	EXPECT_EQ(this->qr, -this->qi);
 }
 
 
-TEST_F(QuatFloatUnitTests, K_x_J_eq_MinusI)
+TYPED_TEST(QuatUnitTest, I_x_K_eq_MinusJ)
 {
 	// When
-	qr = qk * qj;
+	this->qr = this->qi * this->qk;
 
 	// Then
-	EXPECT_EQ(qr, -qi);
+	EXPECT_EQ(this->qr, -this->qj);
 }
 
 
-TEST_F(QuatFloatUnitTests, I_x_K_eq_MinusJ)
+TYPED_TEST(QuatUnitTest, MultiplyLeftInverse_eq_1)
 {
 	// When
-	qr = qi * qk;
+	this->qr = Inverse(this->q1) * this->q1;
 
 	// Then
-	EXPECT_EQ(qr, -qj);
+	EXPECT_NEAR(this->qr.w(), 1, 0.00001);
+	EXPECT_NEAR(this->qr.x(), 0, 0.00001);
+	EXPECT_NEAR(this->qr.y(), 0, 0.00001);
+	EXPECT_NEAR(this->qr.z(), 0, 0.00001);
 }
 
 
-TEST_F(QuatFloatUnitTests, Division)
+TYPED_TEST(QuatUnitTest, MultiplyRightInverse_eq_1)
 {
 	// When
-	qr = q1 / q1;
+	this->qr = this->q1 * Inverse(this->q1);
 
 	// Then
-	EXPECT_NEAR(qr.w(), 1, 0.00001);
-	EXPECT_NEAR(qr.x(), 0, 0.00001);
-	EXPECT_NEAR(qr.y(), 0, 0.00001);
-	EXPECT_NEAR(qr.z(), 0, 0.00001);
+	EXPECT_NEAR(this->qr.w(), 1, 0.00001);
+	EXPECT_NEAR(this->qr.x(), 0, 0.00001);
+	EXPECT_NEAR(this->qr.y(), 0, 0.00001);
+	EXPECT_NEAR(this->qr.z(), 0, 0.00001);
+}
+
+
+TYPED_TEST(QuatUnitTest, Division)
+{
+	// When
+	this->qr = this->q1 / this->q1;
+
+	// Then
+	EXPECT_NEAR(this->qr.w(), 1, 0.00001);
+	EXPECT_NEAR(this->qr.x(), 0, 0.00001);
+	EXPECT_NEAR(this->qr.y(), 0, 0.00001);
+	EXPECT_NEAR(this->qr.z(), 0, 0.00001);
 }
