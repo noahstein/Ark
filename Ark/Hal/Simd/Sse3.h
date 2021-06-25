@@ -1,22 +1,19 @@
 /*========================================================================
 Description
-	SIMD base ISA tag. Specific SIMD architecture tags will derive from 
-	this tag. These tags will get defined in architecture-specific files, 
-	not mererly one per architecture, but one per architecture revision 
-	to ensure maximum encapsulation.
+	SIMD tag for the x86/x64 Intel SSE 3 ISA.
 
 Copyright
 	Copyright (c) 2021 Noah Stein. All Rights Reserved.
 ========================================================================*/
 
-#if !defined(ARK_HAL_SIMD_SIMD_H)
-#define ARK_HAL_SIMD_SIMD_H
+#if !defined(ARK_HAL_SIMD_SSE3_H_INCLUDE_GUARD)
+#define ARK_HAL_SIMD_SSE3_H_INCLUDE_GUARD
 
 
 //========================================================================
 //	Dependencies
 //========================================================================
-#include "../Hal.h"
+#include "Sse2.h"
 
 
 //========================================================================
@@ -25,21 +22,20 @@ Copyright
 namespace ark::hal::simd
 {
 	/*--------------------------------------------------------------------
-	  SIMD architecture tag indicating he CPU has no SIMD ISA.
+	  SIMD architecture tag indicating he CPU has SSE3 capabilities.
 	--------------------------------------------------------------------*/
-	class None
+	class Sse3 : public Sse2
 	{
 	};
+
+
+	/*--------------------------------------------------------------------
+	  Concept to restrict templates to CPUs with the SSE3 ISA.
+	--------------------------------------------------------------------*/
+	template<typename SIMD>
+	concept IsSse3 = IsSse2<SIMD> && std::is_base_of_v<Sse3, SIMD>;
 }
 
-
-
-/*========================================================================
-	Platform-optimized Specializations
-========================================================================*/
-#if __has_include(INCLUDE_HAL_LOCAL(HAL_SIMD))
-#include INCLUDE_HAL_LOCAL(HAL_SIMD)
-#endif
 
 //========================================================================
 #endif

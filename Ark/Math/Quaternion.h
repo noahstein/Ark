@@ -388,12 +388,43 @@ namespace ark::math
 
 
 	//----------------------------------------------------------------
+	//	Quaternion Inverse Expression: q^-1
+	//----------------------------------------------------------------
+	template<Quaternion Q>
+	class QuaternionInversion : public QuaternionUnaryExpr<Q>
+	{
+	public:
+		using Scalar = typename Q::Scalar;
+
+	private:			
+		Q q_;
+		QuaternionExpr::Cache<Scalar> cache_;	// TODO: "QuaternionExpr" should be unneceessary.
+
+	public:
+		QuaternionInversion(const Q& q) noexcept
+			: q_(q)
+		{
+			auto result = *q / Dot(q, q);
+			cache_.w = result.w();
+			cache_.x = result.x();
+			cache_.y = result.y();
+			cache_.z = result.z();
+		}
+
+		Scalar w() const noexcept { return cache_.w; }
+		Scalar x() const noexcept { return cache_.x; }
+		Scalar y() const noexcept { return cache_.y; }
+		Scalar z() const noexcept { return cache_.z; }
+	};
+
+
+	//----------------------------------------------------------------
 	//	Quaternion Inverse Function: Inverse(q)
 	//----------------------------------------------------------------
 	template<Quaternion Q>
-	inline auto Inverse(const Q& q) noexcept -> Q
+	inline auto Inverse(const Q& q) noexcept -> QuaternionInversion<Q>
 	{
-		return *q / Dot(q,q);
+		return QuaternionInversion<Q>(q);
 	}
 
 

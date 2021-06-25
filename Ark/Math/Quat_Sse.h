@@ -1,9 +1,12 @@
 /*========================================================================
 Description
-	Optimized specializations of Quat for CPUs with SSE instructions.
+  Optimized specializations of Quat for CPUs with the first-generation 
+  SSE ISA. For quaternions, the important ones are the SIMD data type 
+  with 4 float components and associated instrucxtions. The ISA does not 
+  support doubles.
 
 Copyright
-	Copyright (c) 2021 Noah Stein. All Rights Reserved.
+  Copyright (c) 2021 Noah Stein. All Rights Reserved.
 ========================================================================*/
 
 #if !defined(ARK_MATH_QUAT_SSE_H_INCLUDE_GUARD)
@@ -21,9 +24,9 @@ Copyright
 //========================================================================
 namespace ark::math
 {
-	//----------------------------------------------------------------
-	//	SSE-optimized Quat specialization for float components
-	//----------------------------------------------------------------
+	/*--------------------------------------------------------------------
+	  SSE-optimized Quat specialization for float components
+	--------------------------------------------------------------------*/
 	template<>
 	class Quat<float, ark::hal::simd::Sse>
 	{
@@ -57,30 +60,33 @@ namespace ark::math
 	};
 
 
-	//----------------------------------------------------------------
-	//	Negation
-	//----------------------------------------------------------------
-	inline Quat<float, ark::hal::simd::Sse> operator-(Quat<float, ark::hal::simd::Sse> q)
+	/*--------------------------------------------------------------------
+	  Negation
+	--------------------------------------------------------------------*/
+	template<ark::hal::simd::IsSse SIMD>
+	inline auto operator-(Quat<float, SIMD> q) -> Quat<float, SIMD>
 	{
-		__m128 value = q.SseVal();
-		return Quat<float, ark::hal::simd::Sse>(_mm_sub_ps(_mm_xor_ps(value, value), value));
+		__m128 result = _mm_sub_ps(_mm_setzero_ps(), q.SseVal());
+		return result;
 	}
 
 
-	//----------------------------------------------------------------
-	//	Conjugate
-	//----------------------------------------------------------------
-	inline Quat<float, ark::hal::simd::Sse> operator*(Quat<float, ark::hal::simd::Sse> q)
+	/*--------------------------------------------------------------------
+	  Conjugate
+	--------------------------------------------------------------------*/
+	template<ark::hal::simd::IsSse SIMD>
+	inline auto operator*(Quat<float, SIMD> q) -> Quat<float, SIMD>
 	{
 		__m128 result = _mm_move_ss((-q).SseVal(), q.SseVal());
 		return result;
 	}
 
 
-	//----------------------------------------------------------------
-	//	Dot
-	//----------------------------------------------------------------
-	inline float Dot(Quat<float, ark::hal::simd::Sse> lhs, Quat<float, ark::hal::simd::Sse> rhs)
+	/*--------------------------------------------------------------------
+	  Dot
+	--------------------------------------------------------------------*/
+	template<ark::hal::simd::IsSse SIMD>
+	inline auto Dot(Quat<float, SIMD> lhs, Quat<float, SIMD> rhs) -> float
 	{
 		__m128 squares = _mm_mul_ps(lhs.SseVal(), rhs.SseVal());
 		__m128 badc = _mm_shuffle_ps(squares, squares, _MM_SHUFFLE(2, 3, 0, 1));
@@ -91,58 +97,65 @@ namespace ark::math
 		return result;
 	}
 
-
-	//----------------------------------------------------------------
-	//	Inverse
-	//----------------------------------------------------------------
-	inline Quat<float, ark::hal::simd::Sse> Inverse(Quat<float, ark::hal::simd::Sse> q)
+	/*--------------------------------------------------------------------
+	  Inverse
+	--------------------------------------------------------------------*/
+	template<ark::hal::simd::IsSse SIMD>
+	inline auto Inverse(Quat<float, SIMD> q) -> Quat<float, SIMD>
 	{
 		return *q / Dot(q, q);
 	}
 
 
-	//----------------------------------------------------------------
-	//	Addition
-	//----------------------------------------------------------------
-	inline Quat<float, ark::hal::simd::Sse> operator+(Quat<float, ark::hal::simd::Sse> lhs, Quat<float, ark::hal::simd::Sse> rhs)
+	/*--------------------------------------------------------------------
+	  Addition
+	--------------------------------------------------------------------*/
+	template<ark::hal::simd::IsSse SIMD>
+	inline auto operator+(Quat<float, SIMD> lhs, Quat<float, SIMD> rhs) -> Quat<float, SIMD>
 	{
-		return Quat<float, ark::hal::simd::Sse>(_mm_add_ps(lhs.SseVal(), rhs.SseVal()));
+		return _mm_add_ps(lhs.SseVal(), rhs.SseVal());
 	}
 
 
-	//----------------------------------------------------------------
-	//	Subtraction
-	//----------------------------------------------------------------
-	inline Quat<float, ark::hal::simd::Sse> operator-(Quat<float, ark::hal::simd::Sse> lhs, Quat<float, ark::hal::simd::Sse> rhs)
+	/*--------------------------------------------------------------------
+	  Subtraction
+	--------------------------------------------------------------------*/
+	template<ark::hal::simd::IsSse SIMD>
+	inline auto operator-(Quat<float, SIMD> lhs, Quat<float, SIMD> rhs) -> Quat<float, SIMD>
 	{
-		return Quat<float, ark::hal::simd::Sse>(_mm_sub_ps(lhs.SseVal(), rhs.SseVal()));
+		return _mm_sub_ps(lhs.SseVal(), rhs.SseVal());
 	}
 
 
-	//----------------------------------------------------------------
-	//	Quaternion-Scalar Multiplication
-	//----------------------------------------------------------------
-	inline Quat<float, ark::hal::simd::Sse> operator*(Quat<float, ark::hal::simd::Sse> lhs, float rhs)
+	/*--------------------------------------------------------------------
+	  Quaternion-Scalar Multiplication
+	--------------------------------------------------------------------*/
+	template<ark::hal::simd::IsSse SIMD>
+	inline auto operator*(Quat<float, SIMD> lhs, float rhs) -> Quat<float, SIMD>
 	{
 		__m128 scalar = _mm_set1_ps(rhs);
-		return _mm_mul_ps(scalar, lhs.SseVal());
+		__m128 result = _mm_mul_ps(scalar, lhs.SseVal());
+		return result;
 	}
 
 
-	//----------------------------------------------------------------
-	//	Scalar-Quaternion Multiplication
-	//----------------------------------------------------------------
-	inline Quat<float, ark::hal::simd::Sse> operator*(float lhs, Quat<float, ark::hal::simd::Sse> rhs)
+	/*--------------------------------------------------------------------
+	  Scalar-Quaternion Multiplication
+	--------------------------------------------------------------------*/
+	template<ark::hal::simd::IsSse SIMD>
+	inline auto operator*(float lhs, Quat<float, SIMD> rhs) -> Quat<float, SIMD>
 	{
 		__m128 scalar = _mm_set1_ps(lhs);
-		return _mm_mul_ps(scalar, rhs.SseVal());
+		__m128 result = _mm_mul_ps(scalar, rhs.SseVal());
+		return result;
 	}
 
 
-	//----------------------------------------------------------------
-	//	Quaternion-Scalar Division
-	//----------------------------------------------------------------
-	inline Quat<float, ark::hal::simd::Sse> operator/(Quat<float, ark::hal::simd::Sse> lhs, float rhs)
+	/*--------------------------------------------------------------------
+	  Quaternion-Scalar Division
+	--------------------------------------------------------------------*/
+	template<ark::hal::simd::IsSse SIMD>
+	inline auto operator/(Quat<float, SIMD> lhs, float rhs) -> Quat<float, SIMD>
 	{
 		__m128 scalar = _mm_set1_ps(rhs);
 		__m128 result = _mm_div_ps(lhs.SseVal(), scalar);
@@ -150,10 +163,11 @@ namespace ark::math
 	}
 
 
-	//----------------------------------------------------------------
-	//	Quaternion Multiplication
-	//----------------------------------------------------------------
-	inline Quat<float, ark::hal::simd::Sse> operator*(Quat<float, ark::hal::simd::Sse> lhs, Quat<float, ark::hal::simd::Sse> rhs)
+	/*--------------------------------------------------------------------
+	  Quaternion Multiplication
+	--------------------------------------------------------------------*/
+	template<ark::hal::simd::IsSse SIMD>
+	auto operator*(Quat<float, SIMD> lhs, Quat<float, SIMD> rhs) -> Quat<float, SIMD>
 	{
 		__m128 l = lhs.SseVal();
 		__m128 r = rhs.SseVal();
@@ -190,10 +204,11 @@ namespace ark::math
 	}
 
 
-	//----------------------------------------------------------------
-	//	Quaternion Division
-	//----------------------------------------------------------------
-	inline Quat<float, ark::hal::simd::Sse> operator/(Quat<float, ark::hal::simd::Sse> lhs, Quat<float, ark::hal::simd::Sse> rhs)
+	/*--------------------------------------------------------------------
+	  Quaternion Division
+	--------------------------------------------------------------------*/
+	template<ark::hal::simd::IsSse SIMD>
+	inline auto operator/(Quat<float, SIMD> lhs, Quat<float, SIMD> rhs) -> Quat<float, SIMD>
 	{
 		return lhs * Inverse(rhs);
 	}
