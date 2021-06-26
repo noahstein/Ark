@@ -128,7 +128,7 @@ namespace ark::math::test
 		EXPECT_EQ(qr.z(), -19);
 	}
 
-
+#if 0
 	TEST_F(QuaternionUnitTests, Addition)
 	{
 		// When
@@ -361,4 +361,5 @@ namespace ark::math::test
 		EXPECT_NEAR(qr.y(), 0, 0.00001);
 		EXPECT_NEAR(qr.z(), 0, 0.00001);
 	}
+#endif
 }

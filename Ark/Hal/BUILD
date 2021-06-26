@@ -10,6 +10,7 @@ cc_library(
 		"Simd/Sse.h",
 		"Simd/Sse2.h",
 		"Simd/Sse3.h",
+		"Simd/Sse4.h",
 		"Simd/Neon.h",
 	],
 	visibility = ["//visibility:public"],

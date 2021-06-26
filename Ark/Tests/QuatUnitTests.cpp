@@ -66,18 +66,22 @@ TI(float, None);
 TI(float, Sse);
 TI(float, Sse2);
 TI(float, Sse3);
+TI(float, Sse4);
 TI(double, None);
 TI(double, Sse);
 TI(double, Sse2);
 TI(double, Sse3);
+TI(double, Sse4);
 
 using QuatTypes = ::testing::Types
 	<
 	floatNone, doubleNone,
 	floatSse, doubleSse,
 	floatSse2, doubleSse2,
-	floatSse3, doubleSse3
+	floatSse3, doubleSse3,
+	floatSse4, doubleSse4
 	>;
+
 TYPED_TEST_SUITE(QuatUnitTest, QuatTypes);
 
 
