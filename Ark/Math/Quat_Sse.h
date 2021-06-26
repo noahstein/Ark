@@ -169,33 +169,36 @@ namespace ark::math
 	template<ark::hal::simd::IsSse SIMD>
 	auto operator*(Quat<float, SIMD> lhs, Quat<float, SIMD> rhs) -> Quat<float, SIMD>
 	{
+		// Gather data
 		__m128 l = lhs.SseVal();
 		__m128 r = rhs.SseVal();
-		__m128 n = _mm_set1_ps(-0.0);
-		__m128 z = _mm_setzero_ps();
-		__m128 s = _mm_shuffle_ps(z, n, _MM_SHUFFLE(0, 0, 0, 0));
 
-		__m128 l_w = _mm_shuffle_ps(l, l, _MM_SHUFFLE(0, 0, 0, 0));
-		__m128 a_w = _mm_mul_ps(l_w, r);
+		// Compute partial result first column
+		__m128 l_w = _mm_shuffle_ps(l, l, _MM_SHUFFLE(0, 0, 0, 0)); // lw, lx, ly, lz
+		__m128 a_w = _mm_mul_ps(l_w, r); // lw*rw, lw*rx, lw*ry, lw*rz
 
-		__m128 l_x = _mm_shuffle_ps(l, l, _MM_SHUFFLE(1, 1, 1, 1));
-		__m128 r_b = _mm_shuffle_ps(r, r, _MM_SHUFFLE(2, 3, 0, 1));
-		__m128 r_j = _mm_shuffle_ps(s, s, _MM_SHUFFLE(0, 2, 0, 2));
-		__m128 r_t = _mm_xor_ps(r_b, r_j);
-		__m128 a_x = _mm_mul_ps(l_x, r_t);
+		// Compute partial result second column
+		__m128 l_x = _mm_shuffle_ps(l, l, _MM_SHUFFLE(1, 1, 1, 1)); // lx, lx, lx, lx
+		__m128 r_b = _mm_shuffle_ps(r, r, _MM_SHUFFLE(2, 3, 0, 1)); // rx, rw, rz, ry
+		__m128 r_j = _mm_set_ps(0.0, -0.0, 0.0, -0.0); // -, +, -, +
+		__m128 r_t = _mm_xor_ps(r_b, r_j); // -rx, rw, -rz, ry
+		__m128 a_x = _mm_mul_ps(l_x, r_t); // -lx*rx, lx*rw, -lx*rz, lx*ry
 
-		__m128 l_y = _mm_shuffle_ps(l, l, _MM_SHUFFLE(2, 2, 2, 2));
-		__m128 r_c = _mm_shuffle_ps(r, r, _MM_SHUFFLE(1, 0, 3, 2));
-		__m128 r_k = _mm_shuffle_ps(s, s, _MM_SHUFFLE(2, 0, 0, 2));
-		__m128 r_u = _mm_xor_ps(r_c, r_k);
-		__m128 a_y = _mm_mul_ps(l_y, r_u);
+		// Compute partial result third column
+		__m128 l_y = _mm_shuffle_ps(l, l, _MM_SHUFFLE(2, 2, 2, 2)); // ly, ly, ly, ly
+		__m128 r_c = _mm_shuffle_ps(r_b, r_b, _MM_SHUFFLE(0, 1, 2, 3)); // ry, rz, rw, rx
+		__m128 r_k = _mm_shuffle_ps(r_j, r_j, _MM_SHUFFLE(0, 1, 1, 0)); // -, +, +, -
+		__m128 r_u = _mm_xor_ps(r_c, r_k); // -ry, rz, rw, -rx
+		__m128 a_y = _mm_mul_ps(l_y, r_u); // -ly*ry, ly*rz, ly*rw, -ly*rx
 
-		__m128 l_z = _mm_shuffle_ps(l, l, _MM_SHUFFLE(3, 3, 3, 3));
-		__m128 r_d = _mm_shuffle_ps(r, r, _MM_SHUFFLE(0, 1, 2, 3));
-		__m128 r_l = _mm_shuffle_ps(s, s, _MM_SHUFFLE(0, 0, 2, 2));
-		__m128 r_v = _mm_xor_ps(r_d, r_l);
-		__m128 a_z = _mm_mul_ps(l_z, r_v);
+		// Compute partial result fourth column
+		__m128 l_z = _mm_shuffle_ps(l, l, _MM_SHUFFLE(3, 3, 3, 3)); // lz, lz, lz, lz
+		__m128 r_d = _mm_shuffle_ps(r_c, r_c, _MM_SHUFFLE(2, 3, 0, 1)); // rz, ry, rx, rw
+		__m128 r_l = _mm_shuffle_ps(r_k, r_k, _MM_SHUFFLE(1, 1, 0, 0)); // -, -, +, +
+		__m128 r_v = _mm_xor_ps(r_d, r_l); // -rz, -ry, rx, rw
+		__m128 a_z = _mm_mul_ps(l_z, r_v); // -lz*rz, -lz*ry, lz*rx, lz*rw
 
+		// Add together partial results
 		__m128 a_1 = _mm_add_ps(a_w, a_x);
 		__m128 a_2 = _mm_add_ps(a_y, a_z);
 		__m128 a = _mm_add_ps(a_1, a_2);
