@@ -15,6 +15,7 @@ cc_library(
 		"Quat_Sse3.h",
 		"Quat_Sse4.h",
 		"Quat_Avx.h",
+		"Quat_Avx2.h",
 		"Vector.h",
 		"Vec.h",
 	],
