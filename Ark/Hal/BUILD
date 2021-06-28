@@ -6,11 +6,12 @@ cc_library(
 	],
 	hdrs = [
 		"Hal.h",
-		"Simd/SImd.h",
+		"Simd/Simd.h",
 		"Simd/Sse.h",
 		"Simd/Sse2.h",
 		"Simd/Sse3.h",
 		"Simd/Sse4.h",
+		"Simd/Avx.h",
 		"Simd/Neon.h",
 	],
 	visibility = ["//visibility:public"],
