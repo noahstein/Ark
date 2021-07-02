@@ -1,2 +1,4 @@
 /.vscode
 /bazel-*
+/Docs/html
+/Docs/latex

@@ -1,0 +1,8 @@
+CPU     | SIMD ISA
+--------|---------
+IA32/64 | SSE
+IA32/64 | SSE2
+IA32/64 | SSE3
+IA32/64 | SSE4 (4.1 and 4.2)
+IA32/64 | AVX
+IA32/64 | AVX2 (including FMA)
