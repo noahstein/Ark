@@ -1,68 +1,123 @@
-/*========================================================================
-Description
-  Optimized specializations of Quat for CPUs with AVX instructions.
-
-Copyright
-	Copyright (c) 2021 Noah Stein. All Rights Reserved.
-========================================================================*/
+/*************************************************************************
+ * @file
+ * @brief Quat<S, SIMD> optimizations for the AVX ISA.
+ * 
+ * @details This file contains specializations of Quat algorithms for the 
+ * AVX ISA. The major change for code from SSE4 is the expansion of 
+ * registers from 128- to 256-bits. AVX introduced 3-operand instructions 
+ * (instead of the 2-operand instructions in earlier SSE generations); 
+ * however, this isn't noticeable directly in C++ code relying upon INtel  
+ * intrinsics.
+ * 
+ * Extending registers to 256 bits is of no benefit to single-precision 
+ * floating-point quaternions; however, it's a boon to double-precision 
+ * ones because now the entire quaternion fits into a single register 
+ * and intrinsic data type. Consequently, this file contains a 
+ * completely new implementation of quaternion algorithms for doubles.
+ * 
+ * @sa Quat.h
+ * @sa Quat_Sse.h
+ * @sa Quat_Sse2.h
+ * @sa Quat_Sse3.h
+ * @sa Quat_Sse4.h
+ * 
+ * @author Noah Stein
+ * @copyright © 2021 Noah Stein. All Rights Reserved.
+ ************************************************************************/
 
 #if !defined(ARK_MATH_QUAT_AVX_H_INCLUDE_GUARD)
 #define ARK_MATH_QUAT_AVX_H_INCLUDE_GUARD
 
 
-/*========================================================================
-  Dependencies
-========================================================================*/
+//************************************************************************
+//  Dependencies
+//************************************************************************
 #include "Quat_Sse4.h"
 
 
-/*========================================================================
-  Code
-========================================================================*/
+//************************************************************************
+//  Code
+//************************************************************************
 namespace ark::math
 {
-	/*====================================================================
-	  Classes
-	====================================================================*/
-
-	/*--------------------------------------------------------------------
-	  AVX Quat<float> is structurally-identical to that of SSE
-	--------------------------------------------------------------------*/
-	template<> class Quat<float, ark::hal::simd::Avx> : public Quat<float, ark::hal::simd::Sse4>
+	/*********************************************************************
+	 * @brief AVX-optimized Quat Float Specialization
+	 * 
+	 * @details The AVX Quat<float> data type is structurally identical 
+	 * to the earlier SSE one as there is nothing to be gained from using 
+	 * the full 256-bit register size. Four floats fit in 128 bits.
+	 * 
+	 * @sa Quat<float, ark::hal::simd::Sse4>
+	 ********************************************************************/
+	template<>
+	class Quat<float, ark::hal::simd::Avx> : public Quat<float, ark::hal::simd::Sse4>
 	{
 		using Quat<float, ark::hal::simd::Sse4>::Quat;
 	};
 
 
-	/*--------------------------------------------------------------------
-	  AVX Quat<double> takes advantage of new 256-bit AVX registers,
-	  wide enough to hold all 4 doubles.
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief SSE4-optimized Quat Double Specialization
+	 * 
+	 * @details The AVX spec introduces a new 256-bit register size, so 
+	 * the old SSE two-register layout is replaced with a single register 
+	 * like the float specialization has had since the original SSE.
+	 * 
+	 * @sa Quat<double, ark::hal::simd::Sse4>
+	 ********************************************************************/
 	template<> class Quat<double, ark::hal::simd::Avx>
 	{
+		/// All four double-precision components: w, x, y, and z
 		__m256d value_;
 
 	public:
+		/// This specialization is specifically for doubles.
 		using Scalar = double;
 
+		/// @name Constructors
+		/// @{
+
+		/** @brief Default Constructor
+		 *  @details Like the primary template, the default constructor 
+		 *  leaves storage uninitialized, just like the behavior of 
+		 *  built-in types.
+		 */					
 		Quat() = default;
 
+
+		/** @brief Compopnent Constructor
+		 *  @details Constructor taking the 4 quaternion components 
+		 *  explicitly as separate, individaul parameters.
+		 */
 		Quat(Scalar w, Scalar x, Scalar y, Scalar z)
 		{
 			value_ = _mm256_set_pd(z, y, x, w);
 		}
 
+
+		/** @brief Quaternion Concept Constructor
+		 *  @details Constructor from any type that is compatible with 
+		 *  the Quaternion concept.
+		 */
 		template<Quaternion Q>
 		Quat(const Q& rhs)
 			: Quat(static_cast<Scalar>(rhs.w()), static_cast<Scalar>(rhs.x()), static_cast<Scalar>(rhs.y()), static_cast<Scalar>(rhs.z()))
 		{}
 
+
+		/** @brief AVX Data Constructor
+		 *  @details Constructor to be used by only by AVX-optimized 
+		 *  versions of algorithms as it uses the AVX-specific data 
+		 *  as it is stored in an instance. Unfortunately, there is no 
+		 *  good way to hide it. Do not use it in multi-platform code.
+		 */
 		Quat(__m256d value)
 			: value_(value)
 		{}
+		/// @}
 
-		__m256d AvxVal() const { return value_; }
-
+		/// @name Accessors
+		/// @{
 		Scalar w() const
 		{
 			return _mm256_cvtsd_f64(AvxVal());
@@ -90,16 +145,30 @@ namespace ark::math
 			double result = _mm256_cvtsd_f64(y);
 			return result;
 		}
+
+		/** @brief Accessor to AVX-specific data
+		 *  @warning Only use in AVX-specific algorithm implementations.
+		 */
+		__m256d AvxVal() const { return value_; }
+		/// @}
 	};
 
 
-	/*====================================================================
-	  Functions
-	====================================================================*/
-
-	/*--------------------------------------------------------------------
-	  Negation
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief AVX-optimized Quat<double> Negation
+	 * 
+	 * @details Compute a negation of a double-precision floating-point 
+	 * quaternion using an SSE2-optimized algorithm. This implementation 
+	 * is selected when the HAL_SIMD parameter is set to any AVX 
+	 * generation that uses the Quat<double, ark::hal::simd::Avx> 
+	 * specialization. This supersedes the earlier SSE implementation and 
+	 * is mandatory due to the new data format. 
+	 * 
+	 * @include{doc} Math/Quaternion/Negation.txt
+	 * 
+	 * @sa operator-(const Q& q)
+	 * @sa QuaternionNegation
+	 ********************************************************************/
 	template<ark::hal::simd::IsAvx SIMD>
 	inline auto operator-(Quat<double, SIMD> q) -> Quat<double, SIMD>
 	{
@@ -109,9 +178,21 @@ namespace ark::math
 	}
 
 
-	/*--------------------------------------------------------------------
-	  Conjugate
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief AVX-optimized Quat<double> Conjugation
+	 * 
+	 * @details Compute a conjugation of a double-precision floating-point 
+	 * quaternion using an AVX-optimized algorithm. This implementation 
+	 * is selected when the HAL_SIMD parameter is set to any AVX 
+	 * generation that uses the Quat<double, ark::hal::simd::Avx> 
+	 * specialization. This supersedes the earlier SSE implementation and 
+	 * is mandatory due to the new data format. 
+	 * 
+	 * @include{doc} Math/Quaternion/Conjugation.txt
+	 * 
+	 * @sa operator*(const Q& q)
+	 * @sa QuaternionConjugation
+	 ********************************************************************/
 	template<ark::hal::simd::IsAvx SIMD>
 	inline auto operator*(Quat<double, SIMD> q) -> Quat<double, SIMD>
 	{
@@ -122,9 +203,20 @@ namespace ark::math
 	}
 
 
-	/*--------------------------------------------------------------------
-		Dot
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief AVX-optimized Quat<double> Dot Product
+	 * 
+	 * @details Compute the dot product of two double-precision 
+	 * floating-point quaternions using an AVX-optimized algorithm. This 
+	 * implementation is selected when the HAL_SIMD parameter is set to 
+	 * any AVX generation that uses the Quat<double, ark::hal::simd::Avx> 
+	 * specialization. This supersedes the earlier SSE implementation and 
+	 * is mandatory due to the new data format. 
+	 * 
+	 * @include{doc} Math/Quaternion/DotProduct.txt
+	 * 
+	 * @sa Dot(const QL& lhs, const QR& rhs)
+	 ********************************************************************/
 	template<ark::hal::simd::IsAvx SIMD>
 	inline auto Dot(Quat<double, SIMD> lhs, Quat<double, SIMD> rhs) -> double
 	{
@@ -136,9 +228,21 @@ namespace ark::math
 	}
 
 
-	/*--------------------------------------------------------------------
-	  Addition
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief AVX-optimized Quat<double> Addition
+	 * 
+	 * @details Compute the addition of two double-precision floating-
+	 * point quaternions using an AVX-optimized algorithm. This 
+	 * implementation is selected when the HAL_SIMD parameter is set to 
+	 * any AVX generation that uses the Quat<double, ark::hal::simd::Avx> 
+	 * specialization. This supersedes the earlier SSE implementation and 
+	 * is mandatory due to the new data format. 
+	 * 
+	 * @include{doc} Math/Quaternion/Addition.txt
+	 * 
+	 * @sa operator+(const QL& lhs, const QR& rhs)
+	 * @sa QuaternionAddition
+	 ********************************************************************/
 	template<ark::hal::simd::IsAvx SIMD>
 	inline auto operator+(Quat<double, SIMD> lhs, Quat<double, SIMD> rhs) -> Quat<double, SIMD>
 	{
@@ -146,9 +250,22 @@ namespace ark::math
 	}
 
 
-	/*--------------------------------------------------------------------
-	  Subtraction
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief AVX-optimized Quat<double> Subtraction
+	 * 
+	 * @details Compute the subtraction of one double-precision floating-
+	 * point quaternion from another using an AVX-optimized algorithm. 
+	 * This implementation is selected when the HAL_SIMD parameter is set 
+	 * to any AVX generation that uses the 
+	 * Quat<double, ark::hal::simd::Avx> specialization. This supersedes 
+	 * the earlier SSE implementation and is mandatory due to the new 
+	 * data format. 
+	 * 
+	 * @include{doc} Math/Quaternion/Subtraction.txt
+	 * 
+	 * @sa operator-(const QL& lhs, const QR& rhs)
+	 * @sa QuaternionSubtraction
+	 ********************************************************************/
 	template<ark::hal::simd::IsAvx SIMD>
 	inline auto operator-(Quat<double, SIMD> lhs, Quat<double, SIMD> rhs) -> Quat<double, SIMD>
 	{
@@ -156,9 +273,22 @@ namespace ark::math
 	}
 
 
-	/*--------------------------------------------------------------------
-	  Quaternion-Scalar Multiplication
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief SBX-optimized Quat<double> Quaternion-Scalar Multiplication
+	 * 
+	 * @details Compute the product of a double-precision floating-point 
+	 * quaternion by a double-precision floating-point scalar value using 
+	 * an AVX-optimized algorithm. This implementation is selected when 
+	 * the HAL_SIMD parameter is set to any AVX generation that uses the  
+	 * Quat<double, ark::hal::simd::Avx> specialization. This supersedes 
+	 * the earlier SSE implementation and is mandatory due to the new 
+	 * data format. 
+	 * 
+	 * @include{doc} Math/Quaternion/QuaternionScalarMultiplication.txt
+	 * 
+	 * @sa operator*(const Q& q, typename Q::Scalar s)
+	 * @sa QuaternionScalarMultiplication
+	 ********************************************************************/
 	template<ark::hal::simd::IsAvx SIMD>
 	inline auto operator*(Quat<double, SIMD> lhs, double rhs) -> Quat<double, SIMD>
 	{
@@ -168,9 +298,22 @@ namespace ark::math
 	}
 
 
-	/*--------------------------------------------------------------------
-	  Scalar-Quaternion Multiplication
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief AVX-optimized Quat<double> Scalar-Quaternion Multiplication
+	 * 
+	 * @details Compute the product of a double-precision floating-point 
+	 * scalar value and a double-precision floating-point quaternion 
+	 * value using an AVX-optimized algorithm. This implementation is 
+	 * selected when the HAL_SIMD parameter is set to any AVX generation 
+	 * that uses the Quat<double, ark::hal::simd::Avx> specialization.
+	 * This supersedes the earlier SSE implementation and is mandatory 
+	 * due to the new data format.
+	 *  
+	 * @include{doc} Math/Quaternion/ScalarQuaternionMultiplication.txt
+	 * 
+	 * @sa operator*(typename Q::Scalar s, const Q& q)
+	 * @sa QuaternionScalarMultiplication
+	 ********************************************************************/
 	template<ark::hal::simd::IsAvx SIMD>
 	inline auto operator*(double lhs, Quat<double, SIMD> rhs) -> Quat<double, SIMD>
 	{
@@ -180,9 +323,22 @@ namespace ark::math
 	}
 
 
-	/*--------------------------------------------------------------------
-	  Quaternion-Scalar Division
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief AVX-optimized Quat<double> Scalar Division
+	 * 
+	 * @details Compute the quotient of a double-precision floating-point 
+	 * quaternion dividend by a double-precision floating-point scalar 
+	 * divisor using an AVX-optimized algorithm. This implementation is 
+	 * selected when the HAL_SIMD parameter is set to any AVX generation 
+	 * that uses the Quat<double, ark::hal::simd::AVx> specialization. 
+	 * This supersedes the earlier SSE implementation and is mandatory 
+	 * due to the new data format.
+	 * 
+	 * @include{doc} Math/Quaternion/ScalarDivision.txt
+	 * 
+	 * @sa operator/(const Q& q, typename Q::Scalar s)
+	 * @sa QuaternionScalarDivision
+	 ********************************************************************/
 	template<ark::hal::simd::IsAvx SIMD>
 	inline auto operator/(Quat<double, SIMD> lhs, double rhs) -> Quat<double, SIMD>
 	{
@@ -192,9 +348,24 @@ namespace ark::math
 	}
 
 
-	/*--------------------------------------------------------------------
-		Quaternion Multiplication
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief AVX-optimized Quat<double> Multiplication
+	 * 
+	 * @details Compute the product of two double-precision floating-point 
+	 * quaternions using an AVX-optimized algorithm. This implementation 
+	 * is selected when the HAL_SIMD parameter is set to any AVX 
+	 * generation that uses the 
+	 * Quat<double, ark::hal::simd::Avx> specialization. This supersedes 
+	 * the earlier SSE implementation and is mandatory due to the new 
+	 * data format.
+	 * 
+	 * @include{doc} Math/Quaternion/Multiplication.txt
+	 * 
+	 * @note This implementation is superseded in AVX2.
+	 * 
+	 * @sa operator*(const QL& lhs, const QR& rhs)
+	 * @sa QuaternionMultiplication
+	 ********************************************************************/
 	template<ark::hal::simd::IsAvx SIMD>
 	auto operator*(Quat<double, SIMD> lhs, Quat<double, SIMD> rhs) -> Quat<double, SIMD>
 	{
@@ -241,5 +412,5 @@ namespace ark::math
 }
 
 
-//========================================================================
+//************************************************************************
 #endif

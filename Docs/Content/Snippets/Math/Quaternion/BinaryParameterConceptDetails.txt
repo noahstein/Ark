@@ -1,0 +1,7 @@
+The quaternion parameters shall be instances of any class types that 
+meets the requirements of the Quaternion concept. The parameters may be 
+of the same or difference classes. This includes simple quaternion class 
+instances as well as arbitrarily complex expression template trees. Given 
+some pre-existing quaternions \\(q_1,q_2,...,q_n\\), these are some of 
+the many valid C++ expressions that may be accepted:
+@include{doc} SampleExpressions.txt

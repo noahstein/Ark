@@ -1,0 +1,3 @@
+Mathematically, given the quaternion @include{doc} Q.f, its conjugate is 
+defined as:
+@include{doc} Conjugation.f

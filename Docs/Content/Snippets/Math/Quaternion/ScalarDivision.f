@@ -1,0 +1,1 @@
+\\[\\mathbf{q}/s=(w/s,x/s,y/s,z/s)\\]

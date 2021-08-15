@@ -1,0 +1,111 @@
+/*************************************************************************
+ * @page ExpressionTemplates Template Expression Trees
+ * 
+ * # Introduction
+ * 
+ * Ark uses template expression trees in classes representing vectors, 
+ * matrices, and quaternions. In this case, the operators and functions 
+ * used in the source get compiled into instances of classes that 
+ * represent the syntax tree of the expression. At the point of the 
+ * assignment, the tree gets evaluated. Expression trees serve two 
+ * primary purposes: 1) optimizing evaluation of large numerics liek 
+ * vectors and matrices by avoiding unnecessary temporaries, and 2) 
+ * maximizing interoperability among heterogeneous types.
+ * 
+ * Expression trees provide a few benefits:
+ * 
+ * - Maximum flexibility: Types can used together without resorting to 
+ *   an \f$\mathbf{O}(n^2)\f$ explosion of conversions. For example, a
+ *   `Quat<float>` will automatically participate in all algebraic 
+ *   operations with a theoretical `ProceduralQuat<double, func, func, 
+ *   func, func>`.
+ * - Potential for optimization: Expression templates are not guaranteed 
+ *   to optimize better, but they provide a possible means to do so. They 
+ *   can avoid unnecessary temporary variables, which can be a 
+ *   significant amount of overhead in large expressions with each 
+ *   operation being a small amount of effort. Additionally, the library 
+ *   has the opportunity to apply domain-driven transformations to 
+ *   optimize the expression before evaluating it. For example, a vector 
+ *   library could optimize the expression `magnitude(a) < magnitude(b)` 
+ *   by avoiding the square roots on each side as the ordering 
+ *   relationship holds between \f$\mathbf{a}\cdot\mathbf{a}\f$ and 
+ *   \f$\mathbf{b}\cdot\mathbf{b}\f$.
+ * - Specialization: This is also for performance, but in this case, if 
+ *   a data structure or algorithm is specialized, it is because it will 
+ *   optimize better than the general case. The general case for 
+ *   specialization of numerics is to write implementations using chip- 
+ *   specific SIMD types and instructions. These can offer extreme speed 
+ *   improvements. Elegantly, in situations that improve speed the code 
+ *   will use the optimized specialiaztions; however, even with those 
+ *   optimizsated data structures, when they're used in situations where 
+ *   no optimization is available they'll still be able to participate 
+ *   fully in the general algorithmic implementations. It's truly the 
+ *   best of both worlds.
+ * 
+ * These benefits come at the price that basic implementation is more 
+ * complex than not using trees. Each operation, instead of having one 
+ * function, has a function the returns an instance of an expression tree 
+ * node and a class to represent that node and implement its 
+ * functionality. 
+ * 
+ * # Structure
+ * 
+ * ## Traditional CRTP style
+ * 
+ * Classicaly, in C++ template expression trees take the form of a base 
+ * class constructed in the CRTP style, roughly as such:
+ * 
+ * @include CrtpExpr.cpp
+ * 
+ * Surprisingly, the rules of C++, even in the 1998 standard, do not 
+ * prevent botha a base class from accessing a derived class and that 
+ * base class taking that derived class as a template type parameter. 
+ * There are some limitations, but they do not preclude many interesting 
+ * and useful functions.
+ * 
+ * In the example above, client code can hold references to arbitrary 
+ * expressions with an `Expr<T>`, call its `eval`, and get the result 
+ * of evaluating the entire expression. From the xample above, there 
+ * could be a multiply expression whose left and right type are 
+ * terminals of float types. In that case, the result would be a float 
+ * equal to the product of hte two termas. In the real world, the 
+ * types and the expressions will likely be much more complex. In those 
+ * situations, the result of eval is the the recursive application of 
+ * results of the subtypes.
+ * 
+ * ## Modern C++ style
+ * 
+ * The C++ 20 standard introduced concepts and constraints. With 
+ * these additional features, CRTP is no longer necessary to building 
+ * a template expression tree engine. The key is that the structure of 
+ * evaluations and types get enforced by concepts and constraints. The 
+ * implementation to support a multiplication expression as in the CRTP 
+ * example above is much simpler:
+ * 
+ * @include ConstraintExpr.cpp
+ * 
+ * The concepts and constraints ensure that only those classes that meet 
+ * the structural requirements may particapate. Consequently, the 
+ * structure is is much simpler and easy to understand. Look at the 
+ * Vector, Matrix, and Quaternion concepts and their associated 
+ * expression tree classes for actual design and usage.
+ * 
+ * # Usage
+ * 
+ * @anchor ExpressionTemplates_FunctionParameterUsage
+ * ## A Template Expression Tree a Function Parameter
+ * 
+ * Blah, blah, blah.
+ * 
+ * ~~~~
+ *
+ * @sa [_Expression Templates_ on Wikipedia]
+ *     (https://en.wikipedia.org/wiki/Expression_templates)
+ * @sa [_Curiously recurring template pattern_ on Wikipedia]
+ *     (https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern)
+ * @sa [_Constraints and Concepts_ on cppreference.com]
+ *     (https://duckduckgo.com/?q=concepts+constraints+c%2B%2B&t=brave&ia=web)
+ * 
+ * @author Noah Stein
+ * @copyright © 2021 Noah Stein. All Rights Reserved.
+ ************************************************************************/

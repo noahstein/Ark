@@ -1,0 +1,11 @@
+/*************************************************************************
+ * @page TemplateExpressionsAsClassParameters Template Expression Trees as Class Parameters
+ * 
+ * A class whose template is parameterized with a template expression 
+ * tree parameter shall declare its parameter using the appropriate 
+ * value type concept. For example, a node in an expression tree for the 
+ * `Quaternion` concept would be declared as follows:
+ * @code
+ * template<Quaternion Q> class SomeNode
+ * @endcode
+ *************************************************************************/

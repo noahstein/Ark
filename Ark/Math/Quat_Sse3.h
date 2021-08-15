@@ -1,77 +1,85 @@
-/*========================================================================
-Description
-	Optimized specializations of Quat for CPUs with SSE 3 instructions.
-	Intel added a handful of instructions to SSE2 which help implement a 
-	few basic operations: dot product.
-
-	The signficant added single-precision instructions are:
-
-		__m128 _mm_addsub_ps (__m128 a, __m128 b) => a0-b0, a1+b1, a2-b2, a3+b3
-		__m128 _mm_hadd_ps (__m128 a, __m128 b) => a1+a0, a3+a2, b1+b0, b3+b2
-		__m128 _mm_hsub_ps (__m128 a, __m128 b) => a0-a1, a2-a3, b0-b1, b2-b3
-		__m128 _mm_movehdup_ps (__m128 a) => a1, a1, a3, a3
-		__m128 _mm_moveldup_ps (__m128 a) => a0, a0, a2, a2
-
-	The significant added double-precision instructions are:
-
-		__m128d _mm_addsub_pd (__m128d a, __m128d b) => a0-b0, a1+b1
-		__m128d _mm_hadd_pd (__m128d a, __m128d b) => a1+a0, b1+b0
-		__m128d _mm_hsub_pd (__m128d a, __m128d b) => a0-a1, b0-b1
-		__m128d _mm_movedup_pd (__m128d a) => a0, a0
-
-Copyright
-	Copyright (c) 2021 Noah Stein. All Rights Reserved.
-========================================================================*/
+/*************************************************************************
+ * @file
+ * @brief Quat<S, SIMD> optimizations for the SSE3 ISA.
+ * 
+ * @details This file contains optimiztions of Quat algorithms specific 
+ * to the SSE3 ISA. The third generation of the SSE spec contains no new 
+ * register formats; however, it introduces new instructions that enable 
+ * some algorithms to be better optimized. Consequently, only those 
+ * algorithms are reimplemented here. Those from earlier generations that 
+ * cannot be improved upon will be inherited automatically.
+ * 
+ * @sa Quat.h
+ * @sa Quat_Sse.h
+ * @sa Quat_Sse2.h
+ * 
+ * @author Noah Stein
+ * @copyright © 2021 Noah Stein. All Rights Reserved.
+ ************************************************************************/
 
 #if !defined(ARK_MATH_QUAT_SSE3_H_INCLUDE_GUARD)
 #define ARK_MATH_QUAT_SSE3_H_INCLUDE_GUARD
 
 
-/*========================================================================
-  Dependencies
-========================================================================*/
+//************************************************************************
+//  Dependencies
+//************************************************************************
 #include "Quat_Sse2.h"
 
 
-/*========================================================================
-  Code
-========================================================================*/
+//************************************************************************
+//  Code
+//************************************************************************
 namespace ark::math
 {
-	/*====================================================================
-	  Classes
-	====================================================================*/
-
-	/*--------------------------------------------------------------------
-	  SSE 3 Quat<float> is structurally-identical to SSE 1
-	--------------------------------------------------------------------*/
-	template<> class Quat<float, ark::hal::simd::Sse3> : public Quat<float, ark::hal::simd::Sse2>
+	/*********************************************************************
+	 * @brief SSE3-optimized Quat Float Specialization
+	 * 
+	 * @details The SSE3 specification does not define structural changes  
+	 * regarding single-precision floating-point vectors; therefore, the 
+	 * prior generation is used as-is.
+	 * 
+	 * @sa Quat<float, ark::hal::simd::Sse2>
+	 ********************************************************************/
+	template<>
+	class Quat<float, ark::hal::simd::Sse3> : public Quat<float, ark::hal::simd::Sse2>
 	{
 		using Quat<float, ark::hal::simd::Sse2>::Quat;
 	};
 
 
-	/*--------------------------------------------------------------------
-	  SSE 3 Quat<double> is structurally-identical to SSE 1
-	--------------------------------------------------------------------*/
-	template<> class Quat<double, ark::hal::simd::Sse3> : public Quat<double, ark::hal::simd::Sse2>
+	/*********************************************************************
+	 * @brief SSE3-optimized Quat Double Specialization
+	 * 
+	 * @details The SSE3 specification does not define structural changes  
+	 * regarding double-precision floating-point vectors; therefore, the 
+	 * prior generation is used as-is.
+	 * 
+	 * @sa Quat<double, ark::hal::simd::Sse2>
+	 ********************************************************************/
+	template<>
+	class Quat<double, ark::hal::simd::Sse3> : public Quat<double, ark::hal::simd::Sse2>
 	{
 		using Quat<double, ark::hal::simd::Sse2>::Quat;
-
-	public:
-		Quat(const Quat<double, ark::hal::simd::Sse2>& q)
-			: Quat(q.SseWx(), q.SseYz())
-		{}
 	};
 
 
-	/*====================================================================
-	  Functions
-	====================================================================*/
-
-	/*--------------------------------------------------------------------
-		Dot
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief SSE3-optimized Quat<float> Dot Product
+	 * 
+	 * @details Compute the dot product of two single-precision 
+	 * floating-point quaternions using an SSE3-optimized algorithm. This 
+	 * implementation is selected when the HAL_SIMD parameter is set to 
+	 * any SSE generation that uses the Quat<float, ark::hal::simd::Sse3> 
+	 * specialization. This implementation supersedes the SSE one. SSE3's 
+	 * new horizontal add instructions enable this new optimization.
+	 * 
+	 * @include{doc} Math/Quaternion/DotProduct.txt
+	 * 
+	 * @note This implementation superseded in SSE4.
+	 * 
+	 * @sa Dot(const QL& lhs, const QR& rhs)
+	 ********************************************************************/
 	template<ark::hal::simd::IsSse3 SIMD>
 	inline auto Dot(Quat<float, SIMD> lhs, Quat<float, SIMD> rhs) -> float
 	{
@@ -83,9 +91,24 @@ namespace ark::math
 	}
 
 
-	/*--------------------------------------------------------------------
-		Quaternion Multiplication
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief SSE3-optimized Quat<float> Multiplication
+	 * 
+	 * @details Compute the product of two single-precision floating-point 
+	 * quaternions using an SSE3-optimized algorithm. This implementation 
+	 * is selected when the HAL_SIMD parameter is set to any SSE 
+	 * generation that uses the 
+	 * Quat<float, ark::hal::simd::Sse3> specialization. This supersedes 
+	 * the SSE implementation. The new SSE3 addsub instruction shortens 
+	 * the algorithm just a little bit.
+	 * 
+	 * @include{doc} Math/Quaternion/Multiplication.txt
+	 * 
+	 * @note This implementation superseded in SSE4.
+	 * 
+	 * @sa operator*(const QL& lhs, const QR& rhs)
+	 * @sa QuaternionMultiplication
+	 ********************************************************************/
 	template<ark::hal::simd::IsSse3 SIMD>
 	auto operator*(Quat<float, SIMD> lhs, Quat<float, SIMD> rhs) -> Quat<float, SIMD>
 	{
@@ -125,9 +148,22 @@ namespace ark::math
 	}
 
 
-	/*--------------------------------------------------------------------
-		Dot
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief SSE3-optimized Quat<double> Dot Product
+	 * 
+	 * @details Compute the dot product of two double-precision 
+	 * floating-point quaternions using an SSE3-optimized algorithm. This 
+	 * implementation is selected when the HAL_SIMD parameter is set to 
+	 * any SSE generation that uses the Quat<double, ark::hal::simd::Sse3> 
+	 * specialization. This implementation supersedes the SSE2 one. SSE3's 
+	 * new horizontal add instructions enable this new optimization.
+	 * 
+	 * @include{doc} Math/Quaternion/DotProduct.txt
+	 * 
+	 * @note This implementation superseded in SSE4.
+	 * 
+	 * @sa Dot(const QL& lhs, const QR& rhs)
+	 ********************************************************************/
 	template<ark::hal::simd::IsSse3 SIMD>
 	inline auto Dot(Quat<double, SIMD> lhs, Quat<double, SIMD> rhs) -> double
 	{
@@ -141,9 +177,24 @@ namespace ark::math
 	}
 
 
-	/*--------------------------------------------------------------------
-	  Quaternion Multiplication
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief SSE3-optimized Quat<double> Multiplication
+	 * 
+	 * @details Compute the product of two double-precision floating-point 
+	 * quaternions using an SSE3-optimized algorithm. This implementation 
+	 * is selected when the HAL_SIMD parameter is set to any SSE 
+	 * generation that uses the 
+	 * Quat<double, ark::hal::simd::Sse3> specialization. This supersedes 
+	 * the SSE2 implementation. The new SSE3 addsub instruction shortens 
+	 * the algorithm just a little bit.
+	 * 
+	 * @include{doc} Math/Quaternion/Multiplication.txt
+	 * 
+	 * @note This implementation is superseded in AVX.
+	 * 
+	 * @sa operator*(const QL& lhs, const QR& rhs)
+	 * @sa QuaternionMultiplication
+	 ********************************************************************/
 	template<ark::hal::simd::IsSse3 SIMD>
 	auto operator*(Quat<double, SIMD> lhs, Quat<double, SIMD> rhs) -> Quat<double, SIMD>
 	{
@@ -190,5 +241,5 @@ namespace ark::math
 }
 
 
-//========================================================================
+//************************************************************************
 #endif

@@ -1,0 +1,1 @@
+\\[\\mathbf{q}s=(sw,sx,sy,sz)\\]

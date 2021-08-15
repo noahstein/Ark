@@ -1,4 +1,4 @@
-/** **********************************************************************
+/*************************************************************************
  * @file
  * @brief SIMD tag and concept for the x86/x64 Intel AVX ISA.
  * 
@@ -30,7 +30,7 @@
 //************************************************************************
 namespace ark::hal::simd
 {
-	/** ******************************************************************
+	/*********************************************************************
 	 * @brief SIMD architecture tag indicating the CPU has the AVX ISA.
 	 * 
 	 * @details Use this tag in template specialiazation parameter lists 
@@ -43,7 +43,7 @@ namespace ark::hal::simd
 	};
 
 
-	/** ******************************************************************
+	/*********************************************************************
 	 * @brief Concept restricting templates to CPUs with the AVX ISA.
 	 *
 	 * @details Use this concept when declaring template parameter lists 
