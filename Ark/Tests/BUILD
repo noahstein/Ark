@@ -10,6 +10,8 @@ cc_test(
 		"QuatUnitTests.cpp",
 		"VectorUnitTests.cpp",
 		"VecUnitTests.cpp",
+
+		"Cfg.h",
 	],
 	deps = [
 		"@gtest//:gtest",

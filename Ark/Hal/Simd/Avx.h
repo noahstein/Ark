@@ -18,6 +18,8 @@
 #if !defined(ARK_HAL_SIMD_AVX_H_INCLUDE_GUARD)
 #define ARK_HAL_SIMD_AVX_H_INCLUDE_GUARD
 
+#define SIMD_HAS_AVX
+
 
 //************************************************************************
 //  Dependencies

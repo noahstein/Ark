@@ -9,7 +9,7 @@
  * components. The original SSE only included single-precision floating-
  * point numerics. Consequently, the SSE optimizations do not include 
  * doubles. As no new single-precision instructions were added useful to 
- * the quaternion algorithsm, the SSE2 optimizations in this file are all 
+ * the quaternion algorithms, the SSE2 optimizations in this file are all 
  * double-precision implementations. There is a specialization of the 
  * Quat class for double-precision components and algorithms implemented 
  * against the class specialization.
@@ -58,7 +58,7 @@ namespace ark::math
 	 * @brief SSE2-optimized Quat double Specialization
 	 * 
 	 * @details This class specialization defines the Quat class for SSE2 
-	 * and double-precision float scalars. The specialization utilites 
+	 * and double-precision float scalars. The specialization utilizes 
 	 * the type __m128d to store data. As registers are still 128-bits 
 	 * wide, it takes two members to store all 4 64-bit doubles 
 	 * representing a quaternion. Internally, these are the same 
@@ -127,7 +127,7 @@ namespace ark::math
 
 		/// @name Accessors
 		/// @{
-		Scalar w() const { return _mm_cvtsd_f64 (SseWx()); }
+		Scalar w() const { return _mm_cvtsd_f64(SseWx()); }
 		Scalar x() const { return _mm_cvtsd_f64(_mm_unpackhi_pd(SseWx(), SseWx())); }
 		Scalar y() const { return _mm_cvtsd_f64 (SseYz()); }
 		Scalar z() const { return _mm_cvtsd_f64(_mm_unpackhi_pd(SseYz(), SseYz())); }

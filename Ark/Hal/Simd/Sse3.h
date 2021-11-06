@@ -18,6 +18,8 @@
 #if !defined(ARK_HAL_SIMD_SSE3_H_INCLUDE_GUARD)
 #define ARK_HAL_SIMD_SSE3_H_INCLUDE_GUARD
 
+#define SIMD_HAS_SSE3
+
 
 //************************************************************************
 //  Dependencies
