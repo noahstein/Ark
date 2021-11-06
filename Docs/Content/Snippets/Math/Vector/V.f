@@ -1,0 +1,1 @@
+\\(\\mathbf{v}\in\mathbb{R}^n=(v_0,...,v_n)\\)

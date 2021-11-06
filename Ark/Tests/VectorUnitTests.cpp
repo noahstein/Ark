@@ -235,10 +235,25 @@ TEST_F(VectorUnitTests, VectorCrossProduct3D)
 	EXPECT_EQ(result(2), 1.0f);
 }
 
-TEST_F(VectorUnitTests, VectorMagnitude)
+TEST_F(VectorUnitTests, VectorCrossProduct4D)
+{
+	// Given
+	ark::math::TestVec<4> v1({2.0f, 3.0f, 5.0f, 7.0f});
+	ark::math::TestVec<4> v2({7.0f, 11.0f, 13.0f, 17.0f});
+
+	// When
+	ark::math::TestVec<4> result = Cross(v1, v2);
+
+	// Then
+	EXPECT_EQ(result(0), -16.0f);
+	EXPECT_EQ(result(1), 9.0f);
+	EXPECT_EQ(result(2), 1.0f);
+}
+
+TEST_F(VectorUnitTests, VectorNorm)
 {
 	// When
-	float result = Magnitude(v);
+	float result = Norm(v);
 
 	// Then
 	EXPECT_EQ(result, std::sqrt(87.0f));

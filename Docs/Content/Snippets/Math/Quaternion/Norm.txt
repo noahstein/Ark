@@ -1,2 +1,2 @@
 Given the quaternion @include{doc} Q.f, its norm is computed like this:
-@include{doc} Norm.f
+@include{doc} Quaternion/Norm.f

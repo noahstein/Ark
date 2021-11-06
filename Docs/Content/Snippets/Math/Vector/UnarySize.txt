@@ -1,0 +1,5 @@
+@brief The dimensionality of the result vector
+@details As with the majority of unary vector operations, the dimension 
+of the result vector is the same as the sole operand vector.
+@return constexpr size_t The number of components in the vector and the 
+upper limit of the half-open interval of components that may be accessed.

@@ -1,0 +1,2 @@
+Given the vector @include{doc} V.f, its norm is computed like this:
+@include{doc} Vector/Norm.f

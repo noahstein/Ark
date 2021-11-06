@@ -39,7 +39,7 @@ namespace ark::math
 	//====================================================================
 
 	/*********************************************************************
-	 * @brief Quaternion Concept Defining 4D Complex Number Classes
+	 * @brief Quaternion Concept Defining 4-D Complex Number Classes
 	 * 
 	 * @details This concept models an abstraction of the mathematical 
 	 * entity of a quatnerion, a 4-dimensional complex number. A 
@@ -150,6 +150,7 @@ namespace ark::math
 	 * in other concepts and as a source of common code for other classes 
 	 * participating in quaternion expressions.
 	 * 
+	 * @sa ark::math::Quaternion
 	 * @sa @ref ExpressionTemplates
 	 ********************************************************************/
 	class QuaternionExpr
@@ -189,11 +190,11 @@ namespace ark::math
 	 * fulfill the reuquirements of the @ref ark::math::Quaternion 
 	 * concept to successfully compile.
 	 * 
-	 * @details The base class for quaternion-valoued expressions with a 
+	 * @details The base class for quaternion-valued expressions with a 
 	 * single operand. As the current implementation does not 
 	 * functionally rely upon CRTP, this base class isn't strictly 
-	 * necessary. Unary quaternion  expression classes shall derive from 
-	 * his base class to ensure proper classification in concept and 
+	 * necessary. Unary quaternion expression classes shall derive from 
+	 * this base class to ensure proper classification in concept and 
 	 * template expressions that classify nodes as unary quaternion 
 	 * expressions. 
 	 * 
@@ -224,7 +225,7 @@ namespace ark::math
 	 * node clases with two operands. It provides easy access to the 
 	 * appropriate `Scalar` type given the types in the two operands' 
 	 * classes. Additionally, the class includes a constraint to ensure 
-	 * that the two `Scalar` types may partake in mathematicsl 
+	 * that the two `Scalar` types may partake in mathematical 
 	 * expressions and produce results. 
 	 * 
 	 * @sa ark::math::Quaternion
@@ -456,7 +457,7 @@ namespace ark::math
 	 * @param rhs The quaternion expression to the right of the +
 	 * 
 	 * @details The binary `operator+` constructs a QuaternionAddition 
-	 * isntance with the two addends whose sum will be lazily computed at 
+	 * instance with the two addends whose sum will be lazily computed at 
 	 * a later time.
 	 * 
 	 * @include{doc} Math/Quaternion/Addition.txt
@@ -539,7 +540,7 @@ namespace ark::math
 	 * @param rhs The quaternion expression to the right of the -
 	 * 
 	 * @details The binary `operator-` constructs a QuaternionSubtraction 
-	 * isntance with the minuend and subtrahend  resulting the their 
+	 * instance with the minuend and subtrahend  resulting the their 
 	 * difference when the accessors are called.
 	 * 
 	 * @include{doc} Math/Quaternion/Subtraction.txt
@@ -645,7 +646,7 @@ namespace ark::math
 	 * @tparam Q The class of the quaternion expression that is the 
 	 * multiplier on the left-hand side of the *.
 	 * 
-	 * @param q The quternion expression multiplier on the left-hand 
+	 * @param q The quaternion expression multiplier on the left-hand 
 	 * side of the *.
 	 * 
 	 * @param s The scalar multiplicand on the right-hand side of the *.
@@ -674,11 +675,11 @@ namespace ark::math
 	 * @brief Quaternion-Scalar Division Expression Node:
 	 * \f$\mathbf{q}/s\f$
 	 * 
-	 * @tparam Q The class of the quaternion expression to be divided by a 
-	 * scalar quantity.
+	 * @tparam Q The class of the dividend quaternion expression to be 
+	 * divided by a scalar quantity.
 	 * 
-	 * @details This node computes the conjugate of the value of the 
-	 * quaternion expression node passed in its constructor.
+	 * @details This node lazily computes the quotient of the value of the 
+	 * quaternion expression node and scalar passed in its constructor.
 	 * 
 	 * @include{doc} Math/Quaternion/ScalarDivision.txt
 	 * 
@@ -728,7 +729,7 @@ namespace ark::math
 	 * @tparam Q The class of the quaternion expression that is the 
 	 * dividend on the left-hand side of the /.
 	 * 
-	 * @param q The quternion expression dividend on the left-hand 
+	 * @param q The quaternion expression dividend on the left-hand 
 	 * side of the /.
 	 * 
 	 * @param s The scalar divisor on the right-hand side of the /.
@@ -753,7 +754,7 @@ namespace ark::math
 	
 
 	/*********************************************************************
-	 * @brief Quaternion Euqality Comparison Operator:
+	 * @brief Quaternion Equality Comparison Operator:
 	 *       \f$\mathbf{q_1}==\mathbf{q_2}\f$
 	 * 
 	 * @tparam QL The class of the quaternion expression that is on the  
@@ -762,9 +763,9 @@ namespace ark::math
 	 * @tparam QR The class of the quaternion expression that is on the  
 	 * right-hand side of the ==.
 	 * 
-	 * @param lhs The quaternion expression to the left of the -
+	 * @param lhs The quaternion expression to the left of the ==
 	 * 
-	 * @param rhs The quaternion expression to the right of the -
+	 * @param rhs The quaternion expression to the right of the ==
 	 * 
 	 * @return `true` if the two quaternions are equal, `false` if unequal.
 	 * 
@@ -774,6 +775,8 @@ namespace ark::math
 	 * comparison will not be a operand to a parent quaternion-valued 
 	 * epxression. Therefore, nothing is constructed, the results of 
 	 * the comparison are returned directly.
+	 * 
+	 * @include{doc} Math/Quaternion/Equality.txt
 	 * 
 	 * @sa @ref ExpressionTemplates
 	 ********************************************************************/
@@ -856,7 +859,7 @@ namespace ark::math
 	 * @tparam QR The class of the quaternion expression that is the 
 	 * multiplicand, the factor on the right-hand side of the *.
 	 * 
-	 * @param lhs The quternion expression multiplier on the left-hand 
+	 * @param lhs The quaternion expression multiplier on the left-hand 
 	 * side of the *.
 	 * 
 	 * @param rhs The quaternion expression multiplicand on the 
@@ -883,7 +886,7 @@ namespace ark::math
 
 	/*********************************************************************
 	 * @brief Quaternion Dot Product Function:
-	 *       \f$\mathbf{q_1}\cdot\mathbf{q_2}\f$
+	 *        \f$\mathbf{q_1}\cdot\mathbf{q_2}\f$
 	 * 
 	 * @tparam QL The class of the quaternion expression that is the 
 	 * first factor of the dot product.
@@ -891,7 +894,7 @@ namespace ark::math
 	 * @tparam QL The class of the quaternion expression that is the 
 	 * second factor of the dot product.
 	 * 
-	 * @param lhs The quternion expression that is the first factor.
+	 * @param lhs The quaternion expression that is the first factor.
 	 * 
 	 * @param rhs The quaternion expression that is the second factor.
 	 * 
@@ -926,10 +929,7 @@ namespace ark::math
 	 * @details Compute the norm of a given quaternion. This is the 
 	 * Euclidean distance of the quaternion from the origin.
 	 * 
-	 * @include{doc} Math/Quaternion/Norm.f
-	 * Given the 
-	 * quaternion \f$\mathbf{q}\f$, its norm is computed like this:
-	 * \f[\mathrm{Norm}(\mathbf{q})=\sqrt{\mathbf{q}\cdot\mathbf{q}}\f]
+	 * @include{doc} Math/Quaternion/Norm.txt
 	 * 
 	 * @sa @ref ExpressionTemplates
 	 ********************************************************************/
@@ -1105,7 +1105,7 @@ namespace ark::math
 	 * @tparam QR The class of the quaternion expression that is the 
 	 * divisor, the factor on the right-hand side of the /.
 	 * 
-	 * @param lhs The quternion expression dividend on the left-hand 
+	 * @param lhs The quaternion expression dividend on the left-hand 
 	 * side of the /.
 	 * 
 	 * @param rhs The quaternion expression divisor on theright-hand side 

@@ -1,3 +1,3 @@
 Mathematically, the negation maps a quaternion to its additive inverse. 
 Given the quaternion @include{doc} Q.f, its negation is defined as:
-@include{doc} Negation.f
+@include{doc} Quaternion/Negation.f

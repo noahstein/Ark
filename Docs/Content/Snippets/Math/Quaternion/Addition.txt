@@ -1,3 +1,3 @@
 Given the quaternion addends @include{doc} Q1.f and @include{doc} Q2.f, 
 their sum is defined as:
-@include{doc} Addition.f
+@include{doc} Quaternion/Addition.f

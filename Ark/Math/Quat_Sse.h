@@ -66,7 +66,7 @@ namespace ark::math
 		Quat() = default;
 
 
-		/** @brief Compopnent Constructor
+		/** @brief Component Constructor
 		 *  @details Constructor taking the 4 quaternion components 
 		 *  explicitly as individaul parameters.
 		 */

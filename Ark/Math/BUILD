@@ -18,6 +18,7 @@ cc_library(
 		"Quat_Avx2.h",
 		"Vector.h",
 		"Vec.h",
+		"Vec_Sse.h",
 	],
 	visibility = ["//visibility:public"],
 )

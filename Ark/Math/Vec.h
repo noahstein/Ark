@@ -1,12 +1,15 @@
-/*========================================================================
-Description
-	Straightforward implementation of the Vector concept. This
-	implementation will include platform-specific specializations
-	defined in other header files.
-
-Copyright
-	Copyright (c) 2021 Noah Stein. All Rights Reserverd.
-========================================================================*/
+/*************************************************************************
+ * @file
+ * @brief SSE Vector Specializations
+ * 
+ * @details This file defines specializations to the Vec class for the 
+ * original SSE ISA. Due to the limitations of the original register and 
+ * instructions sets, this is limited to single-precision floating-point 
+ * implementations of 4-dimensional vectors.
+ * 
+ * @author Noah Stein
+ * @copyright © 2021 Noah Stein. All Rights Reserved.
+ ************************************************************************/
 
 #if !defined(ARK_MATH_VEC_H_INCLUDE_GUARD)
 #define ARK_MATH_VEC_H_INCLUDE_GUARD
@@ -26,9 +29,14 @@ Copyright
 ========================================================================*/
 namespace ark::math
 {
-	/*--------------------------------------------------------------------
-	 Simple, Dense Statically-sized Vector
-	--------------------------------------------------------------------*/
+	/*********************************************************************
+	 * @brief General N-dimensional Vector
+	 * 
+	 * @details This class defines a simple and general template 
+	 * implementation of the Vector concept. It is a dense array of data. 
+	 * For architectures with SIMD ISAs, it is fully expected for 
+	 * specializations to implement ISA-specific optimizations.
+	 ********************************************************************/
 	template<typename S, std::size_t N, typename I = ark::hal::simd::HAL_SIMD>
 	class Vec
 	{

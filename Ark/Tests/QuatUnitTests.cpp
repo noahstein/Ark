@@ -64,6 +64,7 @@ protected:
 
 TI(float, None);
 TI(float, Sse);
+#if 0
 TI(float, Sse2);
 TI(float, Sse3);
 TI(float, Sse4);
@@ -76,16 +77,19 @@ TI(double, Sse3);
 TI(double, Sse4);
 TI(double, Avx);
 TI(double, Avx2);
+#endif
 
 using QuatTypes = ::testing::Types
 	<
-	floatNone, doubleNone,
-	floatSse, doubleSse,
+	floatNone, // doubleNone,
+	floatSse //, doubleSse,
+#if 0
 	floatSse2, doubleSse2,
 	floatSse3, doubleSse3,
 	floatSse4, doubleSse4,
 	floatAvx, doubleAvx,
 	floatAvx2, doubleAvx2
+#endif
 	>;
 
 TYPED_TEST_SUITE(QuatUnitTest, QuatTypes);
