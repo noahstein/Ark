@@ -20,6 +20,6 @@ cc_test(
 		"//Ark:Ark",
 	],
 	defines = [
-		"HAL_SIMD=Sse"
+		"HAL_SIMD=Sse2"
 	]
 )
