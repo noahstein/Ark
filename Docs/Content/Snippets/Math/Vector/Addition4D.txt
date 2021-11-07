@@ -1,0 +1,3 @@
+Given the vector addends @include{doc} V1_4D.f and @include{doc} V2_4D.f, 
+their sum is defined as:
+@include{doc} Vector/Addition4D.f

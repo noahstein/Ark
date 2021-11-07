@@ -159,7 +159,7 @@ namespace ark::math
 	 * This will supersede using the baseline VectorNegation expression 
 	 * node when performing a negation on a Vec<float, 4>.
 	 * 
-	 * @include{doc} Math/Vector/Negation.txt
+	 * @include{doc} Math/Vector/Negation4D.txt
 	 * 
 	 * @sa operator-(const V& v)
 	 * @sa VectorNegation
@@ -182,7 +182,7 @@ namespace ark::math
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<float, 4>.
 	 * 
-	 * @include{doc} Math/Vector/Addition.txt
+	 * @include{doc} Math/Vector/Addition4D.txt
 	 * 
 	 * @sa operator+(const V& vl, const V& vr)
 	 * @sa VectorAddition
@@ -205,7 +205,7 @@ namespace ark::math
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<float, 4>.
 	 * 
-	 * @include{doc} Math/Vector/Subtraction.txt
+	 * @include{doc} Math/Vector/Subtraction4D.txt
 	 * 
 	 * @sa operator-(const V& vl, const V& vr)
 	 * @sa VectorSubtraction
@@ -228,7 +228,7 @@ namespace ark::math
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<float, 4>.
 	 * 
-	 * @include{doc} Math/Vector/VectorScalarMultiplication.txt
+	 * @include{doc} Math/Vector/VectorScalarMultiplication4D.txt
 	 * 
 	 * @sa operator*(const V& v, const S& s)
 	 * @sa VectorScalarMultiplication
@@ -253,7 +253,7 @@ namespace ark::math
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<float, 4>.
 	 * 
-	 * @include{doc} Math/Vector/ScalarVectorMultiplication.txt
+	 * @include{doc} Math/Vector/ScalarVectorMultiplication4D.txt
 	 * 
 	 * @sa operator*(const S& s, const V& v)
 	 * @sa VectorScalarMultiplication
@@ -278,7 +278,7 @@ namespace ark::math
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<float, 4>.
 	 * 
-	 * @include{doc} Math/Vector/VectorScalarDivision.txt
+	 * @include{doc} Math/Vector/ScalarDivision4D.txt
 	 * 
 	 * @sa operator/(const V& v, const S& s)
 	 * @sa VectorScalarDivision
@@ -303,15 +303,15 @@ namespace ark::math
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<float, 4>.
 	 * 
-	 * @include{doc} Math/Vector/Comparison.txt
+	 * @include{doc} Math/Vector/Equality4D.txt
 	 * 
 	 * @sa operator==(const V& vl, const V& vr)
 	 ********************************************************************/
 	template<ark::hal::simd::IsSse SIMD>
 	inline auto operator==(Vec<float, 4, SIMD> vl, Vec<float, 4, SIMD> vr) -> bool
 	{
-		__m128 c1 = _mm_cmpeq_ps(vl.SseVal(), vr.SseVal());
-		int mask = _mm_movemask_ps(c1);
+		__m128 c = _mm_cmpeq_ps(vl.SseVal(), vr.SseVal());
+		int mask = _mm_movemask_ps(c);
 		bool result = mask == 0xf;
 		return result;
 	}
@@ -327,7 +327,7 @@ namespace ark::math
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<float, 4>.
 	 * 
-	 * @include{doc} Math/Vector/DotProduct.txt
+	 * @include{doc} Math/Vector/DotProduct4D.txt
 	 * 
 	 * @sa Dot(const V& vl, const V& vr)
 	 ********************************************************************/

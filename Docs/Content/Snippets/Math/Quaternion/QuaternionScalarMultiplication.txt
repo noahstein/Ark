@@ -1,3 +1,3 @@
 Given the quaternion multiplicand @include{doc} Q.f and the scalar 
-subtrahend \\(s\\), their product is defined as:
+multiplier \\(s\\), their product is defined as:
 @include{doc} Quaternion/QuaternionScalarMultiplication.f

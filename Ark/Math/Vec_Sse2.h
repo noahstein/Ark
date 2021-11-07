@@ -32,15 +32,34 @@
 
 #include "Vec_Sse.h"
 
-// Declarations to avoid intellisense errors
-template<typename S, std::size_t N, typename I> class Vec;
-
 
 //************************************************************************
 //  Code
 //************************************************************************
 namespace ark::math
 {
+	//====================================================================
+	//  ISA Register Set Promotion
+	//====================================================================
+
+	/*********************************************************************
+	 * @brief SSE2-optimized 4-D Vec Float Specialization
+	 * 
+	 * @details As the SSE2 specification does not change the hardware 
+	 * register set, the Intel intrinsic type representing the register 
+	 * format has not changed for single-precision floating-point 
+	 * vectors. For the SIMD versioning system to work, the original SSE 
+	 * class is used as-is for SSE2.
+	 * 
+	 * @sa Vec<float, ark::hal::simd::Sse>
+	 ********************************************************************/
+	template<>
+	class Vec<float, 4, ark::hal::simd::Sse2> : public Vec<float, 4, ark::hal::simd::Sse>
+	{
+		using Vec<float, 4, ark::hal::simd::Sse>::Vec;
+	};
+
+
 	//====================================================================
 	//  2-D Vec Double Specialization
 	//====================================================================
@@ -151,7 +170,7 @@ namespace ark::math
 	 * This will supersede using the baseline VectorNegation expression 
 	 * node when performing a negation on a Vec<double, 2>.
 	 * 
-	 * @include{doc} Math/Vector/Negation.txt
+	 * @include{doc} Math/Vector/Negation2D.txt
 	 * 
 	 * @sa operator-(const V& v)
 	 * @sa VectorNegation
@@ -174,7 +193,7 @@ namespace ark::math
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<double, 2>.
 	 * 
-	 * @include{doc} Math/Vector/Addition.txt
+	 * @include{doc} Math/Vector/Addition2D.txt
 	 * 
 	 * @sa operator+(const V& vl, const V& vr)
 	 * @sa VectorAddition
@@ -197,7 +216,7 @@ namespace ark::math
 	 * This will supersede using the baseline VectorNegation expression 
 	 * node when performing a negation on a Vec<double, 2>.
 	 * 
-	 * @include{doc} Math/Vector/Subtraction.txt
+	 * @include{doc} Math/Vector/Subtraction2D.txt
 	 * 
 	 * @sa operator-(const V& vl, const V& vr)
 	 * @sa VectorSubtraction
@@ -220,7 +239,7 @@ namespace ark::math
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<double, 2>.
 	 * 
-	 * @include{doc} Math/Vector/VectorScalarMultiplication.txt
+	 * @include{doc} Math/Vector/VectorScalarMultiplication2D.txt
 	 * 
 	 * @sa operator*(const V& v, const S& s)
 	 * @sa VectorScalarMultiplication
@@ -245,7 +264,7 @@ namespace ark::math
 	 * This will supersede using the baseline VectorNegation expression 
 	 * node when performing a negation on a Vec<double, 2>.
 	 * 
-	 * @include{doc} Math/Vector/ScalarVectorMultiplication.txt
+	 * @include{doc} Math/Vector/ScalarVectorMultiplication2D.txt
 	 * 
 	 * @sa operator*(const S& s, const V& v)
 	 * @sa VectorScalarMultiplication
@@ -270,7 +289,7 @@ namespace ark::math
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<double, 2>.
 	 * 
-	 * @include{doc} Math/Vector/VectorScalarDivision.txt
+	 * @include{doc} Math/Vector/ScalarDivision2D.txt
 	 * 
 	 * @sa operator/(const V& v, const S& s)
 	 * @sa VectorScalarDivision
@@ -295,7 +314,7 @@ namespace ark::math
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<double, 2>.
 	 * 
-	 * @include{doc} Math/Vector/Comparison.txt
+	 * @include{doc} Math/Vector/Equality2D.txt
 	 * 
 	 * @sa operator==(const V& vl, const V& vr)
 	 ********************************************************************/
@@ -319,19 +338,13 @@ namespace ark::math
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<double, 2>.
 	 * 
-	 * @include{doc} Math/Vector/DotProduct.txt
+	 * @include{doc} Math/Vector/DotProduct2D.txt
 	 * 
 	 * @sa Dot(const V& vl, const V& vr)
 	 ********************************************************************/
 	template<ark::hal::simd::IsSse2 SIMD>
 	inline auto Dot(Vec<double, 2, SIMD> vl, Vec<double, 2, SIMD> vr) -> double
 	{
-		//__m128 m = _mm_mul_ps(vl.SseVal(), vr.SseVal()); // lxrx, lyry, lzrz, lwrw
-		//__m128 s = _mm_shuffle_ps(m, m, _MM_SHUFFLE(0, 1, 2, 3)); // lwrw, lzrz, lyry, lxrx
-		//__m128 m2 = _mm_add_ps(m, s); // lxrx+lwrw, lyry+lzrz, lyry+lzrz, lxrx+lwrw
-		//__m128 s2 = _mm_shuffle_ps(m2, m2, _MM_SHUFFLE(1, 0, 3, 2)); // lyry+lzrz, lxrx+lwrw, lyry+lzrz, lxrx+lwrw
-		//__m128 m3 = _mm_add_ps(m2, s2); // lxrx+lyry+lzrz+lwrw, ...
-		//float result = _mm_cvtss_f32(m3);
 		__m128d m = _mm_mul_pd(vl.SseVal(), vr.SseVal()); // lxrx, lyry
 		__m128d s = _mm_shuffle_pd(m, m, _MM_SHUFFLE2(0, 1)); // lyry, lxrx
 		__m128d a = _mm_add_pd(m, s); // lxrx+lyry, lxrx+lyry
@@ -350,7 +363,7 @@ namespace ark::math
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<double, 2>.
 	 * 
-	 * @include{doc} Math/Vector/CrossProduct4D.txt
+	 * @include{doc} Math/Vector/CrossProduct2D.txt
 	 * 
 	 * @sa Cross(const V& vl, const V& vr)
 	 ********************************************************************/
@@ -373,23 +386,6 @@ namespace ark::math
 	//====================================================================
 	//  4-D Vec Double Specialization
 	//====================================================================
-
-	/*********************************************************************
-	 * @brief SSE2-optimized 4-D Vec Float Specialization
-	 * 
-	 * @details As the SSE2 specification does not change the hardware 
-	 * register set, the Intel intrinsic type representing the register 
-	 * format has not changed for single-precision floating-point 
-	 * vectors. For the SIMD versioning system to work, the original SSE 
-	 * class is used as-is for SSE2.
-	 * 
-	 * @sa Vec<float, ark::hal::simd::Sse>
-	 ********************************************************************/
-	template<>
-	class Vec<float, 4, ark::hal::simd::Sse2> : public Vec<float, 4, ark::hal::simd::Sse>
-	{
-		using Vec<float, 4, ark::hal::simd::Sse>::Vec;
-	};
 
 	/*********************************************************************
 	 * @brief SSE2-optimized 4-D Vec Double Specialization
@@ -505,17 +501,18 @@ namespace ark::math
 		/// @}
 	};
 
+
 	/*********************************************************************
-	 * @brief SSE-optimized Vec<double, 4> Negation
+	 * @brief SSE2-optimized Vec<double, 4> Negation
 	 * 
 	 * @details Compute a negation of a double-precision floating-point 
-	 * 4-D Vec using an SSE-optimized algorithm. This implementation is 
+	 * 4-D Vec using an SSE2-optimized algorithm. This implementation is 
 	 * selected when the HAL_SIMD parameter is set to any SSE generation 
 	 * that uses the Vec<double, 4, ark::hal::simd::Sse2> specialization. 
 	 * This will supersede using the baseline VectorNegation expression 
 	 * node when performing a negation on a Vec<double, 4>.
 	 * 
-	 * @include{doc} Math/Vector/Negation.txt
+	 * @include{doc} Math/Vector/Negation4D.txt
 	 * 
 	 * @sa operator-(const V& v)
 	 * @sa VectorNegation
@@ -531,16 +528,16 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE-optimized Vec<double, 4> Addition
+	 * @brief SSE2-optimized Vec<double, 4> Addition
 	 * 
-	 * @details Compute an SSE-optimized addition of two Vec<double, 4> 
+	 * @details Compute an SSE2-optimized addition of two Vec<double, 4> 
 	 * vectors. This implementation is selected when the HAL_SIMD 
 	 * parameter is set to any SSE generation that uses the 
 	 * Vec<double, 4, ark::hal::simd::Sse2> specialization.  This will 
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<double, 4>.
 	 * 
-	 * @include{doc} Math/Vector/Addition.txt
+	 * @include{doc} Math/Vector/Addition4D.txt
 	 * 
 	 * @sa operator+(const V& vl, const V& vr)
 	 * @sa VectorAddition
@@ -555,16 +552,16 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE-optimized Vec<double, 4> Subtraction
+	 * @brief SSE2-optimized Vec<double, 4> Subtraction
 	 * 
-	 * @details Compute an SSE-optimized subtraction of one 
+	 * @details Compute an SSE2-optimized subtraction of one 
 	 * Vec<double, 4> vector from another. This implementation is 
 	 * selected when the HAL_SIMD parameter is set to any SSE generation 
-	 * that uses the Vec<double, 4, ark::hal::simd::Sse> specialization.  
+	 * that uses the Vec<double, 4, ark::hal::simd::Sse2> specialization.  
 	 * This will supersede using the baseline VectorNegation expression 
 	 * node when performing a negation on a Vec<double, 4>.
 	 * 
-	 * @include{doc} Math/Vector/Subtraction.txt
+	 * @include{doc} Math/Vector/Subtraction4D.txt
 	 * 
 	 * @sa operator-(const V& vl, const V& vr)
 	 * @sa VectorSubtraction
@@ -579,16 +576,16 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE-optimized Vec<double, 4>-Scalar Multiplication
+	 * @brief SSE2-optimized Vec<double, 4>-Scalar Multiplication
 	 * 
-	 * @details Compute an SSE-optimized multiplication of a 
+	 * @details Compute an SSE2-optimized multiplication of a 
 	 * Vec<double, 4> by a scalar. This implementation is selected when 
 	 * the HAL_SIMD parameter is set to any SSE generation that uses the 
-	 * Vec<double, 4, ark::hal::simd::Sse> specialization. This will 
+	 * Vec<double, 4, ark::hal::simd::Sse2> specialization. This will 
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<double, 4>.
 	 * 
-	 * @include{doc} Math/Vector/VectorScalarMultiplication.txt
+	 * @include{doc} Math/Vector/VectorScalarMultiplication4D.txt
 	 * 
 	 * @sa operator*(const V& v, const S& s)
 	 * @sa VectorScalarMultiplication
@@ -605,16 +602,16 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE-optimized Scalar-Vec<double, 4> Multiplication
+	 * @brief SSE2-optimized Scalar-Vec<double, 4> Multiplication
 	 * 
-	 * @details Compute an SSE-optimized multiplication of a 
+	 * @details Compute an SSE2-optimized multiplication of a 
 	 * Vec<double, 4> by a preceding scalar. This implementation is 
 	 * selected when the HAL_SIMD parameter is set to any SSE generation 
-	 * that uses the Vec<double, 4, ark::hal::simd::Sse> specialization. 
+	 * that uses the Vec<double, 4, ark::hal::simd::Sse2> specialization. 
 	 * This will supersede using the baseline VectorNegation expression 
 	 * node when performing a negation on a Vec<double, 4>.
 	 * 
-	 * @include{doc} Math/Vector/ScalarVectorMultiplication.txt
+	 * @include{doc} Math/Vector/ScalarVectorMultiplication4D.txt
 	 * 
 	 * @sa operator*(const S& s, const V& v)
 	 * @sa VectorScalarMultiplication
@@ -631,16 +628,16 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE-optimized Vec<double, 4>-Scalar Division
+	 * @brief SSE2-optimized Vec<double, 4>-Scalar Division
 	 * 
-	 * @details Compute an SSE-optimized division of a Vec<double, 4> by 
+	 * @details Compute an SSE2-optimized division of a Vec<double, 4> by 
 	 * a scalar. This implementation is selected when the HAL_SIMD 
 	 * parameter is set to any SSE generation that uses the 
-	 * Vec<double, 4, ark::hal::simd::Sse> specialization.  This will 
+	 * Vec<double, 4, ark::hal::simd::Sse2> specialization.  This will 
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<double, 4>.
 	 * 
-	 * @include{doc} Math/Vector/VectorScalarDivision.txt
+	 * @include{doc} Math/Vector/ScalarDivision4D.txt
 	 * 
 	 * @sa operator/(const V& v, const S& s)
 	 * @sa VectorScalarDivision
@@ -657,16 +654,16 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE-optimized Vec<double, 4> Equality
+	 * @brief SSE2-optimized Vec<double, 4> Equality
 	 * 
-	 * @details Compute an SSE-optimized comparison of two Vec<double, 4> 
-	 * vectors to each other. This implementation is selected when the
-	 * HAL_SIMD parameter is set to any SSE generation that uses the 
-	 * Vec<double, 4, ark::hal::simd::Sse> specialization.  This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 4>.
+	 * @details Compute an SSE2-optimized comparison of two 
+	 * Vec<double, 4> vectors to each other. This implementation is 
+	 * selected when theHAL_SIMD parameter is set to any SSE generation 
+	 * that uses the Vec<double, 4, ark::hal::simd::Sse2> specialization. 
+	 * This will supersede using the baseline VectorNegation expression 
+	 * node when performing a negation on a Vec<double, 4>.
 	 * 
-	 * @include{doc} Math/Vector/Comparison.txt
+	 * @include{doc} Math/Vector/Equality4D.txt
 	 * 
 	 * @sa operator==(const V& vl, const V& vr)
 	 ********************************************************************/
@@ -683,16 +680,16 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE-optimized Vec<double, 4> Dot Product
+	 * @brief SSE2-optimized Vec<double, 4> Dot Product
 	 * 
-	 * @details Compute an SSE-optimized dot product of two Vec<double, 4> 
-	 * vectors. This implementation is selected when the HAL_SIMD 
-	 * parameter is set to any SSE generation that uses the 
-	 * Vec<double, 4, ark::hal::simd::Sse> specialization.  This will 
+	 * @details Compute an SSE2-optimized dot product of two 
+	 * Vec<double, 4> vectors. This implementation is selected when the 
+	 * HAL_SIMD parameter is set to any SSE generation that uses the 
+	 * Vec<double, 4, ark::hal::simd::Sse2> specialization.  This will 
 	 * supersede using the baseline VectorNegation expression node when 
 	 * performing a negation on a Vec<double, 4>.
 	 * 
-	 * @include{doc} Math/Vector/DotProduct.txt
+	 * @include{doc} Math/Vector/DotProduct4D.txt
 	 * 
 	 * @sa Dot(const V& vl, const V& vr)
 	 ********************************************************************/

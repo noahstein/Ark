@@ -1,0 +1,3 @@
+Mathematically, the negation maps a vector to its additive inverse. 
+Given the vector @include{doc} V_2D.f, its negation is defined as:
+@include{doc} Vector/Negation2D.f
