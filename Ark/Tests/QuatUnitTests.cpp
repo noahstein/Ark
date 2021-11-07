@@ -80,52 +80,10 @@ namespace ark::math::test::quat_unit_tests
 		/// @}
 	};
 
-
-	/**
-	 * @brief Set of configurations to test with the suite
-	 * 
-	 * @details Each template parameter in the list is used as a 
-	 * configuration for a separate parametric execution of the suite.
-	 */
-	using QuatTypes = ::testing::Types
-		<	Cfg<float, simd::None>
-		,	Cfg<double, simd::None>
-
-#if defined(SIMD_HAS_SSE)
-		,	Cfg<float, simd::Sse>
-		,	Cfg<double, simd::Sse>
-#endif
-
-#if defined(SIMD_HAS_SSE2)
-		,	Cfg<float, simd::Sse2>
-		,	Cfg<double, simd::Sse2>
-#endif
-
-#if defined(SIMD_HAS_SSE3)
-		,	Cfg<float, simd::Sse3>
-		,	Cfg<double, simd::Sse3>
-#endif
-
-#if defined(SIMD_HAS_SSE4)
-		,	Cfg<float, simd::Sse4>
-		,	Cfg<double, simd::Sse4>
-#endif
-
-#if defined(SIMD_HAS_AVX)
-		,	Cfg<float, simd::Avx>
-		,	Cfg<double, simd::Avx>
-#endif
-
-#if defined(SIMD_HAS_AVX2)
-		,	Cfg<float, simd::Avx2>
-		,	Cfg<double, simd::Avx2>
-#endif		
-		>;
-
 	/**
 	 * @brief Construct a new typed test suite object
 	 */
-	TYPED_TEST_SUITE(QuatUnitTest, QuatTypes);
+	TYPED_TEST_SUITE(QuatUnitTest, SseTypes);
 
 
 	/**

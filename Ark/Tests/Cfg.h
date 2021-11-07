@@ -9,7 +9,16 @@
  * @copyright © 2021 Noah Stein. All Rights Reserved.
  ************************************************************************/
 
-namespace ark::math::test::quat_unit_tests
+//************************************************************************
+//  Dependencies
+//************************************************************************
+#include "Ark/Hal/Simd/SImd.h"
+
+
+//************************************************************************
+//  Code
+//************************************************************************
+namespace ark::math::test
 {
 	/*********************************************************************
 	 * @brief Math Parametric Unit Test Suite Configuration
@@ -24,7 +33,7 @@ namespace ark::math::test::quat_unit_tests
 	 * achitectures. The primary CPU aspect relating to math functions is 
 	 * the SIMD arhitecture.
 	 ********************************************************************/
-	template<class S, class I>
+	template<class S, class I = ::ark::hal::simd::None>
 	struct Cfg
 	{
 		/**
@@ -37,4 +46,60 @@ namespace ark::math::test::quat_unit_tests
 		 */
 		using Isa = I;
 	};
+
+
+
+	/*********************************************************************
+	 * @brief Set of standard numercial types to test in a suite
+	 * 
+	 * @details Each template parameter in the list is used as a 
+	 * configuration for a separate parametric execution of the suite.
+	 ********************************************************************/
+	using StdTypes = ::testing::Types
+	<	Cfg<int>
+	,	Cfg<long>
+	,	Cfg<float>
+	,	Cfg<double>
+	>;
+
+	/*********************************************************************
+	 * @brief Set of SSE numerical types to test with the suite
+	 * 
+	 * @details Each template parameter in the list is used as a 
+	 * configuration for a separate parametric execution of the suite.
+	 ********************************************************************/
+	using SseTypes = ::testing::Types
+	<	Cfg<float, ::ark::hal::simd::None>
+	,	Cfg<double, ::ark::hal::simd::None>
+
+#if defined(SIMD_HAS_SSE)
+	,	Cfg<float, ::ark::hal::simd::Sse>
+	,	Cfg<double, ::ark::hal::simd::Sse>
+#endif
+
+#if defined(SIMD_HAS_SSE2)
+	,	Cfg<float, ::ark::hal::simd::Sse2>
+	,	Cfg<double, ::ark::hal::simd::Sse2>
+#endif
+
+#if defined(SIMD_HAS_SSE3)
+	,	Cfg<float, ::ark::hal::simd::Sse3>
+	,	Cfg<double, ::ark::hal::simd::Sse3>
+#endif
+
+#if defined(SIMD_HAS_SSE4)
+	,	Cfg<float, ::ark::hal::simd::Sse4>
+	,	Cfg<double, ::ark::hal::simd::Sse4>
+#endif
+
+#if defined(SIMD_HAS_AVX)
+	,	Cfg<float, ::ark::hal::simd::Avx>
+	,	Cfg<double, ::ark::hal::simd::Avx>
+#endif
+
+#if defined(SIMD_HAS_AVX2)
+	,	Cfg<float, ::ark::hal::simd::Avx2>
+	,	Cfg<double, ::ark::hal::simd::Avx2>
+#endif		
+	>;
 }

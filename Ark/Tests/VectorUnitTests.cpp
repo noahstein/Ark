@@ -1,34 +1,51 @@
-/*========================================================================
-Description
-	Unit tests for functions related to the ark::math::Quaternion concept,
-	and all basic functionality implemented against that concept.
+/*************************************************************************
+ * @file
+ * @brief Vector Concept Unit Tests
+ * 
+ * @details Unit tests for the general, platform-independent vector 
+ * expression tree implementation of vector functions.
+ * 
+ * @note There are no tests in this file related to constructors. 
+ * Constructors are specific to concrete types. The abstract concept and 
+ * expression trees do not address any aspect of vector construction 
+ * beyond their own internal needs.
+ * 
+ * @author Noah Stein
+ * @copyright © 2021 Noah Stein. All Rights Reserved.
+ ************************************************************************/
 
-Copyright
-	Copyright (c) 2021 Noah Stein. All Rights Reserved.
-========================================================================*/
-
-
-/*========================================================================
- Dependencies
-========================================================================*/
+//************************************************************************
+//  Dependencies
+//************************************************************************
 #include "gtest/gtest.h"
 #include "Ark/Math/Vector.h"
 
+#include "Cfg.h"
 
-/*========================================================================
- Local Class Definitions
-========================================================================*/
-namespace ark::math
+
+//************************************************************************
+//  Local Class Definitions
+//************************************************************************
+namespace ark::math::test::vector_unit_tests
 {
-	/*--------------------------------------------------------------------
-		TestVec class implements the Vector concept in a simple way to
-		test the functionality implemented against the concept
-	--------------------------------------------------------------------*/
-	template<std::size_t N>
+	/*********************************************************************
+	 * @brief Simple Concrete Vector Class
+	 * 
+	 * @tparam S The type of the scalar components
+	 * 
+	 * @tparam N The dimension of the vector
+	 * 
+	 * @details This is nearly the simplest implementation of a concrete 
+	 * vector class for testing. As the general-purpose Vec class is much 
+	 * more complex, it's ill-suited to test the Vector concept itself. 
+	 * This class provides a simple implementation to avoid the tests 
+	 * relying on external dependencies.
+	 ********************************************************************/
+	template<typename S, std::size_t N>
 	class TestVec
 	{
 	public:
-		using Scalar = float;
+		using Scalar = S;
 
 	private:
 		Scalar data_[N];
@@ -50,9 +67,16 @@ namespace ark::math
 			std::ranges::for_each(Range(), [&](std::size_t i) { data_[i] = static_cast<Scalar>(rhs(i)); });
 		}
 
-		constexpr TestVec(const Scalar(&values)[N])
+		template<typename ... T>
+			requires (sizeof...(T) == N)
+		constexpr TestVec(T && ... values) noexcept((std::is_nothrow_convertible_v<T, Scalar> && ...))
 		{
-			std::ranges::for_each(Range(), [&](std::size_t i) { data_[i] = static_cast<Scalar>(values[i]); });
+			auto Set = [this, i = 0] <typename T> (T && value) mutable
+			{
+				data_[i++] = static_cast<Scalar>(std::forward<T>(value));
+			};
+
+			(Set(values), ...);
 		}
 
 		template<ark::math::Vector V>
@@ -62,199 +86,233 @@ namespace ark::math
 			return *this;
 		}
 	};
-}
-using Vec = ark::math::TestVec<4>;
 
 
-/*------------------------------------------------------------------------
-	Vector Test Fixture
-------------------------------------------------------------------------*/
-class VectorUnitTests : public testing::Test
-{
-protected:
-	void SetUp() override
+	/*********************************************************************
+	 * @brief Vector Unit Parametric Tests Fixture
+	 * 
+	 * @details The unit test fixture is designed with the focus around 
+	 * testing 3-D vectors. There are some 2-D tests. There is a dearth 
+	 * of 4-D tests as they have a low priority due to the presence of 
+	 * tests for SIMD specializations.
+	 ********************************************************************/
+	template<typename C>
+	class VectorUnitTest : public testing::Test
 	{
-		v = Vec({2.0f, 3.0f, 5.0f, 7.0f});
-		v1 = Vec({11.0f, 13.0f, 17.0f, 19.0f});
-		v2 = Vec({23.0f, 29.0f, 31.0f, 37.0f});
+	protected:
+		/**
+		 * @brief The scalar type of the vector to undergo testing
+		 */
+		using Scalar = typename C::Scalar;
+
+		void SetUp() override
+		{
+			v1 = TestVec<Scalar, 3>{11, 13, 17};
+			v2 = TestVec<Scalar, 3>{23, 29, 31};
+		}
+
+		TestVec<Scalar, 3> v1;
+		TestVec<Scalar, 3> v2;
+		TestVec<Scalar, 3> vr;
+	};
+
+
+	/**
+	 * @brief Construct a new typed test suite object
+	 */
+	TYPED_TEST_SUITE(VectorUnitTest, StdTypes);
+
+
+	//************************************************************************
+	//  Tests
+	//************************************************************************
+
+	TYPED_TEST(VectorUnitTest, Negate)
+	{
+		// When
+		this->vr = -this->v1;
+
+		// Then
+		EXPECT_EQ(this->vr(0), -11);
+		EXPECT_EQ(this->vr(1), -13);
+		EXPECT_EQ(this->vr(2), -17);
 	}
 
-	Vec v;
-	Vec v1;
-	Vec v2;
-	Vec vr;
-};
+
+	TYPED_TEST(VectorUnitTest, Add)
+	{
+		// When
+		this->vr = this->v1 + this->v2;
+
+		// Then
+		EXPECT_EQ(this->vr(0), 34);
+		EXPECT_EQ(this->vr(1), 42);
+		EXPECT_EQ(this->vr(2), 48);
+	}
 
 
-/*========================================================================
- Tests
-========================================================================*/
+	TYPED_TEST(VectorUnitTest, Subtract)
+	{
+		// When
+		this->vr = this->v1 - this->v2;
 
-TEST_F(VectorUnitTests, Negate)
-{
-	// When
-	vr = -v;
+		// Then
+		EXPECT_EQ(this->vr(0), -12);
+		EXPECT_EQ(this->vr(1), -16);
+		EXPECT_EQ(this->vr(2), -14);
+	}
 
-	// Then
-	EXPECT_EQ(vr(0), -2.0f);
-	EXPECT_EQ(vr(1), -3.0f);
-	EXPECT_EQ(vr(2), -5.0f);
-	EXPECT_EQ(vr(3), -7.0f);
-}
 
-TEST_F(VectorUnitTests, Add)
-{
-	// When
-	vr = v1 + v2;
+	TYPED_TEST(VectorUnitTest, ScalarVectorMultiply)
+	{
+		// When
+		this->vr = this->v1 * 10;
 
-	// Then
-	EXPECT_EQ(vr(0), 34.0f);
-	EXPECT_EQ(vr(1), 42.0f);
-	EXPECT_EQ(vr(2), 48.0f);
-	EXPECT_EQ(vr(3), 56.0f);
-}
+		// Then
+		EXPECT_EQ(this->vr(0), 110);
+		EXPECT_EQ(this->vr(1), 130);
+		EXPECT_EQ(this->vr(2), 170);
+	}
 
-TEST_F(VectorUnitTests, Subtract)
-{
-	// When
-	vr = v1 - v2;
 
-	// Then
-	EXPECT_EQ(vr(0), -12.0f);
-	EXPECT_EQ(vr(1), -16.0f);
-	EXPECT_EQ(vr(2), -14.0f);
-	EXPECT_EQ(vr(3), -18.0f);
-}
+	TYPED_TEST(VectorUnitTest, VectorScalarMultiply)
+	{
+		// When
+		this->vr = 10 * this->v1;
 
-TEST_F(VectorUnitTests, ScalarVectorMultiply)
-{
-	// When
-	vr = v * 10.0f;
+		// Then
+		EXPECT_EQ(this->vr(0), 110);
+		EXPECT_EQ(this->vr(1), 130);
+		EXPECT_EQ(this->vr(2), 170);
+	}
 
-	// Then
-	EXPECT_EQ(vr(0), 20.0f);
-	EXPECT_EQ(vr(1), 30.0f);
-	EXPECT_EQ(vr(2), 50.0f);
-	EXPECT_EQ(vr(3), 70.0f);
-}
 
-TEST_F(VectorUnitTests, VectorScalarMultiply)
-{
-	// When
-	vr = 10.0f * v;
+	TYPED_TEST(VectorUnitTest, VectorScalarDivide)
+	{
+		// Given
+		using Scalar = typename TypeParam::Scalar;
+		auto v = TestVec<Scalar, 3>{4, 10, 14};
 
-	// Then
-	EXPECT_EQ(vr(0), 20.0f);
-	EXPECT_EQ(vr(1), 30.0f);
-	EXPECT_EQ(vr(2), 50.0f);
-	EXPECT_EQ(vr(3), 70.0f);
-}
+		// When
+		this->vr = v / 2;
 
-TEST_F(VectorUnitTests, VectorScalarDivide)
-{
-	// When
-	vr = v / 2.0f;
+		// Then
+		EXPECT_EQ(this->vr(0), 2);
+		EXPECT_EQ(this->vr(1), 5);
+		EXPECT_EQ(this->vr(2), 7);
+	}
 
-	// Then
-	EXPECT_EQ(vr(0), 1.0f);
-	EXPECT_EQ(vr(1), 1.5f);
-	EXPECT_EQ(vr(2), 2.5f);
-	EXPECT_EQ(vr(3), 3.5f);
-}
 
-TEST_F(VectorUnitTests, EqualityCheckSame)
-{
-	// When
-	bool result = v1 == v1;
+	TYPED_TEST(VectorUnitTest, EqualityCheckSame)
+	{
+		// When
+		bool result = this->v1 == this->v1;
 
-	// Then
-	EXPECT_TRUE(result);
-}
+		// Then
+		EXPECT_TRUE(result);
+	}
 
-TEST_F(VectorUnitTests, EqualityCheckDifferent)
-{
-	// When
-	bool result = v1 == v2;
 
-	// Then
-	EXPECT_FALSE(result);
-}
+	TYPED_TEST(VectorUnitTest, EqualityCheckDifferent)
+	{
+		// When
+		bool result = this->v1 == this->v2;
 
-TEST_F(VectorUnitTests, InequalityCheckSame)
-{
-	// When
-	bool result = v1 != v1;
+		// Then
+		EXPECT_FALSE(result);
+	}
 
-	// Then
-	EXPECT_FALSE(result);
-}
 
-TEST_F(VectorUnitTests, InequalityCheckDifferent)
-{
-	// When
-	bool result = v1 != v2;
+	TYPED_TEST(VectorUnitTest, InequalityCheckSame)
+	{
+		// When
+		bool result = this->v1 != this->v1;
 
-	// Then
-	EXPECT_TRUE(result);
-}
+		// Then
+		EXPECT_FALSE(result);
+	}
 
-TEST_F(VectorUnitTests, VectorDotProduct)
-{
-	// When
-	float result = Dot(v1, v2);
 
-	// Then
-	EXPECT_EQ(result, 1860);
-}
+	TYPED_TEST(VectorUnitTest, InequalityCheckDifferent)
+	{
+		// When
+		bool result = this->v1 != this->v2;
 
-TEST_F(VectorUnitTests, VectorCrossProduct2D)
-{
-	// Given
-	ark::math::TestVec<2> v1({5.0f, 3.0f});
-	ark::math::TestVec<2> v2({2.0f, 7.0f});
+		// Then
+		EXPECT_TRUE(result);
+	}
 
-	// When
-	float result = Cross(v1, v2);
 
-	// Then
-	EXPECT_EQ(result, 29.0f);
-}
+	TYPED_TEST(VectorUnitTest, VectorDotProduct)
+	{
+		// When
+		auto result = Dot(this->v1, this->v2);
 
-TEST_F(VectorUnitTests, VectorCrossProduct3D)
-{
-	// Given
-	ark::math::TestVec<3> v1({2.0f, 3.0f, 5.0f});
-	ark::math::TestVec<3> v2({7.0f, 11.0f, 13.0f});
+		// Then
+		EXPECT_EQ(result, 1157);
+	}
 
-	// When
-	ark::math::TestVec<3> result = Cross(v1, v2);
 
-	// Then
-	EXPECT_EQ(result(0), -16.0f);
-	EXPECT_EQ(result(1), 9.0f);
-	EXPECT_EQ(result(2), 1.0f);
-}
+	TYPED_TEST(VectorUnitTest, VectorCrossProduct2D)
+	{
+		// Given
+		using Scalar = typename TypeParam::Scalar;
+		auto v1 = TestVec<Scalar, 2>{5, 3};
+		auto v2 = TestVec<Scalar, 2>{2, 7};
 
-TEST_F(VectorUnitTests, VectorCrossProduct4D)
-{
-	// Given
-	ark::math::TestVec<4> v1({2.0f, 3.0f, 5.0f, 7.0f});
-	ark::math::TestVec<4> v2({7.0f, 11.0f, 13.0f, 17.0f});
+		// When
+		auto result = Cross(v1, v2);
 
-	// When
-	ark::math::TestVec<4> result = Cross(v1, v2);
+		// Then
+		EXPECT_EQ(result, 29);
+	}
 
-	// Then
-	EXPECT_EQ(result(0), -16.0f);
-	EXPECT_EQ(result(1), 9.0f);
-	EXPECT_EQ(result(2), 1.0f);
-}
 
-TEST_F(VectorUnitTests, VectorNorm)
-{
-	// When
-	float result = Norm(v);
+	TYPED_TEST(VectorUnitTest, VectorCrossProduct3D)
+	{
+		// Given
+		using Scalar = typename TypeParam::Scalar;
+		auto v1 = TestVec<Scalar, 3>{2, 3, 5};
+		auto v2 = TestVec<Scalar, 3>{7, 11, 13};
 
-	// Then
-	EXPECT_EQ(result, std::sqrt(87.0f));
+		// When
+		this->vr = Cross(v1, v2);
+
+		// Then
+		EXPECT_EQ(this->vr(0), -16);
+		EXPECT_EQ(this->vr(1), 9);
+		EXPECT_EQ(this->vr(2), 1);
+	}
+
+
+	TYPED_TEST(VectorUnitTest, VectorCrossProduct4D)
+	{
+		// Given
+		using Scalar = typename TypeParam::Scalar;
+		auto v1 = TestVec<Scalar, 4>{2, 3, 5, 7};
+		auto v2 = TestVec<Scalar, 4>{7, 11, 13, 17};
+
+		// When
+		auto result = Cross(v1, v2);
+
+		// Then
+		EXPECT_EQ(result(0), -16);
+		EXPECT_EQ(result(1), 9);
+		EXPECT_EQ(result(2), 1);
+		EXPECT_EQ(result(3), 0);
+	}
+
+
+	TYPED_TEST(VectorUnitTest, VectorNorm)
+	{
+		// Given
+		using Scalar = typename TypeParam::Scalar;
+		auto v = TestVec<Scalar, 4>{2, 4, 2, 1};
+
+		// When
+		auto result = Norm(v);
+
+		// Then
+		EXPECT_EQ(result, 5);
+	}
 }

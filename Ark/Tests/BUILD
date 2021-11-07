@@ -10,6 +10,7 @@ cc_test(
 		"QuatUnitTests.cpp",
 		"VectorUnitTests.cpp",
 		"VecUnitTests.cpp",
+		"Vec4UnitTests.cpp",
 
 		"Cfg.h",
 	],
