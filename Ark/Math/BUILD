@@ -6,8 +6,10 @@ cc_library(
 	],
 	hdrs = [
 		"Concepts.h",
+		
 		"Matrix.h",
 		"Mtx.h",
+
 		"Quaternion.h",
 		"Quat.h",
 		"Quat_Sse.h",
@@ -16,11 +18,13 @@ cc_library(
 		"Quat_Sse4.h",
 		"Quat_Avx.h",
 		"Quat_Avx2.h",
+
 		"Vector.h",
 		"Vec.h",
 		"Vec_Sse.h",
 		"Vec_Sse2.h",
 		"Vec_Sse3.h",
+		"Vec_Sse4.h",
 	],
 	visibility = ["//visibility:public"],
 )
