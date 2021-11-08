@@ -746,13 +746,11 @@ namespace ark::math
 		__m128d v01 = _mm_sub_pd(c0a, c0b); // l1r2-l2r1, l2r0-l0r2
 
 		// Compute last component
-		__m128d l0z = _mm_shuffle_pd(l01, zzz, _MM_SHUFFLE2(0, 0)); // l0, 0
 		__m128d r1z = _mm_shuffle_pd(r01, zzz, _MM_SHUFFLE2(0, 1)); // r1, 0
-		__m128d c1a = _mm_mul_pd(l0z, r1z); // l0r1, 0
+		__m128d c1a = _mm_mul_pd(l01, r1z); // l0r1, 0
 
 		__m128d l1z = _mm_shuffle_pd(l01, zzz, _MM_SHUFFLE2(0, 1)); // l1, 0
-		__m128d r0z = _mm_shuffle_pd(r01, zzz, _MM_SHUFFLE2(0, 0)); // r0, 0
-		__m128d c1b = _mm_mul_pd(l1z, r0z); // l1r0, 0
+		__m128d c1b = _mm_mul_pd(l1z, r01); // l1r0, 0
 
 		__m128d v23 = _mm_sub_pd(c1a, c1b); // l0r1-l1r0, 0
 
