@@ -364,15 +364,12 @@ namespace ark::math
 		__m128 l = vl.SseVal();
 		__m128 r = vr.SseVal();
 
-		__m128 l1 = _mm_shuffle_ps(l, l, _MM_SHUFFLE(0, 0, 2, 1)); // ly, lz, lx
-		__m128 r1 = _mm_shuffle_ps(r, r, _MM_SHUFFLE(0, 1, 0, 2)); // rz, rx, ry
-		__m128 f1 = _mm_mul_ps(l1, r1); // ly*rz, lz*rx, lx*ry
-
-		__m128 l2 = _mm_shuffle_ps(l, l, _MM_SHUFFLE(0, 1, 0, 2)); // lz, lx, ly
-		__m128 r2 = _mm_shuffle_ps(r, r, _MM_SHUFFLE(0, 0, 2, 1)); // ry, rz, rx
-		__m128 f2 = _mm_mul_ps(l2, r2); // lz*ry, lx*rz, ly*rx
-
-		__m128 result = _mm_sub_ps(f1, f2); // ly*rz-lz*ry, lz*rx-lx*rz, lx*ry-ly*rx
+		__m128 rs = _mm_shuffle_ps(r, r, _MM_SHUFFLE(3, 0, 2, 1)); // ry, rz, rx, rw
+		__m128 ls = _mm_shuffle_ps(l, l, _MM_SHUFFLE(3, 0, 2, 1)); // ly, lz, lx, lw
+		__m128 lr = _mm_mul_ps(l, rs); // lx*ry, ly*rz, lz*rx, lw*rw
+		__m128 rl = _mm_mul_ps(r, ls); // ly*rx, lz*ry, lx*rz, lw*rw
+		__m128 a = _mm_sub_ps(lr, rl); // lx*ry-ly*rx, ly*rz-lz*ry, lz*rx-lx*rz, 0
+		__m128 result = _mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 0, 2, 1 )); // ly*rz-lz*ry, lz*rx-lx*rz, lx*ry-ly*rx, 0
 		return result;
 	}
 }
