@@ -20,6 +20,7 @@ cc_library(
 		"Vec.h",
 		"Vec_Sse.h",
 		"Vec_Sse2.h",
+		"Vec_Sse3.h",
 	],
 	visibility = ["//visibility:public"],
 )
