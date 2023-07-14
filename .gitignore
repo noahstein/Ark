@@ -1,4 +1,5 @@
-/.vscode
-/bazel-*
+.vs
+.vscode
 /Docs/html
 /Docs/latex
+out/
