@@ -46,7 +46,7 @@ namespace ark::math
 	 * vectors. For the SIMD versioning system to work, the SSE2 class is 
 	 * as-is for SSE3.
 	 * 
-	 * @sa Vec<float, ark::hal::simd::Sse2>
+	 * @sa Vec<double, 2, ark::hal::simd::Sse2>
 	 ********************************************************************/
 	template<>
 	class Vec<double, 2, ark::hal::simd::Sse3>
@@ -65,8 +65,8 @@ namespace ark::math
 	 * vectors. For the SIMD versioning system to work, the SSE2 class is 
 	 * as-is for SSE3.
 	 * 
-	 * @sa Vec<float, ark::hal::simd::Sse2>
-	 ********************************************************************/
+	 * @sa Vec<float, 4, ark::hal::simd::Sse2>
+	 ********************************************************** **********/
 	template<>
 	class Vec<float, 4, ark::hal::simd::Sse3>
 		:	public Vec<float, 4, ark::hal::simd::Sse2>
@@ -84,7 +84,7 @@ namespace ark::math
 	 * vectors. For the SIMD versioning system to work, the SSE2 class is 
 	 * as-is for SSE3.
 	 * 
-	 * @sa Vec<float, ark::hal::simd::Sse2>
+	 * @sa Vec<double, 4, ark::hal::simd::Sse2>
 	 ********************************************************************/
 	template<>
 	class Vec<double, 4, ark::hal::simd::Sse3>

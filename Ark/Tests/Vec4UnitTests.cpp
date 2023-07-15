@@ -252,7 +252,7 @@ namespace ark::math::test::vec_unit_tests
 	}
 
 
-	TYPED_TEST(Vec4UnitTest, ScalarVectorMultiply)
+	TYPED_TEST(Vec4UnitTest, VectorScalarMultiply)
 	{
 		// When
 		this->vr = this->v1 * 10;
@@ -265,7 +265,7 @@ namespace ark::math::test::vec_unit_tests
 	}
 
 
-	TYPED_TEST(Vec4UnitTest, VectorScalarMultiply)
+	TYPED_TEST(Vec4UnitTest, ScalarVectorMultiply)
 	{
 		// When
 		this->vr = 10 * this->v1;

@@ -51,7 +51,7 @@ namespace ark::math
 	 * vectors. For the SIMD versioning system to work, the original SSE 
 	 * class is used as-is for SSE2.
 	 * 
-	 * @sa Vec<float, ark::hal::simd::Sse>
+	 * @sa Vec<float, 4, ark::hal::simd::Sse>
 	 ********************************************************************/
 	template<>
 	class Vec<float, 4, ark::hal::simd::Sse2> : public Vec<float, 4, ark::hal::simd::Sse>
@@ -590,11 +590,10 @@ namespace ark::math
 	 * @sa operator*(const V& v, const S& s)
 	 * @sa VectorScalarMultiplication
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD, typename S>
-		requires std::is_convertible_v<S, double>
-	inline auto operator*(Vec<double, 4, SIMD> v, const S& s) -> Vec<double, 4, SIMD>
+	template<ark::hal::simd::IsSse2 SIMD>
+	inline auto operator*(Vec<double, 4, SIMD> v, double s) -> Vec<double, 4, SIMD>
 	{
-		__m128d scalar = _mm_set1_pd(static_cast<double>(s));
+		__m128d scalar = _mm_set1_pd(s);
 		__m128d v01 = _mm_mul_pd(v.Sse01(), scalar);
 		__m128d v23 = _mm_mul_pd(v.Sse23(), scalar);
 		return {v01, v23};
@@ -616,11 +615,10 @@ namespace ark::math
 	 * @sa operator*(const S& s, const V& v)
 	 * @sa VectorScalarMultiplication
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD, typename S>
-		requires std::is_convertible_v<S, double>
-	inline auto operator*(const S& s, Vec<double, 4, SIMD> v) -> Vec<double, 4, SIMD>
+	template<ark::hal::simd::IsSse2 SIMD, double>
+	inline auto operator*(double s, Vec<double, 4, SIMD> v) -> Vec<double, 4, SIMD>
 	{
-		__m128d scalar = _mm_set1_pd(static_cast<double>(s));
+		__m128d scalar = _mm_set1_pd(s);
 		__m128d v01 = _mm_mul_pd(scalar, v.Sse01());
 		__m128d v23 = _mm_mul_pd(scalar, v.Sse23());
 		return {v01, v23};
@@ -642,11 +640,10 @@ namespace ark::math
 	 * @sa operator/(const V& v, const S& s)
 	 * @sa VectorScalarDivision
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD, typename S>
-		requires std::is_convertible_v<S, double>
-	inline auto operator/(Vec<double, 4, SIMD> v, const S& s) -> Vec<double, 4, SIMD>
+	template<ark::hal::simd::IsSse2 SIMD>
+	inline auto operator/(Vec<double, 4, SIMD> v, double s) -> Vec<double, 4, SIMD>
 	{
-		__m128d scalar = _mm_set1_pd(static_cast<double>(s));
+		__m128d scalar = _mm_set1_pd(s);
 		__m128d v01 = _mm_div_pd(v.Sse01(), scalar);
 		__m128d v23 = _mm_div_pd(v.Sse23(), scalar);
 		return {v01, v23};
