@@ -1,6 +1,6 @@
 /*************************************************************************
  * @file
- * @brief Quat<S, SIMD> optimizations for the SSE4 ISA.
+ * @brief Quaternion Implementations Optimized for the SSE4 ISA.
  * 
  * @details This file contains optimiztions of Quat algorithms specific 
  * to the SSE4 ISA. The 4th generation of the SSE spec contains no new 
@@ -9,13 +9,14 @@
  * algorithms are reimplemented here. Those from earlier generations that 
  * cannot be improved upon will be inherited automatically.
  * 
+ * @sa ark::math::Quaternion
  * @sa Quat.h
  * @sa Quat_Sse.h
  * @sa Quat_Sse2.h
  * @sa Quat_Sse3.h
  * 
  * @author Noah Stein
- * @copyright © 2021 Noah Stein. All Rights Reserved.
+ * @copyright © 2021-2023 Noah Stein. All Rights Reserved.
  ************************************************************************/
 
 #if !defined(ARK_MATH_QUAT_SSE4_H_INCLUDE_GUARD)
@@ -34,53 +35,96 @@
 namespace ark::math
 {
 	/*********************************************************************
-	 * @brief SSE4-optimized Quat Float Specialization
-	 * 
-	 * @details The SSE4 specification does not define structural changes  
-	 * regarding single-precision floating-point vectors; therefore, the 
-	 * prior generation is used as-is.
-	 * 
-	 * @sa Quat<float, ark::hal::simd::Sse3>
-	 ********************************************************************/
-	template<>
-	class Quat<float, ark::hal::simd::Sse4> : public Quat<float, ark::hal::simd::Sse3>
+	* @brief SSE4-optimized Single-precision Floating-point Quaternion
+	* 
+	* @details The SSE4 speicificaiton makes no register changes that 
+	* affect the data layout of float quaternions, so the SSE3 data 
+	* format is reused. SSE4 does, however, introduce a dot product 
+	* instruction permitting more-efficient implementations of the dot 
+	* product and multiplication functions.
+	*
+	* @subsubsection Concepts Concepts
+	* @par
+	* @ref "ark::math::Quaternion" "Quaternion"
+	*
+	* @subsubsection Operations
+	* @par
+	* <table>
+	*	<tr><th>Operation<th>Function
+	*   <tr><td>@include{doc} Math/Quaternion/DotProductOperation.f
+	*     <td>@ref "Dot(QuatFloatSse4, QuatFloatSse4)"
+	*   <tr><td>@include{doc} Math/Quaternion/MultiplicationOperation.f
+	*     <td>@ref "operator*(QuatFloatSse4, QuatFloatSse4)"
+	* </table>
+	*
+	* @sa QuatFloatSse3
+	********************************************************************/
+	class QuatFloatSse4 : public QuatFloatSse3
 	{
-		using Quat<float, ark::hal::simd::Sse3>::Quat;
+		using QuatFloatSse3::QuatFloatSse3;
+	};
+
+
+	/**
+	 * @brief Specialize Quat<float, Sse4> with QuatFloatSse4
+	 */
+	template<>
+	struct QuaternionSelector<float, ark::hal::simd::Sse4>
+	{
+		typedef QuatFloatSse4 type;
 	};
 
 
 	/*********************************************************************
-	 * @brief SSE4-optimized Quat Double Specialization
+	 * @brief SSE4-optimized Double-precision Floating-point Quaternion
 	 * 
-	 * @details The SSE4 specification does not define structural changes  
-	 * regarding double-precision floating-point vectors; therefore, the 
-	 * prior generation is used as-is.
-	 * 
-	 * @sa Quat<double, ark::hal::simd::Sse3>
+	 * @details The SSE4 specification makes no register changes that 
+	 * affect the data layout of double quaternions, so the SSE3 data 
+	 * format is reused. SSE4 does, however, introduce a dot product 
+	 * instruction permitting more-efficient implementations of the dot 
+	 * product function.
+	 *
+	 * @subsubsection Concepts Concepts
+	 * @par
+	 * @ref "ark::math::Quaternion" "Quaternion"
+	 *
+	 * @subsubsection Operations
+	 * @par
+	 * <table>
+	 *   <tr><th>Operation<th>Function
+	 *   <tr><td>@include{doc} Math/Quaternion/DotProductOperation.f
+	 *     <td>@ref "Dot(QuatDoubleSse4, QuatDoubleSse4)"
+	 * </table>
+	 *
+	 * @sa QuatDoubleSse3
 	 ********************************************************************/
-	template<>
-	class Quat<double, ark::hal::simd::Sse4> : public Quat<double, ark::hal::simd::Sse3>
+	class QuatDoubleSse4 : public QuatDoubleSse3
 	{
-		using Quat<double, ark::hal::simd::Sse3>::Quat;
+		using QuatDoubleSse3::QuatDoubleSse3;
+	};
+
+
+	/**
+	 * @brief Specialize Quat<double, Sse4> with QuatDoubleSse4
+	 */
+	template<>
+	struct QuaternionSelector<double, ark::hal::simd::Sse4>
+	{
+		typedef QuatDoubleSse4 type;
 	};
 
 
 	/*********************************************************************
-	 * @brief SSE4-optimized Quat<float> Dot Product
+	 * @brief SSE4-optimized Single-precision Quaternion Dot Product
 	 * 
 	 * @details Compute the dot product of two single-precision 
-	 * floating-point quaternions using an SSE3-optimized algorithm. This 
-	 * implementation is selected when the HAL_SIMD parameter is set to 
-	 * any SSE generation that uses the Quat<float, ark::hal::simd::Sse4> 
-	 * specialization. This implementation supersedes the SSE3 one. SSE4's 
-	 * new dot product instruction results in a simple implementation.
-	 * 
+	 * floating-point quaternions using an SSE4-optimized algorithm.SSE4's 
+	 * new dot product instruction permits a simple implementation.
 	 * @include{doc} Math/Quaternion/DotProduct.txt
 	 * 
-	 * @sa Dot(const QL& lhs, const QR& rhs)
+	 * @supersedes{QuatFloatSse4, Dot(QuatFloatSse3\, QuatFloatSse3)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse4 SIMD>
-	inline auto Dot(Quat<float, SIMD> lhs, Quat<float, SIMD> rhs) -> float
+	inline auto Dot(QuatFloatSse4 lhs, QuatFloatSse4 rhs) -> float
 	{
 		__m128 dp = _mm_dp_ps(lhs.SseVal(), rhs.SseVal(), 0xFF);
 		float result = _mm_cvtss_f32(dp);
@@ -89,25 +133,16 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE4-optimized Quat<float> Multiplication
+	 * @brief SSE4-optimized Single-precision Quaternion Multiplication 
 	 * 
 	 * @details Compute the product of two single-precision floating-point 
-	 * quaternions using an SSE3-optimized algorithm. This implementation 
-	 * is selected when the HAL_SIMD parameter is set to any SSE 
-	 * generation that uses the 
-	 * Quat<float, ark::hal::simd::Sse4> specialization. This supersedes 
-	 * the SSE3 implementation. The new dot product instruction enabled 
-	 * the new optimization.
-	 * 
+	 * quaternions using an SSE3-optimized algorithm. The new dot product 
+	 * instruction enabled the new optimization.
 	 * @include{doc} Math/Quaternion/Multiplication.txt
-	 * 
-	 * @note This implementation is superseded in AVX2.
-	 * 
-	 * @sa operator*(const QL& lhs, const QR& rhs)
-	 * @sa QuaternionMultiplication
+	 *
+	 * @supersedes{QuatFloatSse4, operator*(QuatFloatSse3\, QuatFloatSse3)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse4 SIMD>
-	auto operator*(Quat<float, SIMD> lhs, Quat<float, SIMD> rhs) -> Quat<float, SIMD>
+	auto operator*(QuatFloatSse4 lhs, QuatFloatSse4 rhs) -> QuatFloatSse4
 	{
 		// Gather data
 		__m128 l  = lhs.SseVal();
@@ -148,23 +183,16 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE4-optimized Quat<double> Dot Product
-	 * 
-	 * @details Compute the dot product of two double-precision 
-	 * floating-point quaternions using an SSE4-optimized algorithm. This 
-	 * implementation is selected when the HAL_SIMD parameter is set to 
-	 * any SSE generation that uses the Quat<float, ark::hal::simd::Sse4> 
-	 * specialization. This implementation supersedes the SSE3 one. SSE4's 
-	 * new dot product instruction results in a simpler implementation.
-	 * 
+	 * @brief SSE4-optimized Double-precision Quaternion Dot Product
+	 *
+	 * @details Compute the dot product of two double-precision
+	 * floating-point quaternions using an SSE4-optimized algorithm.SSE4's
+	 * new dot product instruction permits a simple implementation.
 	 * @include{doc} Math/Quaternion/DotProduct.txt
-	 * 
-	 * @note This implementation is superseded in AVX.
-	 * 
-	 * @sa Dot(const QL& lhs, const QR& rhs)
+	 *
+	 * @supersedes{QuatDoubleSse4, Dot(QuatDoubleSse3\, QuatDoubleSse3)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse4 SIMD>
-	inline auto Dot(Quat<double, SIMD> lhs, Quat<double, SIMD> rhs) -> double
+	inline auto Dot(QuatDoubleSse4 lhs, QuatDoubleSse4 rhs) -> double
 	{
 		__m128d dp_wx = _mm_dp_pd(lhs.SseWx(), rhs.SseWx(), 0xFF);
 		__m128d dp_yz = _mm_dp_pd(lhs.SseYz(), rhs.SseYz(), 0xFF);

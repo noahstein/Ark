@@ -1,0 +1,1 @@
+\\(\\mathbf{q_1}\\cdot\\mathbf{q_2}\\)

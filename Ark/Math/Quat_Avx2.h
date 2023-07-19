@@ -1,12 +1,13 @@
 /*************************************************************************
  * @file
- * @brief Quat<S, SIMD> optimizations for the AVX2 ISA.
+ * @brief Quaternion Implementations Optimized for the AVX2 ISA.
  * 
  * @details This file contains specializations of Quat algorithms for the 
  * AVX2 ISA. The major change from AVX to AVX2 for quaternions is the
  * addition of fused multiply-add instructions. These instructions permit 
  * combining what were previously two operations.
  * 
+ * @sa ark::math::Quaternion
  * @sa Quat.h
  * @sa Quat_Sse.h
  * @sa Quat_Sse2.h
@@ -15,7 +16,7 @@
  * @sa Quat_Avx.h
  * 
  * @author Noah Stein
- * @copyright © 2021 Noah Stein. All Rights Reserved.
+ * @copyright © 2021-2023 Noah Stein. All Rights Reserved.
  ************************************************************************/
 
 #if !defined(ARK_MATH_QUAT_AVX2_H_INCLUDE_GUARD)
@@ -34,17 +35,37 @@
 namespace ark::math
 {
 	/*********************************************************************
-	 * @brief AVX-optimized Quat Float Specialization
+	 * @brief AVX-optimized Single-precision Floating-point Quaternion
 	 * 
 	 * @details The AVX2 specification does not define structural changes  
 	 * regarding single-precision floating-point vectors; therefore, the 
 	 * prior generation is used as-is.
-	 * 
-	 * @sa Quat<float, ark::hal::simd::Avx>
+	 *
+	 * @subsubsection Concepts Concepts
+	 * @par
+	 * @ref "ark::math::Quaternion" "Quaternion"
+	 *
+	 * @subsubsection Operations
+	 * @par
+	 * <table>
+	 *   <tr><th>Operation<th>Function
+	 *   <tr><td>@include{doc} Math/Quaternion/MultiplicationOperation.f
+	 *     <td>@ref "operator*(QuatFloatAvx2, QuatFloatAvx2)"
+	 * </table>
 	 ********************************************************************/
-	template<> class Quat<float, ark::hal::simd::Avx2> : public Quat<float, ark::hal::simd::Avx>
+	class QuatFloatAvx2 : public QuatFloatAvx
 	{
-		using Quat<float, ark::hal::simd::Avx>::Quat;
+		using QuatFloatAvx::QuatFloatAvx;
+	};
+
+
+	/**
+	 * @brief Specialize Quat<float, Sse> with QuatFloatAvx2
+	 */
+	template<>
+	struct QuaternionSelector<float, ark::hal::simd::Avx2>
+	{
+		typedef QuatFloatAvx2 type;
 	};
 
 
@@ -54,33 +75,47 @@ namespace ark::math
 	 * @details The AVX2 specification does not define structural changes  
 	 * regarding double-precision floating-point vectors; therefore, the 
 	 * prior generation is used as-is.
-	 * 
-	 * @sa Quat<double, ark::hal::simd::Avx>
+	 *
+	 * @subsubsection Concepts Concepts
+	 * @par
+	 * @ref "ark::math::Quaternion" "Quaternion"
+	 *
+	 * @subsubsection Operations
+	 * @par
+	 * <table>
+	 *   <tr><th>Operation<th>Function
+	 *   <tr><td>@include{doc} Math/Quaternion/MultiplicationOperation.f
+	 *     <td>@ref "operator*(QuatDoubleAvx2, QuatDoubleAvx2)"
+	 * </table>
 	 ********************************************************************/
-	template<> class Quat<double, ark::hal::simd::Avx2> : public Quat<double, ark::hal::simd::Avx>
+	class QuatDoubleAvx2 : public QuatDoubleAvx
 	{
-		using Quat<double, ark::hal::simd::Avx>::Quat;
+		using QuatDoubleAvx::QuatDoubleAvx;
+	};
+
+	/**
+	 * @brief Specialize Quat<double, Sse> with QuatDoubleAvx2
+	 */
+
+	template<>
+	struct QuaternionSelector<double, ark::hal::simd::Avx2>
+	{
+		typedef QuatDoubleAvx2 type;
 	};
 
 
 	/*********************************************************************
-	 * @brief AVX2-optimized Quat<float> Multiplication
+	 * @brief AVX2-optimized Single-precision Multiplication
 	 * 
 	 * @details Compute the product of two single-precision floating-point 
-	 * quaternions using an AVX2-optimized algorithm. This implementation 
-	 * is selected when the HAL_SIMD parameter is set to any AVX 
-	 * generation that uses the 
-	 * Quat<float, ark::hal::simd::Avx2> specialization. This supersedes 
-	 * the SSE4 implementation. The new implementation gains its 
-	 * efficiency from the AVX2 fused multiply-add instructions. 
-	 * 
+	 * quaternions using an AVX2-optimized algorithm. This supersedes the
+	 * AVX implementation as the new AVX2 fused multiply-add instructions 
+	 * permit a more-optimized implementation.
 	 * @include{doc} Math/Quaternion/Multiplication.txt
 	 * 
-	 * @sa operator*(const QL& lhs, const QR& rhs)
-	 * @sa QuaternionMultiplication
+	 * @supersedes{QuatFloatAvx2, operator*(QuatFloatAvx\, QuatFloatAvx)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsAvx2 SIMD>
-	auto operator*(Quat<float, SIMD> lhs, Quat<float, SIMD> rhs) -> Quat<float, SIMD>
+	auto operator*(QuatFloatAvx2 lhs, QuatFloatAvx2 rhs) -> QuatFloatAvx2
 	{
 		// Gather data
 		__m128 l = lhs.SseVal();
@@ -116,22 +151,17 @@ namespace ark::math
 
 	
 	/*********************************************************************
-	 * @brief AVX2-optimized Quat<double> Multiplication
-	 * 
-	 * @details Compute the product of two double-precision floating-point 
-	 * quaternions using an AVX2-optimized algorithm. This implementation 
-	 * is selected when the HAL_SIMD parameter is set to any AVX 
-	 * generation that uses the 
-	 * Quat<double, ark::hal::simd::Avx2>specialization. This supersedes 
-	 * the earlier AVX implementation.
-	 * 
+	 * @brief AVX2-optimized Double-precision Multiplication
+	 *
+	 * @details Compute the product of two double-precision floating-point
+	 * quaternions using an AVX2-optimized algorithm. This supersedes the
+	 * AVX implementation as the new AVX2 fused multiply-add instructions
+	 * permit a more-optimized implementation.
 	 * @include{doc} Math/Quaternion/Multiplication.txt
-	 * 
-	 * @sa operator*(const QL& lhs, const QR& rhs)
-	 * @sa QuaternionMultiplication
+	 *
+	 * @supersedes{QuatDoubleAvx2, operator*(QuatDoubleAvx\, QuatDoubleAvx)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsAvx2 SIMD>
-	auto operator*(Quat<double, SIMD> lhs, Quat<double, SIMD> rhs) -> Quat<double, SIMD>
+	auto operator*(QuatDoubleAvx2 lhs, QuatDoubleAvx2 rhs) -> QuatDoubleAvx2
 	{
 		// Gather data
 		__m256d l      = lhs.AvxVal();

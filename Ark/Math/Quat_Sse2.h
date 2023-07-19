@@ -1,24 +1,21 @@
 /*************************************************************************
  * @file
- * @brief Quat<S, SIMD> optimizations for the SSE2 ISA.
+ * @brief Quaternion Implementations Optimizeds for the SSE2 ISA.
  * 
- * @details This file defines opitimizations to the basic Quat class for 
- * use on platforms with CPUs possessing SSE2 registers and instructions.
- * Given the definition of SSE2, this file more-specifically contains a 
- * specialization for Quats with double-precision floating point 
- * components. The original SSE only included single-precision floating-
- * point numerics. Consequently, the SSE optimizations do not include 
- * doubles. As no new single-precision instructions were added useful to 
- * the quaternion algorithms, the SSE2 optimizations in this file are all 
- * double-precision implementations. There is a specialization of the 
- * Quat class for double-precision components and algorithms implemented 
- * against the class specialization.
- * 
+ * @details This file defines opitimizations to the basic Quat class for
+ * use on platforms with CPUs possessing registers and instructions
+ * defined in the SSE2 ISA. The data representaion and operations of 
+ * single-precision floating-point quaternions remains unchanged from 
+ * the original SSE implementations. SSE2 introduces a register format 
+ * and instructions for the efficient implementation of double-precision 
+ * floating-point quaternions.
+ *
+ * @sa ark::math::Quaternion
  * @sa Quat.h
  * @sa Quat_Sse.h
  * 
  * @author Noah Stein
- * @copyright © 2021 Noah Stein. All Rights Reserved.
+ * @copyright © 2021-2023 Noah Stein. All Rights Reserved.
  ************************************************************************/
 
 #if !defined(ARK_MATH_QUAT_SSE2_H_INCLUDE_GUARD)
@@ -37,40 +34,82 @@
 namespace ark::math
 {
 	/*********************************************************************
-	 * @brief SSE2-optimized Quat Float Specialization
+	 * @brief SSE2-optimized Single-precision Floating-point Quaternion
 	 * 
-	 * @details As the SSE2 specification does not change the hardware 
-	 * register set, the Intel intrinsic type representing the register 
-	 * format has not changed for single-precision floating-point 
-	 * vectors. For the SIMD versioning system to work, the original SSE 
-	 * class is used as-is for SSE2.
+	 * @details The SSE2 ISA specification contains no change to the 
+	 * register set affecting single-precision floating-point operations; 
+	 * therefore, the SSE class is pulled forward.
+	 *
+	 * It is not necessary to define this class. The Ark architecture 
+	 * permits directly sepcializing on the original SSE implementation 
+	 * when there are neither any new nore superseiding operatoins 
+	 * defined for a SIMD generation. The choice to pull the original SSE 
+	 * specification forward and define it as the SSE2 specification is 
+	 * for consistency. This way, the SSE3 specification can easily just 
+	 * derive from SSE2 instead of the programmer needing to look through 
+	 * files to find the where the last register layout was specified.
 	 * 
-	 * @sa Quat<float, ark::hal::simd::Sse>
+	 * @subsubsection Concepts Concepts
+	 * @par
+	 * @ref "ark::math::Quaternion" Quaternionn
+	 * 
+	 * @sa QuatFloatSse
 	 ********************************************************************/
-	template<>
-	class Quat<float, ark::hal::simd::Sse2> : public Quat<float, ark::hal::simd::Sse>
+	class QuatFloatSse2 : public QuatFloatSse
 	{
-		using Quat<float, ark::hal::simd::Sse>::Quat;
+		using QuatFloatSse::QuatFloatSse;
+	};
+
+
+	/**
+	 * @brief Specialize Quat<float, Sse2> with QuatFloatSse2
+	 */
+	template<>
+	struct QuaternionSelector<float, ark::hal::simd::Sse2>
+	{
+		typedef QuatFloatSse2 type;
 	};
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Quat double Specialization
-	 * 
-	 * @details This class specialization defines the Quat class for SSE2 
-	 * and double-precision float scalars. The specialization utilizes 
-	 * the type __m128d to store data. As registers are still 128-bits 
-	 * wide, it takes two members to store all 4 64-bit doubles 
-	 * representing a quaternion. Internally, these are the same 
-	 * registers used for single-precision floats in SSE; however, they 
-	 * contain 2 doubles instead. 
-	 * 
-	 * @note This specialization superseded in AVX.
-	 * 
-	 * @sa Quat
-	 ********************************************************************/
-	template<>
-	class Quat<double, ark::hal::simd::Sse2>
+	* @brief SSE2-optimized Double-precision Floating-point Quaternion
+	*
+	* @details This class defines the data type for an SSE2-optimized
+	* double-precision floating-point quaternion. Data access member
+	* fuunctions model the Quaternion concept. All mathematical operations
+	* are defined in non-member functions.
+	*
+	* @subsubsection Concepts Concepts
+	* @par
+	* @ref "ark::math::Quaternion" "Quaternion"
+	*
+	* @subsubsection Operations
+	* @par
+	* <table>
+	*	<tr><th>Operation<th>Function
+	*   <tr><td>@include{doc} Math/Quaternion/NegationOperation.f
+	*     <td>@ref "operator-(QuatDoubleSse2)"
+	*   <tr><td>@include{doc} Math/Quaternion/ConjugationOperation.f
+	*     <td>@ref "operator*(QuatDoubleSse2)"
+	*   <tr><td>@include{doc} Math/Quaternion/DotProductOperation.f
+	*     <td>@ref "Dot(QuatDoubleSse2, QuatDoubleSse2)"
+	*   <tr><td>@include{doc} Math/Quaternion/InversionOperation.f
+	*     <td>@ref "Inverse(QuatDoubleSse2)"
+	*   <tr><td>@include{doc} Math/Quaternion/AdditionOperation.f
+	*     <td>@ref "operator+(QuatDoubleSse2, QuatDoubleSse2)"
+	*   <tr><td>@include{doc} Math/Quaternion/SubtractionOperation.f
+	*     <td>@ref "operator-(QuatDoubleSse2, QuatDoubleSse2)"
+	*   <tr><td>@include{doc} Math/Quaternion/MultiplicationOperation.f
+	*     <td>@ref "operator*(QuatDoubleSse2, QuatDoubleSse2)"
+	*   <tr><td>@include{doc} Math/Quaternion/QuaternionScalarMultiplicationOperation.f
+	*     <td>@ref "operator*(QuatDoubleSse2, double)"
+	*   <tr><td>@include{doc} Math/Quaternion/ScalarQuaternionMultiplicationOperation.f
+	*     <td>@ref "operator*(double, QuatDoubleSse2)"
+	*   <tr><td>@include{doc} Math/Quaternion/QuaternionScalarDivisionOperation.f
+	*     <td>@ref "operator/(QuatDoubleSse2, double)"
+	* </table>
+	*/
+	class QuatDoubleSse2
 	{
 		/// The double-precision W and X components of the quaternion
 		__m128d wx_;
@@ -89,14 +128,14 @@ namespace ark::math
 		 *  leaves storage uninitialized, just like the behavior of 
 		 *  built-in types.
 		 */					
-		Quat() = default;
+		QuatDoubleSse2() = default;
 
 
 		/** @brief Compopnent Constructor
 		 *  @details Constructor taking the 4 quaternion components 
 		 *  explicitly as separate, individaul parameters.
 		 */
-		Quat(Scalar w, Scalar x, Scalar y, Scalar z)
+		QuatDoubleSse2(Scalar w, Scalar x, Scalar y, Scalar z)
 		{
 			wx_ = _mm_set_pd(x, w);
 			yz_ = _mm_set_pd(z, y);
@@ -108,8 +147,8 @@ namespace ark::math
 		 *  the Quaternion concept.
 		 */
 		template<Quaternion Q>
-		Quat(const Q& rhs)
-			: Quat(static_cast<Scalar>(rhs.w()), static_cast<Scalar>(rhs.x()), static_cast<Scalar>(rhs.y()), static_cast<Scalar>(rhs.z()))
+		QuatDoubleSse2(const Q& rhs)
+			: QuatDoubleSse2(static_cast<Scalar>(rhs.w()), static_cast<Scalar>(rhs.x()), static_cast<Scalar>(rhs.y()), static_cast<Scalar>(rhs.z()))
 		{}
 
 
@@ -120,7 +159,7 @@ namespace ark::math
 		 *  good way to hide it. Do not use it in multi-platform code.
 		 *  @warning Only use in SSE2-specific algorithm implementations.
 		 */
-		Quat(__m128d wx, __m128d yz)
+		QuatDoubleSse2(__m128d wx, __m128d yz)
 			: wx_(wx), yz_(yz)
 		{}
 		/// @}
@@ -148,26 +187,26 @@ namespace ark::math
 	};
 
 
+	/**
+	 * @brief Specialize Quat<double, Sse2> with QuatDoubleSse2
+	 */
+	template<>
+	struct QuaternionSelector<double, ark::hal::simd::Sse2>
+	{
+		typedef QuatDoubleSse2 type;
+	};
+
+
 	/*********************************************************************
-	 * @brief SSE2-optimized Quat<double> Negation
+	 * @brief SSE2-optimized Double-precision Quaternion Negation
 	 * 
 	 * @details Compute a negation of a double-precision floating-point 
-	 * quaternion using an SSE2-optimized algorithm. This implementation 
-	 * is selected when the HAL_SIMD parameter is set to any SSE 
-	 * generation that uses the Quat<double, ark::hal::simd::Sse2> 
-	 * specialization. This will supersede using the baseline 
-	 * QuaternionNegation expression node when performing a negation on a 
-	 * Quat<double>.
-	 * 
+	 * quaternion using an SSE2-optimized algorithm.
 	 * @include{doc} Math/Quaternion/Negation.txt
 	 * 
-	 * @note This implementation is superseded in AVX.
-	 * 
-	 * @sa operator-(const Q& q)
-	 * @sa QuaternionNegation
+	 * @supersedes{QuatDoubleSse2, operator-(const Q&)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator-(Quat<double, SIMD> q) -> Quat<double, SIMD>
+	inline auto operator-(QuatDoubleSse2 q) -> QuatDoubleSse2
 	{
 		__m128d z = _mm_setzero_pd();
 		__m128d wx = _mm_sub_pd(z, q.SseWx());
@@ -177,25 +216,15 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Quat<double> Conjugation
+	 * @brief SSE2-optimized Double-precision Quaternion Conjugation
 	 * 
 	 * @details Compute a conjugation of a double-precision floating-point 
-	 * quaternion using an SSE2-optimized algorithm. This implementation 
-	 * is selected when the HAL_SIMD parameter is set to any SSE 
-	 * generation that uses the Quat<double, ark::hal::simd::Sse2> 
-	 * specialization. This will supersede using the baseline 
-	 * QuaternionConjugate expression node when performing a conjugation 
-	 * on a Quat<double>.
-	 * 
+	 * quaternion using an SSE2-optimized algorithm.
 	 * @include{doc} Math/Quaternion/Conjugation.txt
 	 * 
-	 * @note This implementation is superseded in AVX.
-	 * 
-	 * @sa operator*(const Q& q)
-	 * @sa QuaternionConjugation
+	 * @supersedes{QuatDoubleSse2, operator*(const Q&)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator*(Quat<double, SIMD> q) -> Quat<double, SIMD>
+	inline auto operator*(QuatDoubleSse2 q) -> QuatDoubleSse2
 	{
 		__m128d z = _mm_setzero_pd();
 		__m128d wxi = q.SseWx();
@@ -207,24 +236,15 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Quat<double> Dot Product
+	 * @brief SSE2-optimized Double-Precision Quaternion Dot Product
 	 * 
 	 * @details Compute the dot product of two double-precision 
-	 * floating-point quaternions using an SSE2-optimized algorithm. This 
-	 * implementation is selected when the HAL_SIMD parameter is set to 
-	 * any SSE generation that uses the Quat<double, ark::hal::simd::Sse2> 
-	 * specialization. This will supersede using the baseline function 
-	 * implementation when performing a dot product on two Quat<double> 
-	 * arguments.
-	 * 
+	 * floating-point quaternions using an SSE2-optimized algorithm.
 	 * @include{doc} Math/Quaternion/DotProduct.txt
 	 * 
-	 * @note This implmentation is superseded in SSE3.
-	 * 
-	 * @sa Dot(const QL& lhs, const QR& rhs)
+	 * @supersedes{QuatDoubleSse2, Dot(const QL&\, const QR&)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto Dot(Quat<double, SIMD> lhs, Quat<double, SIMD> rhs) -> double
+	inline auto Dot(QuatDoubleSse2 lhs, QuatDoubleSse2 rhs) -> double
 	{
 		__m128d w2x2 = _mm_mul_pd(lhs.SseWx(), rhs.SseWx());
 		__m128d x2w2 = _mm_shuffle_pd(w2x2, w2x2, _MM_SHUFFLE2(0, 1));
@@ -241,47 +261,30 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Quat<double> Inversion
+	 * @brief SSE2-optimized Double-Precision Quaternion Inversion
 	 * 
 	 * @details Compute the multiplicative inverse of a double-precision 
-	 * floating-point quaternion using an SSE2-optimized algorithm. This 
-	 * implementation is selected when the HAL_SIMD parameter is set to 
-	 * any SSE generation that uses the Quat<double, ark::hal::simd::Sse2> 
-	 * specialization. This  will supersede using the baseline function 
-	 * implementation when computing an inverse of a Quat<double>.
-	 * 
+	 * floating-point quaternion using an SSE2-optimized algorithm.
 	 * @include{doc} Math/Quaternion/Inversion.txt
 	 * 
-	 * @sa Inverse(const Q& q)
-	 * @sa QuaternionInversion
+	 * @supersedes{QuatDoubleSse2, Inverse(const Q&)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto Inverse(Quat<double, SIMD> q) -> Quat<double, SIMD>
+	inline auto Inverse(QuatDoubleSse2 q) -> QuatDoubleSse2
 	{
 		return *q / Dot(q, q);
 	}
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Quat<double> Addition
+	 * @brief SSE2-optimized Double-Precision Quaternion Addition
 	 * 
 	 * @details Compute the addition of two double-precision floating-
-	 * point quaternions using an SSE2-optimized algorithm. This 
-	 * implementation is selected when the HAL_SIMD parameter is set to 
-	 * any SSE generation that uses the Quat<double, ark::hal::simd::Sse2> 
-	 * specialization. This  will supersede using the baseline function 
-	 * implementation when computing the addtion of two Quat<double> 
-	 * arguments.
-	 * 
+	 * point quaternions using an SSE2-optimized algorithm.
 	 * @include{doc} Math/Quaternion/Addition.txt
 	 * 
-	 * @note This implementation is superseded in AVX.
-	 * 
-	 * @sa operator+(const QL& lhs, const QR& rhs)
-	 * @sa QuaternionAddition
+	 * @supersedes{QuatDoubleSse2, operator+(const QL&\, const QR&)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator+(Quat<double, SIMD> lhs, Quat<double, SIMD> rhs) -> Quat<double, SIMD>
+	inline auto operator+(QuatDoubleSse2 lhs, QuatDoubleSse2 rhs) -> QuatDoubleSse2
 	{
 		__m128d wx = _mm_add_pd(lhs.SseWx(), rhs.SseWx());
 		__m128d yz = _mm_add_pd(lhs.SseYz(), rhs.SseYz());
@@ -290,25 +293,15 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Quat<double> Subtraction
+	 * @brief SSE2-optimized Double-precision Quaternion Subtraction
 	 * 
 	 * @details Compute the subtraction of one double-precision floating-
 	 * point quaternion from another using an SSE2-optimized algorithm. 
-	 * This implementation is selected when the HAL_SIMD parameter is set 
-	 * to any SSE generation that uses the 
-	 * Quat<double, ark::hal::simd::Sse2> specialization. This will  
-	 * supersede using the baseline function implementation when computing 
-	 * the addtion of two Quat<double> arguments.
-	 * 
 	 * @include{doc} Math/Quaternion/Subtraction.txt
 	 * 
-	 * @note This implementation is superseded in AVX.
-	 * 
-	 * @sa operator-(const QL& lhs, const QR& rhs)
-	 * @sa QuaternionSubtraction
+	 * @supersedes{QuatDoubleSse2, operator-(const QL&\, const QR&)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator-(Quat<double, SIMD> lhs, Quat<double, SIMD> rhs) -> Quat<double, SIMD>
+	inline auto operator-(QuatDoubleSse2 lhs, QuatDoubleSse2 rhs) -> QuatDoubleSse2
 	{
 		__m128d wx = _mm_sub_pd(lhs.SseWx(), rhs.SseWx());
 		__m128d yz = _mm_sub_pd(lhs.SseYz(), rhs.SseYz());
@@ -317,24 +310,17 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Quat<double> Quaternion-Scalar Multiplication
+	 * @brief SSE2-optimized Double-precision Quaternion-Scalar 
+	 * Multiplication
 	 * 
 	 * @details Compute the product of a double-precision floating-point 
 	 * quaternion by a double-precision floating-point scalar value using 
-	 * an SSE2-optimized algorithm. This implementation is selected when 
-	 * the HAL_SIMD parameter is set to any SSE generation that uses the  
-	 * Quat<double, ark::hal::simd::Sse2> specialization. This will  
-	 * supersede using the baseline implementation.
-	 * 
+	 * an SSE2-optimized algorithm.
 	 * @include{doc} Math/Quaternion/QuaternionScalarMultiplication.txt
 	 * 
-	 * @note This implementation is superseded in AVX.
-	 * 
-	 * @sa operator*(const Q& q, typename Q::Scalar s)
-	 * @sa QuaternionScalarMultiplication
+	 * @supersedes{QuatDoubleSse2, operator*(const Q&\, typename Q::Scalar s)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator*(Quat<double, SIMD> lhs, double rhs) -> Quat<double, SIMD>
+	inline auto operator*(QuatDoubleSse2 lhs, double rhs) -> QuatDoubleSse2
 	{
 		__m128d scalar = _mm_set1_pd(rhs);
 		__m128d wx = _mm_mul_pd(lhs.SseWx(), scalar);
@@ -344,24 +330,17 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Quat<double> Scalar-Quaternion Multiplication
+	 * @brief SSE2-optimized Double-precision Scalar-Quaternion 
+	 * Multiplication
 	 * 
 	 * @details Compute the product of a double-precision floating-point 
 	 * scalar value and a double-precision floating-point quaternion 
-	 * value using an SSE2-optimized algorithm. This implementation is 
-	 * selected when the HAL_SIMD parameter is set to any SSE generation 
-	 * that uses the Quat<double, ark::hal::simd::Sse2> specialization. 
-	 * This will supersede using the baseline implementation.
-	 * 
+	 * value using an SSE2-optimized algorithm.
 	 * @include{doc} Math/Quaternion/ScalarQuaternionMultiplication.txt
 	 * 
-	 * @note This implementation is superseded in AVX.
-	 * 
-	 * @sa operator*(typename Q::Scalar s, const Q& q)
-	 * @sa QuaternionScalarMultiplication
+	 * @supersedes{QuatDoubleSse2, operator*(typename Q::Scalar\, const Q&)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator*(double lhs, Quat<double, SIMD> rhs) -> Quat<double, SIMD>
+	inline auto operator*(double lhs, QuatDoubleSse2 rhs) -> QuatDoubleSse2
 	{
 		__m128d scalar = _mm_set1_pd(lhs);
 		__m128d wx = _mm_mul_pd(scalar, rhs.SseWx());
@@ -371,24 +350,16 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Quat<double> Scalar Division
+	 * @brief SSE2-optimized Double-precision Quaternion-Scalar Division
 	 * 
 	 * @details Compute the quotient of a double-precision floating-point 
 	 * quaternion dividend by a double-precision floating-point scalar 
-	 * divisor using an SSE2-optimized algorithm. This implementation is 
-	 * selected when the HAL_SIMD parameter is set to any SSE generation 
-	 * that uses the Quat<double, ark::hal::simd::Sse2> specialization. 
-	 * This will supersede using the baseline implementation.
-	 * 
+	 * divisor using an SSE2-optimized algorithm.
 	 * @include{doc} Math/Quaternion/ScalarDivision.txt
 	 * 
-	 * @note This implementation is superseded in AVX.
-	 * 
-	 * @sa operator/(const Q& q, typename Q::Scalar s)
-	 * @sa QuaternionScalarDivision
+	 * @supersedes{QuatDoubleSse2,operator/(const Q&\, typename Q::Scalar)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator/(Quat<double, SIMD> lhs, double rhs) -> Quat<double, SIMD>
+	inline auto operator/(QuatDoubleSse2 lhs, double rhs) -> QuatDoubleSse2
 	{
 		__m128d scalar = _mm_set1_pd(rhs);
 		__m128d wx = _mm_div_pd(lhs.SseWx(), scalar);
@@ -398,24 +369,15 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Quat<double> Multiplication
+	 * @brief SSE2-optimized Double-precision Quaternion Multiplication
 	 * 
 	 * @details Compute the product of two double-precision floating-point 
-	 * quaternions using an SSE2-optimized algorithm. This implementation 
-	 * is selected when the HAL_SIMD parameter is set to any SSE 
-	 * generation that uses the 
-	 * Quat<double, ark::hal::simd::Sse2> specialization. This will 
-	 * supersede using the baseline implementation.
-	 * 
+	 * quaternions using an SSE2-optimized algorithm.
 	 * @include{doc} Math/Quaternion/Multiplication.txt
 	 * 
-	 * @note This implementation is superseded in SSE3.
-	 * 
-	 * @sa operator*(const QL& lhs, const QR& rhs)
-	 * @sa QuaternionMultiplication
+	 * @supersedes{QuatDoubleSse2, operator*(const QL&\, const QR&)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	auto operator*(Quat<double, SIMD> lhs, Quat<double, SIMD> rhs) -> Quat<double, SIMD>
+	auto operator*(QuatDoubleSse2 lhs, QuatDoubleSse2 rhs) -> QuatDoubleSse2
 	{
 		// Gather data
 		__m128d n0      = _mm_set_pd(0.0, -0.0); // Negate element 0
@@ -469,22 +431,15 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Quat<double> Division
+	 * @brief SSE2-optimized Double-precision Quaternion Division
 	 * 
 	 * @details Compute the quotient of double-precision floating-point 
-	 * quaternion dividend and divisor using an SSE2-optimized algorithm. 
-	 * This implementation is selected when the HAL_SIMD parameter is set 
-	 * to any SSE generation that uses the 
-	 * Quat<double, ark::hal::simd::Sse2> specialization. This will 
-	 * supersede using the baseline implementation.
-	 * 
+	 * quaternion dividend and divisor using an SSE2-optimized algorithm.
 	 * @include{doc} Math/Quaternion/Division.txt
 	 * 
-	 * @sa operator/(const QL& lhs, const QR& rhs)
-	 * @sa QuaternionDivision
+	 * @supersedes{QuatDoubleSse2,operator/(const QL&\, const QR&)}
 	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator/(Quat<double, SIMD> lhs, Quat<double, SIMD> rhs) -> Quat<double, SIMD>
+	inline auto operator/(QuatDoubleSse2 lhs, QuatDoubleSse2 rhs) -> QuatDoubleSse2
 	{
 		return lhs * Inverse(rhs);
 	}

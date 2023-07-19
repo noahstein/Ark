@@ -30,34 +30,25 @@ namespace ark::math
 	 * 
 	 * @tparam S The type of the scalar components.
 	 * 
-	 * @tparam I An ISA tag permitting speciaiization of the Quat's data  
-	 * layout to optimized for a specific SIMD architectur.e
+	 * @details A basic quaternion class definition templatized on the 
+	 * scalar type. It is a simple, dense stoarage of 4 scalars. It will 
+	 * work on any platform although it will only use specialized SIMD 
+	 * hardware if the compiler can optimize for it. This class is the 
+	 * default one chosen by Quat.
 	 * 
-	 * @details The standard small, dense quaternion class. This is the 
-	 * go-to class to commonlhy use. It is intended to be the default 
-	 * choice of classes when using quaternions in code. It is a very
-	 * simple class as all the heavy lifting is done wiether in the
-	 * template expression tree classes or in platform-specific 
-	 * specializations. This class has only has three simple 
-	 * responsibilities it must fulfill as defined in the Quaternion 
-	 * concept:
-	 * 
-	 * -# Define the scalar type of the stored component numbers.
-	 * -# Define the storage of the 4 components.
-	 * -# Define accessors to the w, x, y, and z components.
-	 * 
-	 * With these requirements fulfilled, this class automatically 
-	 * participates in all functions and classes accepting Quaternion 
-	 * concept parameters. That means, although this class defines no 
-	 * operations beyond accessors, it will participate in all quaternion 
-	 * algebraic functions and algorithms implemented to the concept.
-	 * 
-	 * @sa @ref ark::math::Quaternion
-	 * @sa @ref ExpressionTemplates
-	 * @sa @ref SimdArchitecture
+	 * There are no accompanying operations. All operations are used by 
+	 * the generic template expression trees. There may be a tendency for 
+	 * the code to bloat as the trees tend to inline most every operation; 
+	 * however, the optimizer has maximum potential for optimizing 
+	 * algorithms as the alternative is to transfer between memory with 
+	 * function calls.
+	 *
+	 * @subsubsection Concepts Concepts
+	 * @par
+	 * @ref "ark::math::Quaternion" "Quaternion"
 	 ********************************************************************/
-	template<typename S, typename I = ark::hal::simd::HAL_SIMD>
-	class Quat
+	template<typename S>
+	class QuatBasic
 	{
 	public:
 		/** The numeric type of the components is defined by the first 
@@ -76,13 +67,13 @@ namespace ark::math
 		 *  @details The default constructor leaves storage 
 		 *  uninitialized, just like the behavior of built-in types.
 		 */			
-		Quat() = default;
+		QuatBasic() = default;
 
 		/** @brief Compopnent-wise Constructor
 		 *  @details Constructor taking the 4 quaternion components 
 		 *  explicitly as separate, individaul parameters.
 		 */
-		Quat(Scalar w, Scalar x, Scalar y, Scalar z) noexcept(std::is_nothrow_copy_constructible_v<Scalar>)
+		QuatBasic(Scalar w, Scalar x, Scalar y, Scalar z) noexcept(std::is_nothrow_copy_constructible_v<Scalar>)
 			: w_(w), x_(x), y_(y), z_(z)
 		{}
 
@@ -92,8 +83,8 @@ namespace ark::math
 		 */
 		template<Quaternion Q>
 			requires std::convertible_to<typename Q::Scalar, Scalar>
-		Quat(const Q& rhs) noexcept(std::is_nothrow_convertible_v<typename Q::Scalar, Scalar>)
-			: Quat(Scalar{rhs.w()}, Scalar{rhs.x()}, Scalar{rhs.y()}, Scalar{rhs.z()})
+		QuatBasic(const Q& rhs) noexcept(std::is_nothrow_convertible_v<typename Q::Scalar, Scalar>)
+			: QuatBasic(Scalar{rhs.w()}, Scalar{rhs.x()}, Scalar{rhs.y()}, Scalar{rhs.z()})
 		{}
 		/// @}
 
@@ -103,7 +94,7 @@ namespace ark::math
 		 */
 		template<Quaternion Q>
 			requires std::convertible_to<typename Q::Scalar, Scalar>
-		Quat& operator=(const Q& rhs) noexcept(std::is_nothrow_convertible_v<typename Q::Scalar, Scalar>)
+		QuatBasic& operator=(const Q& rhs) noexcept(std::is_nothrow_convertible_v<typename Q::Scalar, Scalar>)
 		{
 			w_ = Scalar{rhs.w()};
 			x_ = Scalar{rhs.x()};
@@ -121,6 +112,43 @@ namespace ark::math
 		Scalar z() const { return z_; }
 		/// @}
 	};
+
+
+	/*********************************************************************
+	 * @brief Quaternion Selector Template
+	 *
+	 * @tparam S The type of the scalar components.
+	 * @tparam I The SIMD architecture
+	 *
+	 * @details The template defines a single typedef named "type" to 
+	 * define which quaternion class should be used given the scalar type 
+	 * S and SIMD architecture I. WHen a SIMD ISA provides facilities to 
+	 * optimize algorithms, create any new implementations for that ISA, 
+	 * and then define a specialization of this template to enable Quat 
+	 * to automatically select it when that implementation is desired.
+	 ********************************************************************/
+	template<typename S, typename I = ark::hal::simd::HAL_SIMD>
+	struct QuaternionSelector
+	{
+		typedef QuatBasic<S> type;
+	};
+
+
+	/*********************************************************************
+	 * @brief Standard Dense Quaternion
+	 *
+	 * @tparam S The type of the scalar components.
+	 * @tparam I The SIMD architecture
+	 *
+	 * @details Programmers who desire to use a "normal" quaternion should 
+	 * use this type alias. It is designed to automatically pick the best 
+	 * class based on the scalar type and the SIMD ISA, falling back to 
+	 * the default implementation QuatBasic when there is no better SIMD 
+	 * ISA. To do this, it uses QuaternionSelector to select the optimal 
+	 * type based on the template parameters.
+	 ********************************************************************/
+	template<typename S, typename I = ark::hal::simd::HAL_SIMD>
+	using Quat = QuaternionSelector<S, I>::type;
 }
 
 
