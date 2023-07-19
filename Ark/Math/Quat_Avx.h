@@ -35,6 +35,8 @@
 //************************************************************************
 #include "Quat_Sse4.h"
 
+class QuatDoubleAvx2;
+
 
 //************************************************************************
 //  Code
@@ -53,6 +55,10 @@ namespace ark::math
 	 ********************************************************************/
 	class QuatFloatAvx : public QuatFloatSse4
 	{
+	public:
+		/// Tag for revision this implementation's generation in the SIMD family.
+		using Revision = ark::hal::simd::Avx;
+
 		using QuatFloatSse4::QuatFloatSse4;
 	};
 
@@ -213,7 +219,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator-(QuatDoubleSse2)}
 	 ********************************************************************/
-	inline auto operator-(QuatDoubleAvx q) -> QuatDoubleAvx
+	template<QuaternionFamily<QuatDoubleAvx> Q>
+	inline auto operator-(Q q) -> Q
 	{
 		__m256d zero = _mm256_setzero_pd();
 		__m256d result = _mm256_sub_pd(zero, q.AvxVal());
@@ -231,7 +238,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator*(QuatDoubleSse2)}
 	 ********************************************************************/
-	inline auto operator*(QuatDoubleAvx q) -> QuatDoubleAvx
+	template<QuaternionFamily<QuatDoubleAvx> Q>
+	inline auto operator*(Q q) -> Q
 	{
 		__m256d val = q.AvxVal();
 		__m256d neg = (-q).AvxVal();
@@ -261,21 +269,6 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief AVX-optimized Double-Precision Quaternion Inversion
-	 *
-	 * @details Compute the multiplicative inverse of a double-precision
-	 * floating-point quaternion using an AVX-optimized algorithm.
-	 * @include{doc} Math/Quaternion/Inversion.txt
-	 *
-	 * @supersedes{QuatDoubleAvx, Inverse(QuatDoubleSse2)}
-	 ********************************************************************/
-	inline auto Inverse(QuatDoubleAvx q) -> QuatDoubleAvx
-	{
-		return *q / Dot(q, q);
-	}
-
-
-	/*********************************************************************
 	 * @brief AVX-optimized Double-precision Quaternion Addition
 	 * 
 	 * @details Compute the addition of two double-precision floating-
@@ -285,7 +278,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator+(QuatDoubleSse2\, QuatDoubleSse2)}
 	 ********************************************************************/
-	inline auto operator+(QuatDoubleAvx lhs, QuatDoubleAvx rhs) -> QuatDoubleAvx
+	template<QuaternionFamily<QuatDoubleAvx> Q>
+	inline auto operator+(Q lhs, Q rhs) -> Q
 	{
 		return _mm256_add_pd(lhs.AvxVal(), rhs.AvxVal());
 	}
@@ -301,7 +295,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator-(QuatDoubleSse2\, QuatDoubleSse2)}
 	 ********************************************************************/
-	inline auto operator-(QuatDoubleAvx lhs, QuatDoubleAvx rhs) -> QuatDoubleAvx
+	template<QuaternionFamily<QuatDoubleAvx> Q>
+	inline auto operator-(Q lhs, Q rhs) -> Q
 	{
 		return _mm256_sub_pd(lhs.AvxVal(), rhs.AvxVal());
 	}
@@ -319,7 +314,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator*(QuatDoubleSse2\, double)}
 	 ********************************************************************/
-	inline auto operator*(QuatDoubleAvx lhs, double rhs) -> QuatDoubleAvx
+	template<QuaternionFamily<QuatDoubleAvx> Q>
+	inline auto operator*(Q lhs, double rhs) -> Q
 	{
 		__m256d scalar = _mm256_set1_pd(rhs);
 		__m256d result = _mm256_mul_pd(scalar, lhs.AvxVal());
@@ -339,7 +335,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator*(double\, QuatDoubleSse2)}
 	 ********************************************************************/
-	inline auto operator*(double lhs, QuatDoubleAvx rhs) -> QuatDoubleAvx
+	template<QuaternionFamily<QuatDoubleAvx> Q>
+	inline auto operator*(double lhs, Q rhs) -> Q
 	{
 		__m256d scalar = _mm256_set1_pd(lhs);
 		__m256d result = _mm256_mul_pd(scalar, rhs.AvxVal());
@@ -358,7 +355,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator/(QuatDoubleSse\, double)}
 	 ********************************************************************/
-	inline auto operator/(QuatDoubleAvx lhs, double rhs) -> QuatDoubleAvx
+	template<QuaternionFamily<QuatDoubleAvx> Q>
+	inline auto operator/(Q lhs, double rhs) -> Q
 	{
 		__m256d scalar = _mm256_set1_pd(rhs);
 		__m256d result = _mm256_div_pd(lhs.AvxVal(), scalar);

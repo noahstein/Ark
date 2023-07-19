@@ -56,6 +56,9 @@ namespace ark::math
 		 */
 		using Scalar = S;
 
+		/// Tag for revision this implementation's generation in the SIMD family.
+		using Revision = ark::hal::simd::None;
+
 	private:
 		Scalar w_, x_, y_, z_;
 

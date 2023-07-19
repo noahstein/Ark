@@ -55,6 +55,10 @@ namespace ark::math
 	 ********************************************************************/
 	class QuatFloatAvx2 : public QuatFloatAvx
 	{
+	public:
+		/// Tag for revision this implementation's generation in the SIMD family.
+		using Revision = ark::hal::simd::Avx2;
+
 		using QuatFloatAvx::QuatFloatAvx;
 	};
 
@@ -93,10 +97,10 @@ namespace ark::math
 		using QuatDoubleAvx::QuatDoubleAvx;
 	};
 
+
 	/**
 	 * @brief Specialize Quat<double, Sse> with QuatDoubleAvx2
 	 */
-
 	template<>
 	struct QuaternionSelector<double, ark::hal::simd::Avx2>
 	{
@@ -115,7 +119,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatFloatAvx2, operator*(QuatFloatAvx\, QuatFloatAvx)}
 	 ********************************************************************/
-	auto operator*(QuatFloatAvx2 lhs, QuatFloatAvx2 rhs) -> QuatFloatAvx2
+	template<QuaternionFamily<QuatFloatAvx2> Q>
+	auto operator*(Q lhs, Q rhs) -> Q
 	{
 		// Gather data
 		__m128 l = lhs.SseVal();

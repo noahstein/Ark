@@ -157,6 +157,20 @@ namespace ark::math::test::quat_unit_tests
 	// Quat Unary Functions
 	//========================================================================
 
+
+	TYPED_TEST(QuatUnitTest, NegationReturnsSpecializedTypeOrExpressionCorrectly)
+	{
+		// When
+		auto result = -this->q1;
+
+		// Then
+		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
+			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
+		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
+		EXPECT_TRUE(isSame ^ isBasicExpression);
+	}
+
+
 	TYPED_TEST(QuatUnitTest, Negate)
 	{
 		// When
@@ -167,6 +181,19 @@ namespace ark::math::test::quat_unit_tests
 		EXPECT_EQ(this->qr.x(), -13);
 		EXPECT_EQ(this->qr.y(), -7);
 		EXPECT_EQ(this->qr.z(), -19);
+	}
+
+
+	TYPED_TEST(QuatUnitTest, ConjugateReturnsSpecializedTypeOrExpressionCorrectly)
+	{
+		// When
+		auto result = *this->q1;
+
+		// Then
+		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
+			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
+		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
+		EXPECT_TRUE(isSame ^ isBasicExpression);
 	}
 
 
@@ -193,6 +220,19 @@ namespace ark::math::test::quat_unit_tests
 	}
 
 
+	TYPED_TEST(QuatUnitTest, InverseReturnsSpecializedTypeOrExpressionCorrectly)
+	{
+		// When
+		auto result = Inverse(this->q1);
+
+		// Then
+		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
+			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
+		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
+		EXPECT_TRUE(isSame ^ isBasicExpression);
+	}
+
+
 	TYPED_TEST(QuatUnitTest, Inverse)
 	{
 		// When
@@ -210,6 +250,19 @@ namespace ark::math::test::quat_unit_tests
 	// Quat Binary Functions
 	//========================================================================
 
+	TYPED_TEST(QuatUnitTest, AdditionReturnsSpecializedTypeOrExpressionCorrectly)
+	{
+		// When
+		auto result = this->q1 + this->q2;
+
+		// Then
+		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
+			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
+		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
+		EXPECT_TRUE(isSame ^ isBasicExpression);
+	}
+
+
 	TYPED_TEST(QuatUnitTest, Addition)
 	{
 		// When
@@ -220,6 +273,19 @@ namespace ark::math::test::quat_unit_tests
 		EXPECT_EQ(this->qr.x(), 24);
 		EXPECT_EQ(this->qr.y(), 30);
 		EXPECT_EQ(this->qr.z(), 48);
+	}
+
+
+	TYPED_TEST(QuatUnitTest, SubtractionReturnsSpecializedTypeOrExpressionCorrectly)
+	{
+		// When
+		auto result = this->q1 - this->q2;
+
+		// Then
+		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
+			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
+		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
+		EXPECT_TRUE(isSame ^ isBasicExpression);
 	}
 
 
@@ -236,6 +302,22 @@ namespace ark::math::test::quat_unit_tests
 	}
 
 
+	TYPED_TEST(QuatUnitTest, ScalarQuaternionMultiplicationReturnsSpecializedTypeOrExpressionCorrectly)
+	{
+		// Given
+		typename TypeParam::Scalar scalar{1};
+		
+		// When
+		auto result = scalar * this->q2;
+
+		// Then
+		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
+			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
+		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
+		EXPECT_TRUE(isSame ^ isBasicExpression);
+	}
+
+
 	TYPED_TEST(QuatUnitTest, ScalarQuaternionMultiplication)
 	{
 		// When
@@ -246,6 +328,22 @@ namespace ark::math::test::quat_unit_tests
 		EXPECT_EQ(this->qr.x(), 65);
 		EXPECT_EQ(this->qr.y(), 35);
 		EXPECT_EQ(this->qr.z(), 95);
+	}
+
+
+	TYPED_TEST(QuatUnitTest, QuaternionScalarMultiplicationReturnsSpecializedTypeOrExpressionCorrectly)
+	{
+		// Given
+		typename TypeParam::Scalar scalar{1};
+
+		// When
+		auto result = this->q2 * scalar;
+
+		// Then
+		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
+			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
+		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
+		EXPECT_TRUE(isSame ^ isBasicExpression);
 	}
 
 
@@ -262,6 +360,22 @@ namespace ark::math::test::quat_unit_tests
 	}
 
 
+	TYPED_TEST(QuatUnitTest, ScalarDivisionReturnsSpecializedTypeOrExpressionCorrectly)
+	{
+		// Given
+		typename TypeParam::Scalar scalar{1};
+
+		// When
+		auto result = this->q2 / scalar;
+
+		// Then
+		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
+			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
+		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
+		EXPECT_TRUE(isSame ^ isBasicExpression);
+	}
+
+
 	TYPED_TEST(QuatUnitTest, QuaternionScalarDivision)
 	{
 		// When
@@ -272,6 +386,26 @@ namespace ark::math::test::quat_unit_tests
 		EXPECT_EQ(this->qr.x(), 6.5);
 		EXPECT_EQ(this->qr.y(), 3.5);
 		EXPECT_EQ(this->qr.z(), 9.5);
+	}
+
+
+	TYPED_TEST(QuatUnitTest, MultiplicationReturnsSpecializedTypeOrExpressionCorrectly)
+	{
+		// When
+		auto result = this->q1 * this->q2;
+
+		// Then
+		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
+			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
+		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
+
+		if (!(isSame ^ isBasicExpression))
+		{
+			auto r2 = this->q1 * this->q2;
+			auto r3 = this->q1 * this->q1;
+		}
+
+		EXPECT_TRUE(isSame ^ isBasicExpression);
 	}
 
 
@@ -382,6 +516,19 @@ namespace ark::math::test::quat_unit_tests
 
 		// Then
 		EXPECT_QUAT_NEAR(this->qr, this->q_one, 0.00001);
+	}
+
+
+	TYPED_TEST(QuatUnitTest, DivisionReturnsSpecializedTypeOrExpressionCorrectly)
+	{
+		// When
+		auto result = this->q1 / this->q2;
+
+		// Then
+		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
+			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
+		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
+		EXPECT_TRUE(isSame ^ isBasicExpression);
 	}
 
 

@@ -25,8 +25,11 @@
 //************************************************************************
 #include <cmath>
 #include <type_traits>
+#include <concepts>
 
 #include "Concepts.h"
+
+class QuaternionExpr;
 
 
 //************************************************************************
@@ -134,9 +137,46 @@ namespace ark::math
 	};
 
 
+	/*********************************************************************
+	 * @brief Quaternion Function Parameter Type Specification Concept
+	 * 
+	 * @details Thie concept is used in template function declarations to
+	 * constrain which types shall be accepted. The argument must be of 
+	 * the type specified or a class derived from it.
+	 * 
+	 * E.g. SSE has several generations. Each generation has a data class 
+	 * defined to represent the register format. In many cases, the 
+	 * instructions added to a new generation do not affect the optimal 
+	 * implementation of algorith. Thus, an algorithm implemented in a 
+	 * fucntion for SSE2 might be used for SSE3 and SSE4. THus, the 
+	 * function needs to be constrained to work for SSE2 and higher.
+	 * 
+	 ********************************************************************/
+	template<typename Q, typename MIN, typename MAX = void>
+	concept QuaternionFamily = 
+		Quaternion<Q>
+		&& std::is_base_of_v<MIN, Q>
+		&& !std::is_base_of_v<MAX, Q>;
+
+
+	/*********************************************************************
+	 * @brief Is Class a Quaternion Expression Tree Predicate Concept
+	 *
+	 * @details The concept checks to see if the given class is derived
+	 * from QuaternionExpr. If so, the class represents a node in a
+	 * generic quaternion exprssion tree. The concept is useful in node
+	 * classes in order to determine if it should return an optimized
+	 * type. This permits a totally generic implementation of some
+	 * functions without sacrificing remaining in an optimized type.
+	 ********************************************************************/
+	template<typename Q>
+	concept IsQuaternionExpr = std::derived_from<Q, QuaternionExpr>;
+
+
 	//====================================================================
 	//  Expression Base Classes
 	//====================================================================
+
 
 	/*********************************************************************
 	 * @brief Quaternion Expression
@@ -176,10 +216,98 @@ namespace ark::math
 		 * @sa ark::math::Quaternion
 		 ****************************************************************/
 		template<typename Scalar>
-		struct Cache
+		class Cache
 		{
-			Scalar w, x, y, z;
+			Scalar w_, x_, y_, z_;
+
+		public:
+			/// @name Constructors
+			/// @{
+
+			/** @brief Component Constructor
+			 *  @details Constructor taking the 4 quaternion components
+			 *  explicitly as individaul parameters.
+			 */
+			Cache(Scalar ww, Scalar xx, Scalar yy, Scalar zz)
+				: w_(ww), x_(xx), y_(yy), z_(zz)
+			{}
+
+
+			/** @brief Quaternion Concept Constructor
+			 *  @tparam Q The type of the quaternion to convert from
+			 *  @details Constructor from any type that is compatible with
+			 *  the Quaternion concept.
+			 */
+			template<Quaternion Q>
+			Cache(const Q q)
+				: w_(q.w()), x_(q.x()), y_(q.y()), z_(q.z())
+			{}
+			/// @}
+
+			/// @name Accessors
+			/// @{
+			Scalar w() const noexcept { return w_; }
+			Scalar x() const noexcept { return x_; }
+			Scalar y() const noexcept { return y_; }
+			Scalar z() const noexcept { return z_; }
+			/// @}
 		};
+
+
+		/*****************************************************************
+		 * @brief Quaternion Expression Result Type Selector
+		 *
+		 * @tparam QL The type of the unery or first quaternion.
+		 *
+		 * @details The type selector is used by certain quaternion 
+		 * expression tree nodes to determine the type of the cached data 
+		 * to store. By default, it chooses the Cache class. This is 
+		 * correct as mismatched and expression types use the cache. Only 
+		 * when the types are the same and of specialized type will an 
+		 * overload select that type.
+		 *
+		 * @sa ark::math::Quaternion
+		 ****************************************************************/
+		template<Quaternion QL, Quaternion QR>
+		struct ResultSelector
+		{
+			using SL = typename QL::Scalar;
+			using SR = typename QR::Scalar;
+			using Scalar = typename std::common_type_t<SL, SR>;
+			typedef Cache<Scalar> type;
+		};
+
+
+		/*****************************************************************
+		 * @brief Quaternion Expression Result Type Selector for 
+		 * Expression Nodes
+		 *
+		 * @tparam Q The type of the quaternion.
+		 *
+		 * @details The result selector is specialized to return the type 
+		 * when the expression is unary or both are the same optimized 
+		 * quaternion class.
+		 *
+		 * @sa ark::math::Quaternion
+		 ****************************************************************/
+		template<Quaternion Q>
+			requires !IsQuaternionExpr<Q>
+		struct ResultSelector<Q, Q>
+		{
+			typedef Q type;
+		};
+
+
+		/*****************************************************************
+		 * @brief The type to use to cache the result of a quaternion 
+		 * operation
+		 *
+		 * @tparam Q The type of the quaternion.
+		 *
+		 * @sa ark::math::Quaternion
+		 ****************************************************************/
+		template<typename QL, typename QR = QL>
+		using ResultType = typename ResultSelector<QL, QR>::type;
 	};
 
 
@@ -265,7 +393,7 @@ namespace ark::math
 	 * @sa @ref ExpressionTemplates
 	 ********************************************************************/
 	template<Quaternion Q>
-	class QuaternionNegation : QuaternionUnaryExpr<Q>
+	class QuaternionNegation : public QuaternionUnaryExpr<Q>
 	{
 		/// Quaternion expression to negate
 		Q q_;
@@ -959,12 +1087,11 @@ namespace ark::math
 	{
 	public:
 		using Scalar = typename Q::Scalar;
+		using Result = QuaternionExpr::ResultType<Q>;
 
 	private:
 		/// The quaternion expression whose inverse is to be computed			
-		Q q_;
-		/// Cached result computed in the constructor
-		QuaternionExpr::Cache<Scalar> cache_;
+		Result q_;
 
 	public:
 		/// @name Constructors
@@ -979,23 +1106,21 @@ namespace ark::math
 		 * @param q The quaternion whose inverse gets computed
 		 */ 
 		QuaternionInversion(const Q& q) noexcept
-			: q_(q)
+			: q_(*q / Dot(q, q))
 		{
-			auto result = *q / Dot(q, q);
-			cache_.w = result.w();
-			cache_.x = result.x();
-			cache_.y = result.y();
-			cache_.z = result.z();
 		}
 		/// @}
 
 		/// @name Accessors
 		/// @{
-		Scalar w() const noexcept { return cache_.w; }
-		Scalar x() const noexcept { return cache_.x; }
-		Scalar y() const noexcept { return cache_.y; }
-		Scalar z() const noexcept { return cache_.z; }
+		Scalar w() const noexcept { return q_.w(); }
+		Scalar x() const noexcept { return q_.x(); }
+		Scalar y() const noexcept { return q_.y(); }
+		Scalar z() const noexcept { return q_.z(); }
 		/// @}
+
+		/// Permit direct access to read the result in expressions
+		Result result() const noexcept { return q_; }
 	};
 
 
@@ -1018,9 +1143,9 @@ namespace ark::math
 	 * @sa @ref ExpressionTemplates
 	 ********************************************************************/
 	template<Quaternion Q>
-	inline auto Inverse(const Q& q) noexcept -> QuaternionInversion<Q>
+	inline auto Inverse(const Q& q) noexcept -> decltype(QuaternionInversion<Q>(q).result())
 	{
-		return QuaternionInversion<Q>(q);
+		return QuaternionInversion<Q>(q).result();
 	}
 
 
@@ -1052,14 +1177,11 @@ namespace ark::math
 	{
 	public:
 		using Scalar = typename QuaternionBinaryExpr<QL, QR>::Scalar;
+		using Result = QuaternionExpr::ResultType<QL, QR>;
 
 	private:
-		/// Quaternione expression dividend
-		QL l_;
-		/// Quaternion expression divisor
-		QR r_;
-		/// Cached result of the division computation
-		QuaternionExpr::Cache<Scalar> cache_;
+		/// Result from immediately evaluatin the expression.
+		Result result_;
 
 	public:
 		/// @name Constructors
@@ -1075,22 +1197,19 @@ namespace ark::math
 		 * @param rhs The quaternion expression divisor value
 		 */ 
 		QuaternionDivision(const QL& lhs, const QR& rhs) noexcept
-			: l_(lhs), r_(rhs)
+			: result_(lhs * Inverse(rhs))
 		{
-			auto result = lhs * Inverse(rhs);
-			cache_.w = result.w();
-			cache_.x = result.x();
-			cache_.y = result.y();
-			cache_.z = result.z();
 		}
 		/// @}
 
 		/// @name Accessors
 		/// @{
-		Scalar w() const noexcept { return cache_.w; }
-		Scalar x() const noexcept { return cache_.x; }
-		Scalar y() const noexcept { return cache_.y; }
-		Scalar z() const noexcept { return cache_.z; }
+		Scalar w() const noexcept { return result_.w(); }
+		Scalar x() const noexcept { return result_.x(); }
+		Scalar y() const noexcept { return result_.y(); }
+		Scalar z() const noexcept { return result_.z(); }
+
+		Result result() const noexcept { return result_;  }
 		/// @}
 	};
 
@@ -1129,9 +1248,9 @@ namespace ark::math
 	 * @sa @ref ExpressionTemplates
 	 ********************************************************************/
 	template<Quaternion QL, Quaternion QR>
-	inline auto operator/(const QL& lhs, const QR& rhs) noexcept -> QuaternionDivision<QL, QR>
+	inline auto operator/(const QL& lhs, const QR& rhs) noexcept -> QuaternionDivision<QL, QR>::Result
 	{
-		return QuaternionDivision(lhs, rhs);
+		return QuaternionDivision(lhs, rhs).result();
 	}
 }
 

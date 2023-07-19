@@ -5,10 +5,12 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-
-
+# Temporary until toolchains arrive
 add_compile_definitions(
-	HAL_SIMD=Avx
+	HAL_SIMD=Avx2
+)
+add_compile_options(
+	/bigobj
 )
 
 

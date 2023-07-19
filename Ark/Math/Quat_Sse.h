@@ -25,6 +25,8 @@
 //************************************************************************
 #include <immintrin.h>
 
+class QuatFloatSse3;
+
 
 //************************************************************************
 //  Code
@@ -77,6 +79,9 @@ namespace ark::math
 	public:
 		/// This specialization is specifically for floats.
 		using Scalar = float;
+
+		/// Tag for revision this implementation's generation in the SIMD family.
+		using Revision = ark::hal::simd::Sse;
 
 		/// @name Constructors
 		/// @{
@@ -155,7 +160,8 @@ namespace ark::math
 	 *
 	 * @supersedes{QuatFloatSse, operator-(const Q&)}
 	 ********************************************************************/
-	inline auto operator-(QuatFloatSse q) -> QuatFloatSse
+	template<QuaternionFamily<QuatFloatSse> Q>
+	inline auto operator-(Q q) -> Q
 	{
 		__m128 result = _mm_sub_ps(_mm_setzero_ps(), q.SseVal());
 		return result;
@@ -171,7 +177,8 @@ namespace ark::math
 	 *
 	 * @supersedes{QuatFloatSse, operator*(const Q&)}
 	 ********************************************************************/
-	inline auto operator*(QuatFloatSse q) -> QuatFloatSse
+	template<QuaternionFamily<QuatFloatSse> Q>
+	inline auto operator*(Q q) -> Q
 	{
 		__m128 result = _mm_move_ss((-q).SseVal(), q.SseVal());
 		return result;
@@ -201,21 +208,6 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE-optimized Single-preicion Quaternion Inverse
-	 *
-	 * @details Compute the multiplicative inverse of a single-precision
-	 * floating-point quaternion using an SSE-optimized algorithm.
-	 * @include{doc} Math/Quaternion/Inversion.txt
-	 * 
-	 * @supersedes{QuatFloatSse, Inverse(const Q&)}
-	 ********************************************************************/
-	inline auto Inverse(QuatFloatSse q) -> QuatFloatSse
-	{
-		return *q / Dot(q, q);
-	}
-
-
-	/*********************************************************************
 	 * @brief SSE-optimized Single-preicion Quaternion Addition
 	 *
 	 * @details Compute the addition of two single-precision floating-
@@ -224,7 +216,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatFloatSse, operator+(const QL&\, const QR&)}
 	 ********************************************************************/
-	inline auto operator+(QuatFloatSse lhs, QuatFloatSse rhs) -> QuatFloatSse
+	template<QuaternionFamily<QuatFloatSse> Q>
+	inline auto operator+(Q lhs, Q rhs) -> Q
 	{
 		return _mm_add_ps(lhs.SseVal(), rhs.SseVal());
 	}
@@ -239,7 +232,8 @@ namespace ark::math
 	 *
 	 * @supersedes{QuatFloatSse, operator-(const QL&\, const QR&)}
 	 ********************************************************************/
-	inline auto operator-(QuatFloatSse lhs, QuatFloatSse rhs) -> QuatFloatSse
+	template<QuaternionFamily<QuatFloatSse> Q>
+	inline auto operator-(Q lhs, Q rhs) -> Q
 	{
 		return _mm_sub_ps(lhs.SseVal(), rhs.SseVal());
 	}
@@ -256,7 +250,8 @@ namespace ark::math
 	 *
 	 * @supersedes{QuatFloatSse,operator*(const Q&\, typename Q::Scalar)}
 	 ********************************************************************/
-	inline auto operator*(QuatFloatSse lhs, float rhs) -> QuatFloatSse
+	template<QuaternionFamily<QuatFloatSse> Q>
+	inline auto operator*(Q lhs, float rhs) -> Q
 	{
 		__m128 scalar = _mm_set1_ps(rhs);
 		__m128 result = _mm_mul_ps(scalar, lhs.SseVal());
@@ -275,7 +270,8 @@ namespace ark::math
 	 *
 	 * @supersedes{QuatFloatSse,operator*(typename Q::Scalar\, const Q&)}
 	 ********************************************************************/
-	inline auto operator*(float lhs, QuatFloatSse rhs) -> QuatFloatSse
+	template<QuaternionFamily<QuatFloatSse> Q>
+	inline auto operator*(float lhs, Q rhs) -> Q
 	{
 		__m128 scalar = _mm_set1_ps(lhs);
 		__m128 result = _mm_mul_ps(scalar, rhs.SseVal());
@@ -293,7 +289,8 @@ namespace ark::math
 	 *
 	 * @supersedes{QuatFloatSse,operator/(const Q&\, typename Q::Scalar)}
 	 ********************************************************************/
-	inline auto operator/(QuatFloatSse lhs, float rhs) -> QuatFloatSse
+	template<QuaternionFamily<QuatFloatSse> Q>
+	inline auto operator/(Q lhs, float rhs) -> Q
 	{
 		__m128 scalar = _mm_set1_ps(rhs);
 		__m128 result = _mm_div_ps(lhs.SseVal(), scalar);
@@ -347,21 +344,6 @@ namespace ark::math
 		__m128 a = _mm_add_ps(a_1, a_2);
 
 		return a;
-	}
-
-
-	/*********************************************************************
-	 * @brief SSE-optimized Single-Precision Quaternion Division
-	 *
-	 * @details Compute the quotient of single-precision floating-point
-	 * quaternion dividend and divisor using an SSE-optimized algorithm.
-	 * @include{doc} Math/Quaternion/Division.txt
-	 *
-	 * @supersedes{QuatFloatSse,operator/(const QL&\, const QR&)}
-	 ********************************************************************/
-	inline auto operator/(QuatFloatSse lhs, QuatFloatSse rhs) -> QuatFloatSse
-	{
-		return lhs * Inverse(rhs);
 	}
 }
 

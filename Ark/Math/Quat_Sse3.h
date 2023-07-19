@@ -27,6 +27,9 @@
 //************************************************************************
 #include "Quat_Sse2.h"
 
+class QuatFloatSse4;
+class QuatDoubleAvx;
+
 
 //************************************************************************
 //  Code
@@ -58,6 +61,10 @@ namespace ark::math
 	*******************************************************************/
 	class QuatFloatSse3 : public QuatFloatSse2
 	{
+	public:
+		/// Tag for revision this implementation's generation in the SIMD family.
+		using Revision = ark::hal::simd::Sse;
+
 		using QuatFloatSse2::QuatFloatSse2;
 	};
 

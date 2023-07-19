@@ -27,6 +27,8 @@
 //************************************************************************
 #include "Quat_Sse.h"
 
+class QuatDoubleSse3;
+
 
 //************************************************************************
 // Code
@@ -57,6 +59,10 @@ namespace ark::math
 	 ********************************************************************/
 	class QuatFloatSse2 : public QuatFloatSse
 	{
+	public:
+		/// Tag for revision this implementation's generation in the SIMD family.
+		using Revision = ark::hal::simd::Sse2;
+
 		using QuatFloatSse::QuatFloatSse;
 	};
 
@@ -206,7 +212,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2, operator-(const Q&)}
 	 ********************************************************************/
-	inline auto operator-(QuatDoubleSse2 q) -> QuatDoubleSse2
+	template<QuaternionFamily<QuatDoubleSse2> Q>
+	inline auto operator-(Q q) -> Q
 	{
 		__m128d z = _mm_setzero_pd();
 		__m128d wx = _mm_sub_pd(z, q.SseWx());
@@ -224,7 +231,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2, operator*(const Q&)}
 	 ********************************************************************/
-	inline auto operator*(QuatDoubleSse2 q) -> QuatDoubleSse2
+	template<QuaternionFamily<QuatDoubleSse2> Q>
+	inline auto operator*(Q q) -> Q
 	{
 		__m128d z = _mm_setzero_pd();
 		__m128d wxi = q.SseWx();
@@ -261,21 +269,6 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Double-Precision Quaternion Inversion
-	 * 
-	 * @details Compute the multiplicative inverse of a double-precision 
-	 * floating-point quaternion using an SSE2-optimized algorithm.
-	 * @include{doc} Math/Quaternion/Inversion.txt
-	 * 
-	 * @supersedes{QuatDoubleSse2, Inverse(const Q&)}
-	 ********************************************************************/
-	inline auto Inverse(QuatDoubleSse2 q) -> QuatDoubleSse2
-	{
-		return *q / Dot(q, q);
-	}
-
-
-	/*********************************************************************
 	 * @brief SSE2-optimized Double-Precision Quaternion Addition
 	 * 
 	 * @details Compute the addition of two double-precision floating-
@@ -284,7 +277,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2, operator+(const QL&\, const QR&)}
 	 ********************************************************************/
-	inline auto operator+(QuatDoubleSse2 lhs, QuatDoubleSse2 rhs) -> QuatDoubleSse2
+	template<QuaternionFamily<QuatDoubleSse2> Q>
+	inline auto operator+(Q lhs, Q rhs) -> Q
 	{
 		__m128d wx = _mm_add_pd(lhs.SseWx(), rhs.SseWx());
 		__m128d yz = _mm_add_pd(lhs.SseYz(), rhs.SseYz());
@@ -301,7 +295,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2, operator-(const QL&\, const QR&)}
 	 ********************************************************************/
-	inline auto operator-(QuatDoubleSse2 lhs, QuatDoubleSse2 rhs) -> QuatDoubleSse2
+	template<QuaternionFamily<QuatDoubleSse2> Q>
+	inline auto operator-(Q lhs, Q rhs) -> Q
 	{
 		__m128d wx = _mm_sub_pd(lhs.SseWx(), rhs.SseWx());
 		__m128d yz = _mm_sub_pd(lhs.SseYz(), rhs.SseYz());
@@ -320,7 +315,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2, operator*(const Q&\, typename Q::Scalar s)}
 	 ********************************************************************/
-	inline auto operator*(QuatDoubleSse2 lhs, double rhs) -> QuatDoubleSse2
+	template<QuaternionFamily<QuatDoubleSse2> Q>
+	inline auto operator*(Q lhs, double rhs) -> Q
 	{
 		__m128d scalar = _mm_set1_pd(rhs);
 		__m128d wx = _mm_mul_pd(lhs.SseWx(), scalar);
@@ -340,7 +336,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2, operator*(typename Q::Scalar\, const Q&)}
 	 ********************************************************************/
-	inline auto operator*(double lhs, QuatDoubleSse2 rhs) -> QuatDoubleSse2
+	template<QuaternionFamily<QuatDoubleSse2> Q>
+	inline auto operator*(double lhs, Q rhs) -> Q
 	{
 		__m128d scalar = _mm_set1_pd(lhs);
 		__m128d wx = _mm_mul_pd(scalar, rhs.SseWx());
@@ -359,7 +356,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2,operator/(const Q&\, typename Q::Scalar)}
 	 ********************************************************************/
-	inline auto operator/(QuatDoubleSse2 lhs, double rhs) -> QuatDoubleSse2
+	template<QuaternionFamily<QuatDoubleSse2> Q>
+	inline auto operator/(Q lhs, double rhs) -> Q
 	{
 		__m128d scalar = _mm_set1_pd(rhs);
 		__m128d wx = _mm_div_pd(lhs.SseWx(), scalar);
@@ -427,21 +425,6 @@ namespace ark::math
 		__m128d yz      = _mm_add_pd(ayz012, ayz3);
 
 		return {wx, yz};
-	}
-
-
-	/*********************************************************************
-	 * @brief SSE2-optimized Double-precision Quaternion Division
-	 * 
-	 * @details Compute the quotient of double-precision floating-point 
-	 * quaternion dividend and divisor using an SSE2-optimized algorithm.
-	 * @include{doc} Math/Quaternion/Division.txt
-	 * 
-	 * @supersedes{QuatDoubleSse2,operator/(const QL&\, const QR&)}
-	 ********************************************************************/
-	inline auto operator/(QuatDoubleSse2 lhs, QuatDoubleSse2 rhs) -> QuatDoubleSse2
-	{
-		return lhs * Inverse(rhs);
 	}
 }
 
