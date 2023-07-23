@@ -2,7 +2,7 @@
  * @file
  * @brief Quaternion Implementations Optimized for the SSE4 ISA.
  * 
- * @details This file contains optimiztions of Quat algorithms specific 
+ * @details This file contains optimizations of Quat algorithms specific 
  * to the SSE4 ISA. The 4th generation of the SSE spec contains no new 
  * register formats; however, it introduces new instructions that enable 
  * some algorithms to be better optimized. Consequently, only those 
@@ -28,8 +28,6 @@
 //************************************************************************
 #include "Quat_Sse3.h"
 
-class QuatFloatAvx2;
-
 
 //************************************************************************
 //  Code
@@ -37,9 +35,23 @@ class QuatFloatAvx2;
 namespace ark::math
 {
 	/*********************************************************************
+	 * @brief Quaternion with SSE4 Optimization
+	 *
+	 * @details The concept of quaternion class of a specific scalar type
+	 * optimized for the SSE4 ISA.
+	 *
+	 * @sa QuaternionSse
+	 * @sa ark::hal::simd::Sse4
+	 */
+	template<typename Q, typename S>
+	concept QuatSse4 = QuatSse3<Q, S> &&
+		std::derived_from<typename Q::Revision, ark::hal::simd::Sse4>;
+
+
+	/*********************************************************************
 	* @brief SSE4-optimized Single-precision Floating-point Quaternion
 	* 
-	* @details The SSE4 speicificaiton makes no register changes that 
+	* @details The SSE4 specification makes no register changes that 
 	* affect the data layout of float quaternions, so the SSE3 data 
 	* format is reused. SSE4 does, however, introduce a dot product 
 	* instruction permitting more-efficient implementations of the dot 
@@ -64,7 +76,7 @@ namespace ark::math
 	class QuatFloatSse4 : public QuatFloatSse3
 	{
 	public:
-		/// Tag for revision this implementation's generation in the SIMD family.
+		/// Tag specifying the SIMD revision ID
 		using Revision = ark::hal::simd::Sse4;
 
 		using QuatFloatSse3::QuatFloatSse3;
@@ -106,6 +118,9 @@ namespace ark::math
 	 ********************************************************************/
 	class QuatDoubleSse4 : public QuatDoubleSse3
 	{
+		/// Tag specifying the SIMD revision ID
+		using Revision = ark::hal::simd::Sse4;
+
 		using QuatDoubleSse3::QuatDoubleSse3;
 	};
 
@@ -130,7 +145,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatFloatSse4, Dot(QuatFloatSse3\, QuatFloatSse3)}
 	 ********************************************************************/
-	inline auto Dot(QuatFloatSse4 lhs, QuatFloatSse4 rhs) -> float
+	template<QuatSse4<float> Q>
+	inline auto Dot(Q lhs, Q rhs) -> float
 	{
 		__m128 dp = _mm_dp_ps(lhs.SseVal(), rhs.SseVal(), 0xFF);
 		float result = _mm_cvtss_f32(dp);
@@ -148,7 +164,8 @@ namespace ark::math
 	 *
 	 * @supersedes{QuatFloatSse4, operator*(QuatFloatSse3\, QuatFloatSse3)}
 	 ********************************************************************/
-	auto operator*(QuatFloatSse4 lhs, QuatFloatSse4 rhs) -> QuatFloatSse4
+	template<QuatSse4<float> Q>
+	auto operator*(Q lhs, Q rhs) -> Q
 	{
 		// Gather data
 		__m128 l  = lhs.SseVal();
@@ -198,7 +215,8 @@ namespace ark::math
 	 *
 	 * @supersedes{QuatDoubleSse4, Dot(QuatDoubleSse3\, QuatDoubleSse3)}
 	 ********************************************************************/
-	inline auto Dot(QuatDoubleSse4 lhs, QuatDoubleSse4 rhs) -> double
+	template<QuatSse4<double> Q>
+	inline auto Dot(Q lhs, Q rhs) -> double
 	{
 		__m128d dp_wx = _mm_dp_pd(lhs.SseWx(), rhs.SseWx(), 0xFF);
 		__m128d dp_yz = _mm_dp_pd(lhs.SseYz(), rhs.SseYz(), 0xFF);

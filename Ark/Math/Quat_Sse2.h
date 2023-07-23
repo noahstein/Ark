@@ -1,10 +1,10 @@
 /*************************************************************************
  * @file
- * @brief Quaternion Implementations Optimizeds for the SSE2 ISA.
+ * @brief Quaternion Implementations Optimized for the SSE2 ISA.
  * 
- * @details This file defines opitimizations to the basic Quat class for
+ * @details This file defines optimizations to the basic Quat class for
  * use on platforms with CPUs possessing registers and instructions
- * defined in the SSE2 ISA. The data representaion and operations of 
+ * defined in the SSE2 ISA. The data representation and operations of 
  * single-precision floating-point quaternions remains unchanged from 
  * the original SSE implementations. SSE2 introduces a register format 
  * and instructions for the efficient implementation of double-precision 
@@ -27,14 +27,26 @@
 //************************************************************************
 #include "Quat_Sse.h"
 
-class QuatDoubleSse3;
-
 
 //************************************************************************
 // Code
 //************************************************************************
 namespace ark::math
 {
+	/*********************************************************************
+	 * @brief Quaternion with SSE2 Optimization
+	 *
+	 * @details The concept of quaternion class of a specific scalar type
+	 * optimized for the SSE2 ISA.
+	 *
+	 * @sa QuaternionSse
+	 * @sa ark::hal::simd::Sse2
+	 */
+	template<typename Q, typename S>
+	concept QuatSse2 = QuatSse<Q, S> &&
+		std::derived_from<typename Q::Revision, ark::hal::simd::Sse2>;
+
+
 	/*********************************************************************
 	 * @brief SSE2-optimized Single-precision Floating-point Quaternion
 	 * 
@@ -43,11 +55,11 @@ namespace ark::math
 	 * therefore, the SSE class is pulled forward.
 	 *
 	 * It is not necessary to define this class. The Ark architecture 
-	 * permits directly sepcializing on the original SSE implementation 
-	 * when there are neither any new nore superseiding operatoins 
-	 * defined for a SIMD generation. The choice to pull the original SSE 
-	 * specification forward and define it as the SSE2 specification is 
-	 * for consistency. This way, the SSE3 specification can easily just 
+	 * permits directly specializing on the original SSE implementation 
+	 * when there are no new superseding operations defined for a SIMD 
+	 * generation. The choice to pull the original SSE specification 
+	 * forward and define it as the SSE2 specification is for 
+	 * consistency. This way, the SSE3 specification can easily just 
 	 * derive from SSE2 instead of the programmer needing to look through 
 	 * files to find the where the last register layout was specified.
 	 * 
@@ -60,7 +72,7 @@ namespace ark::math
 	class QuatFloatSse2 : public QuatFloatSse
 	{
 	public:
-		/// Tag for revision this implementation's generation in the SIMD family.
+		/// Tag specifying the SIMD revision ID
 		using Revision = ark::hal::simd::Sse2;
 
 		using QuatFloatSse::QuatFloatSse;
@@ -82,7 +94,7 @@ namespace ark::math
 	*
 	* @details This class defines the data type for an SSE2-optimized
 	* double-precision floating-point quaternion. Data access member
-	* fuunctions model the Quaternion concept. All mathematical operations
+	* functions model the Quaternion concept. All mathematical operations
 	* are defined in non-member functions.
 	*
 	* @subsubsection Concepts Concepts
@@ -123,7 +135,10 @@ namespace ark::math
 		__m128d yz_;
 
 	public:
-			/// This specialization is specifically for doubles.
+		/// Tag specifying the SIMD revision ID
+		using Revision = ark::hal::simd::Sse2;
+
+		/// This specialization is specifically for doubles.
 		using Scalar = double;
 
 		/// @name Constructors
@@ -137,9 +152,9 @@ namespace ark::math
 		QuatDoubleSse2() = default;
 
 
-		/** @brief Compopnent Constructor
+		/** @brief Component Constructor
 		 *  @details Constructor taking the 4 quaternion components 
-		 *  explicitly as separate, individaul parameters.
+		 *  explicitly as separate, individual parameters.
 		 */
 		QuatDoubleSse2(Scalar w, Scalar x, Scalar y, Scalar z)
 		{
@@ -212,7 +227,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2, operator-(const Q&)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatDoubleSse2> Q>
+	template<QuatSse2<double> Q>
 	inline auto operator-(Q q) -> Q
 	{
 		__m128d z = _mm_setzero_pd();
@@ -231,7 +246,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2, operator*(const Q&)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatDoubleSse2> Q>
+	template<QuatSse2<double> Q>
 	inline auto operator*(Q q) -> Q
 	{
 		__m128d z = _mm_setzero_pd();
@@ -252,6 +267,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2, Dot(const QL&\, const QR&)}
 	 ********************************************************************/
+	template<QuatSse2<double> Q>
 	inline auto Dot(QuatDoubleSse2 lhs, QuatDoubleSse2 rhs) -> double
 	{
 		__m128d w2x2 = _mm_mul_pd(lhs.SseWx(), rhs.SseWx());
@@ -277,7 +293,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2, operator+(const QL&\, const QR&)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatDoubleSse2> Q>
+	template<QuatSse2<double> Q>
 	inline auto operator+(Q lhs, Q rhs) -> Q
 	{
 		__m128d wx = _mm_add_pd(lhs.SseWx(), rhs.SseWx());
@@ -295,7 +311,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2, operator-(const QL&\, const QR&)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatDoubleSse2> Q>
+	template<QuatSse2<double> Q>
 	inline auto operator-(Q lhs, Q rhs) -> Q
 	{
 		__m128d wx = _mm_sub_pd(lhs.SseWx(), rhs.SseWx());
@@ -315,7 +331,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2, operator*(const Q&\, typename Q::Scalar s)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatDoubleSse2> Q>
+	template<QuatSse2<double> Q>
 	inline auto operator*(Q lhs, double rhs) -> Q
 	{
 		__m128d scalar = _mm_set1_pd(rhs);
@@ -336,7 +352,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2, operator*(typename Q::Scalar\, const Q&)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatDoubleSse2> Q>
+	template<QuatSse2<double> Q>
 	inline auto operator*(double lhs, Q rhs) -> Q
 	{
 		__m128d scalar = _mm_set1_pd(lhs);
@@ -356,7 +372,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2,operator/(const Q&\, typename Q::Scalar)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatDoubleSse2> Q>
+	template<QuatSse2<double> Q>
 	inline auto operator/(Q lhs, double rhs) -> Q
 	{
 		__m128d scalar = _mm_set1_pd(rhs);
@@ -375,7 +391,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse2, operator*(const QL&\, const QR&)}
 	 ********************************************************************/
-	auto operator*(QuatDoubleSse2 lhs, QuatDoubleSse2 rhs) -> QuatDoubleSse2
+	template<QuatSse2<double> Q>
+	auto operator*(Q lhs, Q rhs) -> Q
 	{
 		// Gather data
 		__m128d n0      = _mm_set_pd(0.0, -0.0); // Negate element 0

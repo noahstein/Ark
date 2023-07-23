@@ -35,8 +35,6 @@
 //************************************************************************
 #include "Quat_Sse4.h"
 
-class QuatDoubleAvx2;
-
 
 //************************************************************************
 //  Code
@@ -44,9 +42,23 @@ class QuatDoubleAvx2;
 namespace ark::math
 {
 	/*********************************************************************
+	 * @brief Quaternion with AVX Optimization
+	 *
+	 * @details The concept of quaternion class of a specific scalar type
+	 * optimized for the AVX ISA.
+	 *
+	 * @sa QuaternionSse
+	 * @sa ark::hal::simd::Avx
+	 */
+	template<typename Q, typename S>
+	concept QuatAvx = QuatSse4<Q, S> &&
+		std::derived_from<typename Q::Revision, ark::hal::simd::Avx>;
+
+
+	/*********************************************************************
 	 * @brief AVX-optimized Single-precision Floating-point Quaternion
 	 * 
-	 * @details The AVX single-precision quaternin data type is 
+	 * @details The AVX single-precision quaternion data type is 
 	 * structurally identical to the earlier SSE generations as there is 
 	 * nothing to be gained from using the full 256-bit register size. 
 	 * Four floats fit in 128 bits.
@@ -56,7 +68,7 @@ namespace ark::math
 	class QuatFloatAvx : public QuatFloatSse4
 	{
 	public:
-		/// Tag for revision this implementation's generation in the SIMD family.
+		/// Tag specifying the SIMD revision ID
 		using Revision = ark::hal::simd::Avx;
 
 		using QuatFloatSse4::QuatFloatSse4;
@@ -116,6 +128,9 @@ namespace ark::math
 		__m256d value_;
 
 	public:
+		/// Tag specifying the SIMD revision ID
+		using Revision = ark::hal::simd::Avx;
+
 		/// This specialization is specifically for doubles.
 		using Scalar = double;
 
@@ -130,9 +145,9 @@ namespace ark::math
 		QuatDoubleAvx() = default;
 
 
-		/** @brief Compopnent Constructor
+		/** @brief Component Constructor
 		 *  @details Constructor taking the 4 quaternion components 
-		 *  explicitly as separate, individaul parameters.
+		 *  explicitly as separate, individual parameters.
 		 */
 		QuatDoubleAvx(Scalar w, Scalar x, Scalar y, Scalar z)
 		{
@@ -219,7 +234,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator-(QuatDoubleSse2)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatDoubleAvx> Q>
+	template<QuatAvx<double> Q>
 	inline auto operator-(Q q) -> Q
 	{
 		__m256d zero = _mm256_setzero_pd();
@@ -238,7 +253,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator*(QuatDoubleSse2)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatDoubleAvx> Q>
+	template<QuatAvx<double> Q>
 	inline auto operator*(Q q) -> Q
 	{
 		__m256d val = q.AvxVal();
@@ -258,7 +273,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, Dot(QuatDoubleSse4\, QuatDoubleSse4)}
 	 ********************************************************************/
-	inline auto Dot(QuatDoubleAvx lhs, QuatDoubleAvx rhs) -> double
+	template<QuatAvx<double> Q>
+	inline auto Dot(Q lhs, Q rhs) -> double
 	{
 		__m256d w_x_y_z = _mm256_mul_pd(lhs.AvxVal(), rhs.AvxVal());
 		__m256d wx_yz = _mm256_hadd_pd(w_x_y_z, w_x_y_z);
@@ -278,7 +294,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator+(QuatDoubleSse2\, QuatDoubleSse2)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatDoubleAvx> Q>
+	template<QuatAvx<double> Q>
 	inline auto operator+(Q lhs, Q rhs) -> Q
 	{
 		return _mm256_add_pd(lhs.AvxVal(), rhs.AvxVal());
@@ -295,7 +311,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator-(QuatDoubleSse2\, QuatDoubleSse2)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatDoubleAvx> Q>
+	template<QuatAvx<double> Q>
 	inline auto operator-(Q lhs, Q rhs) -> Q
 	{
 		return _mm256_sub_pd(lhs.AvxVal(), rhs.AvxVal());
@@ -314,7 +330,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator*(QuatDoubleSse2\, double)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatDoubleAvx> Q>
+	template<QuatAvx<double> Q>
 	inline auto operator*(Q lhs, double rhs) -> Q
 	{
 		__m256d scalar = _mm256_set1_pd(rhs);
@@ -335,7 +351,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator*(double\, QuatDoubleSse2)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatDoubleAvx> Q>
+	template<QuatAvx<double> Q>
 	inline auto operator*(double lhs, Q rhs) -> Q
 	{
 		__m256d scalar = _mm256_set1_pd(lhs);
@@ -355,7 +371,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator/(QuatDoubleSse\, double)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatDoubleAvx> Q>
+	template<QuatAvx<double> Q>
 	inline auto operator/(Q lhs, double rhs) -> Q
 	{
 		__m256d scalar = _mm256_set1_pd(rhs);
@@ -374,7 +390,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleAvx, operator*(QuatDoubleSse3\, QuatDoubleSse3)}
 	 ********************************************************************/
-	auto operator*(QuatDoubleAvx lhs, QuatDoubleAvx rhs) -> QuatDoubleAvx
+	template<QuatAvx<double> Q>
+	auto operator*(Q lhs, Q rhs) -> Q
 	{
 		// Gather data
 		__m256d l      = lhs.AvxVal();

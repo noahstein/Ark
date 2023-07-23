@@ -6,7 +6,7 @@
  * general use in application code.
  * 
  * @author Noah Stein
- * @copyright © 2021 Noah Stein. All Rights Reserved.
+ * @copyright © 2021-2023 Noah Stein. All Rights Reserved.
  ************************************************************************/
 
 #if !defined(ARK_MATH_QUAT_H_INCLUDE_GUARD)
@@ -26,12 +26,33 @@
 namespace ark::math
 {
 	/*********************************************************************
+	 * @brief Quaternion with no SIMD Optimization
+	 * 
+	 * @tparam Q The quaternion class used with this concept
+	 * @tparam S The type of the scalar desire in the usage.
+	 * 
+	 * @details The concept of quaternion with no SIMD optimization is 
+	 * essentially the concept of a quaternion of a given scalar type. 
+	 * This concept ensures the template type meets the Quaternion concept 
+	 * and checks to see the Scalar is of a given Type. This concept is 
+	 * designed to be used to perform the basic quaternion concept checks 
+	 * all SIMD-optimized Quaternion classes need to do.
+	 * 
+	 * @sa Quaternion
+	 * @sa SimdConceptHierarchy
+	 */
+	template<typename Q, typename S>
+	concept QuaternionNone = Quaternion<Q> &&
+		std::same_as<typename Q::Scalar, S>;
+
+
+	/*********************************************************************
 	 * @brief Basic Quaternion Class
 	 * 
 	 * @tparam S The type of the scalar components.
 	 * 
-	 * @details A basic quaternion class definition templatized on the 
-	 * scalar type. It is a simple, dense stoarage of 4 scalars. It will 
+	 * @details A basic quaternion class definition templated on the 
+	 * scalar type. It is a simple, dense storage of 4 scalars. It will 
 	 * work on any platform although it will only use specialized SIMD 
 	 * hardware if the compiler can optimize for it. This class is the 
 	 * default one chosen by Quat.
@@ -51,13 +72,13 @@ namespace ark::math
 	class QuatBasic
 	{
 	public:
-		/** The numeric type of the components is defined by the first 
+		/// Tag specifying the SIMD revision ID
+		using Revision = ark::hal::simd::None;
+
+		/** The numeric type of the components is defined by the first
 		 *  class template parameter.
 		 */
 		using Scalar = S;
-
-		/// Tag for revision this implementation's generation in the SIMD family.
-		using Revision = ark::hal::simd::None;
 
 	private:
 		Scalar w_, x_, y_, z_;
@@ -72,9 +93,9 @@ namespace ark::math
 		 */			
 		QuatBasic() = default;
 
-		/** @brief Compopnent-wise Constructor
+		/** @brief Component-wise Constructor
 		 *  @details Constructor taking the 4 quaternion components 
-		 *  explicitly as separate, individaul parameters.
+		 *  explicitly as separate, individual parameters.
 		 */
 		QuatBasic(Scalar w, Scalar x, Scalar y, Scalar z) noexcept(std::is_nothrow_copy_constructible_v<Scalar>)
 			: w_(w), x_(x), y_(y), z_(z)
@@ -93,7 +114,7 @@ namespace ark::math
 
 		/** @brief Quaternion Concept Assignment Operator
 		 *  @details Assign the quaternion's value from an instance of 
-		 *  any clas meeting the Quaternion concept.
+		 *  any class meeting the Quaternion concept.
 		 */
 		template<Quaternion Q>
 			requires std::convertible_to<typename Q::Scalar, Scalar>

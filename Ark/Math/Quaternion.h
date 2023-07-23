@@ -13,7 +13,7 @@
  * for a simple, yet extensible, realization of the Quaternion concept.
  * 
  * @author Noah Stein
- * @copyright © 2021 Noah Stein. All Rights Reserved.
+ * @copyright © 2021-2023 Noah Stein. All Rights Reserved.
  ************************************************************************/
 
 #if !defined(ARK_MATH_QUATERNION_H_INCLUDE_GUARD)
@@ -45,7 +45,7 @@ namespace ark::math
 	 * @brief Quaternion Concept Defining 4-D Complex Number Classes
 	 * 
 	 * @details This concept models an abstraction of the mathematical 
-	 * entity of a quatnerion, a 4-dimensional complex number. A 
+	 * entity of a quaternion, a 4-dimensional complex number. A 
 	 * quaternion is written in the form \f$(w, x, y, z)\f$ where each 
 	 * component is a real number: \f$w\f$ is the _scalar_ component and 
 	 * \f$x, y, z\f$ form the _vector_. The scalar is the real part of 
@@ -83,7 +83,7 @@ namespace ark::math
 	 * - Identity: \f$a \times 1=1 \times a=a\f$
 	 * - Inverse: \f$a a^{-1}=a^{-1} a=1\f$
 	 * 
-	 * For distribution of multiplicatin over addition:
+	 * For distribution of multiplication over addition:
 	 * 
 	 * - \f$\mathbf{a}(\mathbf{b}+\mathbf{c})
 	 *   =\mathbf{ab}+\mathbf{ac}\f$
@@ -91,10 +91,10 @@ namespace ark::math
 	 *   =\mathbf{ac}+\mathbf{bc}\f$
 	 * 
 	 * The concept cannot validate the aforementioned properties. The 
-	 * concept ensures that any quaternion in the closs models the 
+	 * concept ensures that any quaternion in the class models the 
 	 * structure of a quaternion's in code. It ensures any class 
-	 * attmpeting to be used as a quaternion meets the following 
-	 * structural rqeuirements:
+	 * attempting to be used as a quaternion meets the following 
+	 * structural requirements:
 	 * 
 	 * - An embedded typedef defining the type of the components named 
 	 *   `Scalar`. This type must support the standard algebraic 
@@ -105,12 +105,12 @@ namespace ark::math
 	 *   values of the type the class defines as `Scalar`.
 	 * 
 	 * @note The accessors are functions, not data. This ensures that the 
-	 * abstract concept places no rquirements on the data structure of 
-	 * the quatarnion type or even if it uses per-instance data at all. 
+	 * abstract concept places no requirements on the data structure of 
+	 * the quaternion type or even if it uses per-instance data at all. 
 	 * In optimized builds, accessors tend to be so simple that they 
 	 * inline with no penalty when retrieving simple data layouts.
 	 * 
-	 * @note THe conceptt places no requirements on constructors. As it 
+	 * @note THe concept places no requirements on constructors. As it 
 	 * cannot know the structure of the concrete implementations, it is 
 	 * unwise to place limits. C++ requires constructors to be part of 
 	 * the exact class being constructed, so any requirements can be 
@@ -135,28 +135,6 @@ namespace ark::math
 		{ q.y() } -> std::same_as<typename Q::Scalar>;
 		{ q.z() } -> std::same_as<typename Q::Scalar>;
 	};
-
-
-	/*********************************************************************
-	 * @brief Quaternion Function Parameter Type Specification Concept
-	 * 
-	 * @details Thie concept is used in template function declarations to
-	 * constrain which types shall be accepted. The argument must be of 
-	 * the type specified or a class derived from it.
-	 * 
-	 * E.g. SSE has several generations. Each generation has a data class 
-	 * defined to represent the register format. In many cases, the 
-	 * instructions added to a new generation do not affect the optimal 
-	 * implementation of algorith. Thus, an algorithm implemented in a 
-	 * fucntion for SSE2 might be used for SSE3 and SSE4. THus, the 
-	 * function needs to be constrained to work for SSE2 and higher.
-	 * 
-	 ********************************************************************/
-	template<typename Q, typename MIN, typename MAX = void>
-	concept QuaternionFamily = 
-		Quaternion<Q>
-		&& std::is_base_of_v<MIN, Q>
-		&& !std::is_base_of_v<MAX, Q>;
 
 
 	/*********************************************************************
@@ -333,7 +311,7 @@ namespace ark::math
 	class QuaternionUnaryExpr : public QuaternionExpr
 	{
 	public:
-		/// @brief Convenince definition in the base class.
+		/// @brief Convenience definition in the base class.
 		using Scalar = typename Q::Scalar;
 	};
 
@@ -350,7 +328,7 @@ namespace ark::math
 	 * of the @ref ark::math::Quaternion concept to be valid.
 	 * 
 	 * @details This is the base class for all quaternion expression 
-	 * node clases with two operands. It provides easy access to the 
+	 * node classes with two operands. It provides easy access to the 
 	 * appropriate `Scalar` type given the types in the two operands' 
 	 * classes. Additionally, the class includes a constraint to ensure 
 	 * that the two `Scalar` types may partake in mathematical 
@@ -383,7 +361,7 @@ namespace ark::math
 	 * 
 	 * @tparam Q The class of the quaternion expression whose value is to 
 	 * be negated by this node.
-	 * This generally will not be specifired explicitly but will be 
+	 * This generally will not be specified explicitly but will be 
 	 * inferred by the compiler at the constructor call site.
 	 * @sa @ref TemplateExpressionsAsClassParameters
 	 * 
@@ -427,7 +405,7 @@ namespace ark::math
 	 * 
 	 * @tparam Q The class of the quaternion expression whose value is to 
 	 * be negated by the constructed QuaternionNegation expression node.
-	 * This generally will not be specifired explicitly but will be 
+	 * This generally will not be specified explicitly but will be 
 	 * inferred by the compiler at the operator call site.
 	 * @sa @ref TemplateExpressionsAsClassParameters
 	 * 
@@ -610,7 +588,7 @@ namespace ark::math
 	 * number on the right-hand side of the plus.
 	 * 
 	 * @details This node computes the difference of the subtrahend 
-	 * subtracted from the minuen. 
+	 * subtracted from the minuend. 
 	 * 
 	 * @include{doc} Math/Quaternion/Subtraction.txt
 	 * 
@@ -623,7 +601,7 @@ namespace ark::math
 		/// The quaternion expression that is the minuend
 		QL l_;
 
-		/// The quaternion expression that is the subtrahed
+		/// The quaternion expression that is the subtrahend
 		QR r_;
 
 	public:
@@ -658,7 +636,7 @@ namespace ark::math
 	 *       \f$\mathbf{q_1}-\mathbf{q_2}\f$
 	 * 
 	 * @tparam QL The class of the quaternion expression that is the 
-	 * minuend on the left-hand side of the minue.
+	 * minuend on the left-hand side of the minuend.
 	 * 
 	 * @tparam QR The class of the quaternion expression that is the 
 	 * subtrahend on the right-hand side of the minus.
@@ -684,13 +662,13 @@ namespace ark::math
 
 
 	 /*********************************************************************
-	 * @brief Quaternion-Scalar Multplication Expression Node:
+	 * @brief Quaternion-Scalar Multiplication Expression Node:
 	 * \f$s\mathbf{q},\mathbf{q}s\f$
 	 * 
 	 * @tparam Q The class of the quaternion expression to be multiplied 
 	 * by a scalar.
 	 * 
-	 * @details This node computes the multpilication of a quaternion by a 
+	 * @details This node computes the multiplication of a quaternion by a 
 	 * scalar quantity. This class handles both forms \f$s\mathbf{q}\f$ 
 	 * and \f$\mathbf{q}s\f$. Given the scalar \f$s\f$ and the quaternion 
 	 * expression \f$\mathbf{q}=(w,x,y,z)\f$, the resulting quaternion is:
@@ -717,7 +695,7 @@ namespace ark::math
 		/// @name Constructors
 		/// @{
 		/**
-		 * @brief Scalar-quaternion multiplication node epxression 
+		 * @brief Scalar-quaternion multiplication node expression 
 		 * constructor.
 		 * 
 		 * @param s The scalar multiplication factor
@@ -823,7 +801,7 @@ namespace ark::math
 	private:
 		/// The quaternion expression to be divided
 		Q q_;
-		/// The scalar divisor to dvide the quaternion
+		/// The scalar divisor to divide the quaternion
 		Scalar s_;
 
 	public:
@@ -901,7 +879,7 @@ namespace ark::math
 	 * node. As the comparison results in a boolean result indicating 
 	 * whether or not the two quaternions are equal, the equality 
 	 * comparison will not be a operand to a parent quaternion-valued 
-	 * epxression. Therefore, nothing is constructed, the results of 
+	 * expression. Therefore, nothing is constructed, the results of 
 	 * the comparison are returned directly.
 	 * 
 	 * @include{doc} Math/Quaternion/Equality.txt
@@ -926,7 +904,7 @@ namespace ark::math
 	 * @tparam QL The class of the quaternion expression multiplier that 
 	 * is the factor on the left-hand side.
 	 * 
-	 * @param QR The clas of hte quaternion expression multiplicand that 
+	 * @param QR The class of the quaternion expression multiplicand that 
 	 * is the factor on the right-hand side.
 	 * 
 	 * @details This node computes the product of multiplying together 
@@ -957,7 +935,7 @@ namespace ark::math
 		/// @{
 		/**
 		 * @brief Quaternion multiplication constructor taking 
-		 * indepndent expressions for both multiplier and multiplicand.
+		 * independent expressions for both multiplier and multiplicand.
 		 * 
 		 * @param lhs The quaternion expression on the left-hand side
 		 * @param rhs The quaternion expression on the right-hand side
@@ -1135,7 +1113,7 @@ namespace ark::math
 	 * @return The multiplicative inverse of the quaternion passed in.
 	 * 
 	 * @details Create a QuaternionInversion expression tree node to 
-	 * lazily evalue the multiplicative inverse of a given quaternion.
+	 * lazily evaluate the multiplicative inverse of a given quaternion.
 	 *
 	 * @include{doc} Math\Quaternion\Inversion.txt 
 	 * 
@@ -1160,7 +1138,7 @@ namespace ark::math
 	 * divisor of the division expression.
 	 * 
 	 * @param lhs The quaternion value of the dividend
-	 * @param rhs The quaternion value of hte divisor
+	 * @param rhs The quaternion value of the divisor
 	 * 
 	 * @details This node computes quotient of one quaternion expression 
 	 * divided by another. Due to the complexity of the computation it is 
@@ -1180,7 +1158,7 @@ namespace ark::math
 		using Result = QuaternionExpr::ResultType<QL, QR>;
 
 	private:
-		/// Result from immediately evaluatin the expression.
+		/// Result from immediately evaluating the expression.
 		Result result_;
 
 	public:
@@ -1227,8 +1205,8 @@ namespace ark::math
 	 * @param lhs The quaternion expression dividend on the left-hand 
 	 * side of the /.
 	 * 
-	 * @param rhs The quaternion expression divisor on theright-hand side 
-	 * of the /.
+	 * @param rhs The quaternion expression divisor on the right-hand 
+	 * side of the /.
 	 * 
 	 * @return An instance of a QuaternionDivision template 
 	 * expression tree node to evaluate the division expression.
@@ -1238,7 +1216,7 @@ namespace ark::math
 	 * quaternions. Unlike most quaternion expression nodes, this one 
 	 * evaluates the result early and caches the data for efficiency
 	 * purposes; otherwise, each accessor would be required to compute 
-	 * the value separately, which many multipliy and add steps, a 
+	 * the value separately, which many multiply and add steps, a 
 	 * significant amount of redundant computation as it is most likely 
 	 * all four accessor will be called at least once.
 	 * 

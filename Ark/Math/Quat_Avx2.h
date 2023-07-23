@@ -35,6 +35,20 @@
 namespace ark::math
 {
 	/*********************************************************************
+	 * @brief Quaternion with AVX2 Optimization
+	 *
+	 * @details The concept of quaternion class of a specific scalar type
+	 * optimized for the AVX2 ISA.
+	 *
+	 * @sa QuaternionSse
+	 * @sa ark::hal::simd::Avx2
+	 */
+	template<typename Q, typename S>
+	concept QuatAvx2 = QuatAvx<Q, S> &&
+		std::derived_from<typename Q::Revision, ark::hal::simd::Avx2>;
+
+
+	/*********************************************************************
 	 * @brief AVX-optimized Single-precision Floating-point Quaternion
 	 * 
 	 * @details The AVX2 specification does not define structural changes  
@@ -56,7 +70,7 @@ namespace ark::math
 	class QuatFloatAvx2 : public QuatFloatAvx
 	{
 	public:
-		/// Tag for revision this implementation's generation in the SIMD family.
+		/// Tag specifying the SIMD revision ID
 		using Revision = ark::hal::simd::Avx2;
 
 		using QuatFloatAvx::QuatFloatAvx;
@@ -94,6 +108,9 @@ namespace ark::math
 	 ********************************************************************/
 	class QuatDoubleAvx2 : public QuatDoubleAvx
 	{
+		/// Tag specifying the SIMD revision ID
+		using Revision = ark::hal::simd::Avx2;
+
 		using QuatDoubleAvx::QuatDoubleAvx;
 	};
 
@@ -119,7 +136,7 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatFloatAvx2, operator*(QuatFloatAvx\, QuatFloatAvx)}
 	 ********************************************************************/
-	template<QuaternionFamily<QuatFloatAvx2> Q>
+	template<QuatAvx2<float> Q>
 	auto operator*(Q lhs, Q rhs) -> Q
 	{
 		// Gather data
@@ -166,7 +183,8 @@ namespace ark::math
 	 *
 	 * @supersedes{QuatDoubleAvx2, operator*(QuatDoubleAvx\, QuatDoubleAvx)}
 	 ********************************************************************/
-	auto operator*(QuatDoubleAvx2 lhs, QuatDoubleAvx2 rhs) -> QuatDoubleAvx2
+	template<QuatAvx2<double> Q>
+	auto operator*(Q lhs, Q rhs) -> Q
 	{
 		// Gather data
 		__m256d l      = lhs.AvxVal();

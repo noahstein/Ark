@@ -2,7 +2,7 @@
  * @file
  * @brief Quaternion Implementations Optimized for the SSE3 ISA.
  * 
- * @details This file contains optimiztions of quaternion algorithms 
+ * @details This file contains optimizations of quaternion algorithms 
  * specific to the SSE3 ISA. The third generation of the SSE spec contains 
  * no new register formats; however, it introduces new instructions that 
  * permit some algorithms to be better optimized. Consequently, only those 
@@ -27,15 +27,26 @@
 //************************************************************************
 #include "Quat_Sse2.h"
 
-class QuatFloatSse4;
-class QuatDoubleAvx;
-
 
 //************************************************************************
 //  Code
 //************************************************************************
 namespace ark::math
 {
+	/*********************************************************************
+	 * @brief Quaternion with SSE3 Optimization
+	 *
+	 * @details The concept of quaternion class of a specific scalar type
+	 * optimized for the SSE3 ISA.
+	 *
+	 * @sa QuaternionSse
+	 * @sa ark::hal::simd::Ssed
+	 */
+	template<typename Q, typename S>
+	concept QuatSse3 = QuatSse2<Q, S> &&
+		std::derived_from<typename Q::Revision, ark::hal::simd::Sse3>;
+
+
 	/*********************************************************************
 	* @brief SSE3-optimized Single-precision Floating-point Quaternion
 	* 
@@ -62,8 +73,8 @@ namespace ark::math
 	class QuatFloatSse3 : public QuatFloatSse2
 	{
 	public:
-		/// Tag for revision this implementation's generation in the SIMD family.
-		using Revision = ark::hal::simd::Sse;
+		/// Tag specifying the SIMD revision ID
+		using Revision = ark::hal::simd::Sse3;
 
 		using QuatFloatSse2::QuatFloatSse2;
 	};
@@ -104,6 +115,9 @@ namespace ark::math
 	 ********************************************************************/
 	class QuatDoubleSse3 : public QuatDoubleSse2
 	{
+		/// Tag specifying the SIMD revision ID
+		using Revision = ark::hal::simd::Sse3;
+
 		using QuatDoubleSse2::QuatDoubleSse2;
 	};
 
@@ -130,7 +144,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatFlaotSse3, Dot(QuatFloatSse\, QuatFloatSse)}
 	 ********************************************************************/
-	inline auto Dot(QuatFloatSse3 lhs, QuatFloatSse3 rhs) -> float
+	template<QuatSse3<float> Q>
+	inline auto Dot(Q lhs, Q rhs) -> float
 	{
 		__m128 squares = _mm_mul_ps(lhs.SseVal(), rhs.SseVal()); // w^2, x^2, y^2, z^2
 		__m128 add1st = _mm_hadd_ps(squares, squares);           // w^2+x^2, y^2+z^2, w^2+x^2, y^2+z^2
@@ -150,7 +165,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatFloatSse3, operator*(QuatFloatSse\, QuatFloatSse)}
 	 ********************************************************************/
-	auto operator*(QuatFloatSse3 lhs, QuatFloatSse3 rhs) -> QuatFloatSse3
+	template<QuatSse3<float> Q>
+	auto operator*(Q lhs, Q rhs) -> Q
 	{
 		// Gather data
 		__m128 l = lhs.SseVal();
@@ -199,7 +215,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse3, Dot(QuatDoubleSse2\, QuatDoubleSse2)}
 	 ********************************************************************/
-	inline auto Dot(QuatDoubleSse3 lhs, QuatDoubleSse3 rhs) -> double
+	template<QuatSse3<double> Q>
+	inline auto Dot(Q lhs, Q rhs) -> double
 	{
 		__m128d w2x2 = _mm_mul_pd(lhs.SseWx(), rhs.SseWx()); // w^2, x^2
 		__m128d y2z2 = _mm_mul_pd(lhs.SseYz(), rhs.SseYz()); // y^2, z^2
@@ -222,7 +239,8 @@ namespace ark::math
 	 * 
 	 * @supersedes{QuatDoubleSse3, operator*(QuatDoubleSse3\, QuatDoubleSse3)}
 	 ********************************************************************/
-	auto operator*(QuatDoubleSse3 lhs, QuatDoubleSse3 rhs) -> QuatDoubleSse3
+	template<QuatSse3<double> Q>
+	auto operator*(Q lhs, Q rhs) -> Q
 	{
 		// Gather data
 		__m128d n1     = _mm_set_pd(-0.0, 0.0); // Negate element 1
