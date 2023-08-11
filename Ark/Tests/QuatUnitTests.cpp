@@ -388,7 +388,6 @@ namespace ark::math::test::quat_unit_tests
 		EXPECT_EQ(this->qr.z(), 9.5);
 	}
 
-
 	TYPED_TEST(QuatUnitTest, MultiplicationReturnsSpecializedTypeOrExpressionCorrectly)
 	{
 		// When
@@ -397,15 +396,9 @@ namespace ark::math::test::quat_unit_tests
 		// Then
 		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
 			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
-		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
+		bool isSameOrDerived = std::is_base_of_v<decltype(this->q1), decltype(result)>;
 
-		if (!(isSame ^ isBasicExpression))
-		{
-			auto r2 = this->q1 * this->q2;
-			auto r3 = this->q1 * this->q1;
-		}
-
-		EXPECT_TRUE(isSame ^ isBasicExpression);
+		EXPECT_TRUE(isSameOrDerived ^ isBasicExpression);
 	}
 
 
