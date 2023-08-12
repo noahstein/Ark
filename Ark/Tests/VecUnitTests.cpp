@@ -4,7 +4,7 @@
  * 
  * @details Unit tests for the Vec class implementing the Vector 
  * concept. As most functions are implemented against the concept, they 
- * need not be tested hwere. What's important is testing Vec's actual 
+ * need not be tested here. What's important is testing Vec's actual 
  * member functions. Consequently, as long as the constructors, `Size()`, 
  * and accessors pass the tests, the Vec is guaranteed to work in with 
  * the vector expression trees (assuming the expression trees are passing 
@@ -12,7 +12,7 @@
  * 
  * Having said that, the assertion is only valid for the base template. 
  * All specializations require testing of their specialized 
- * functionality. In addition to the aformentioned functions, tests must 
+ * functionality. In addition to the aforementioned functions, tests must 
  * be run against any specialized functions; therefore, there is a 
  * complete suite of tests here intended to exercise specializations.
  * 
@@ -36,6 +36,21 @@ namespace ark::math::test::vec_unit_tests
 {
 	using namespace ::ark::hal;
 	using namespace ::ark::math;
+
+
+	/*********************************************************************
+	 * @brief Set of standard numerical types to test in a suite
+	 *
+	 * @details Each template parameter in the list is used as a
+	 * configuration for a separate parametric execution of the suite.
+	 ********************************************************************/
+	using StdTypes = ::testing::Types
+	<
+		Cfg<int>,
+		Cfg<long>,
+		Cfg<float>,
+		Cfg<double>
+	>;
 
 
 	/*********************************************************************

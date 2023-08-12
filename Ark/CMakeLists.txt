@@ -6,8 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Temporary until toolchains arrive
+set(HAL_SIMD Avx2)
 add_compile_definitions(
-	HAL_SIMD=Avx2
+	HAL_SIMD=${HAL_SIMD}
 )
 add_compile_options(
 	/bigobj

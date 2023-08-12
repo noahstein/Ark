@@ -29,6 +29,21 @@
 namespace ark::math::test::vector_unit_tests
 {
 	/*********************************************************************
+	 * @brief Set of standard numerical types to test in a suite
+	 *
+	 * @details Each template parameter in the list is used as a
+	 * configuration for a separate parametric execution of the suite.
+	 ********************************************************************/
+	using StdTypes = ::testing::Types
+	<
+		Cfg<int>,
+		Cfg<long>,
+		Cfg<float>,
+		Cfg<double>
+	>;
+
+
+	/*********************************************************************
 	 * @brief Simple Concrete Vector Class
 	 * 
 	 * @tparam S The type of the scalar components

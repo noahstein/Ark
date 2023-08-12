@@ -28,6 +28,22 @@ namespace ark::math::test::vec_unit_tests
 	using namespace ::ark::hal;
 	using namespace ::ark::math;
 
+
+	/*********************************************************************
+	 * @brief Set of SSE numerical types to test with the suite
+	 *
+	 * @details Each template parameter in the list is used as a
+	 * configuration for a separate parametric execution of the suite.
+	 * 
+	 * @note This is only temporary during a refactoring of test code.
+	 ********************************************************************/
+	using SseTypes = ::testing::Types
+	<
+		Cfg<float, ::ark::hal::simd::None>,
+		Cfg<double, ::ark::hal::simd::None>
+	>;
+
+
 	/*********************************************************************
 	 * @brief 2-D Vec Unit Parametric Tests Fixture
 	 * 

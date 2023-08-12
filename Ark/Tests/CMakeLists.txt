@@ -11,15 +11,21 @@ FetchContent_MakeAvailable(googletest)
 add_library(GTest::GTest INTERFACE IMPORTED)
 target_link_libraries(GTest::GTest INTERFACE gtest_main)
 
-
 add_executable(MathTests 
 	VectorUnitTests.cpp
 	VecUnitTests.cpp
 	Vec2UnitTests.cpp
 	Vec4UnitTests.cpp
 
+	QuatUnitTests.h
 	QuaternionUnitTests.cpp
 	QuatUnitTests.cpp
+	"Quat${HAL_SIMD}UnitTests.cpp"
+	#QuatSseUnitTests.cpp
+	#QuatSse2UnitTests.cpp
+	#QuatSse3UnitTests.cpp
+	#QuatAvxUnitTests.cpp
+	#QuatAvx2UnitTests.cpp
 	)
 
 	target_link_libraries(MathTests
