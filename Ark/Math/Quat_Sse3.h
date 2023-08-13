@@ -145,7 +145,7 @@ namespace ark::math
 	 * @supersedes{QuatFlaotSse3, Dot(QuatFloatSse\, QuatFloatSse)}
 	 ********************************************************************/
 	template<QuatSse3<float> Q>
-	inline auto Dot(Q lhs, Q rhs) -> float
+	inline auto Dot(Q lhs, Q rhs) noexcept -> float
 	{
 		__m128 squares = _mm_mul_ps(lhs.SseVal(), rhs.SseVal()); // w^2, x^2, y^2, z^2
 		__m128 add1st = _mm_hadd_ps(squares, squares);           // w^2+x^2, y^2+z^2, w^2+x^2, y^2+z^2
@@ -166,7 +166,7 @@ namespace ark::math
 	 * @supersedes{QuatFloatSse3, operator*(QuatFloatSse\, QuatFloatSse)}
 	 ********************************************************************/
 	template<QuatSse3<float> Q>
-	auto operator*(Q lhs, Q rhs) -> Q
+	auto operator*(Q lhs, Q rhs) noexcept -> Q
 	{
 		// Gather data
 		__m128 l = lhs.SseVal();
@@ -216,7 +216,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleSse3, Dot(QuatDoubleSse2\, QuatDoubleSse2)}
 	 ********************************************************************/
 	template<QuatSse3<double> Q>
-	inline auto Dot(Q lhs, Q rhs) -> double
+	inline auto Dot(Q lhs, Q rhs) noexcept -> double
 	{
 		__m128d w2x2 = _mm_mul_pd(lhs.SseWx(), rhs.SseWx()); // w^2, x^2
 		__m128d y2z2 = _mm_mul_pd(lhs.SseYz(), rhs.SseYz()); // y^2, z^2
@@ -240,7 +240,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleSse3, operator*(QuatDoubleSse3\, QuatDoubleSse3)}
 	 ********************************************************************/
 	template<QuatSse3<double> Q>
-	auto operator*(Q lhs, Q rhs) -> Q
+	auto operator*(Q lhs, Q rhs) noexcept -> Q
 	{
 		// Gather data
 		__m128d n1     = _mm_set_pd(-0.0, 0.0); // Negate element 1

@@ -146,7 +146,7 @@ namespace ark::math
 	 * @supersedes{QuatFloatSse4, Dot(QuatFloatSse3\, QuatFloatSse3)}
 	 ********************************************************************/
 	template<QuatSse4<float> Q>
-	inline auto Dot(Q lhs, Q rhs) -> float
+	inline auto Dot(Q lhs, Q rhs) noexcept -> float
 	{
 		__m128 dp = _mm_dp_ps(lhs.SseVal(), rhs.SseVal(), 0xFF);
 		float result = _mm_cvtss_f32(dp);
@@ -165,7 +165,7 @@ namespace ark::math
 	 * @supersedes{QuatFloatSse4, operator*(QuatFloatSse3\, QuatFloatSse3)}
 	 ********************************************************************/
 	template<QuatSse4<float> Q>
-	auto operator*(Q lhs, Q rhs) -> Q
+	auto operator*(Q lhs, Q rhs) noexcept -> Q
 	{
 		// Gather data
 		__m128 l  = lhs.SseVal();
@@ -216,7 +216,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleSse4, Dot(QuatDoubleSse3\, QuatDoubleSse3)}
 	 ********************************************************************/
 	template<QuatSse4<double> Q>
-	inline auto Dot(Q lhs, Q rhs) -> double
+	inline auto Dot(Q lhs, Q rhs) noexcept -> double
 	{
 		__m128d dp_wx = _mm_dp_pd(lhs.SseWx(), rhs.SseWx(), 0xFF);
 		__m128d dp_yz = _mm_dp_pd(lhs.SseYz(), rhs.SseYz(), 0xFF);

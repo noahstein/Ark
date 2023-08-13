@@ -129,17 +129,41 @@ namespace ark::math
 	*/
 	class QuatDoubleSse2
 	{
+		/// @name Data
+		/// @{
+
 		/// The double-precision W and X components of the quaternion
 		__m128d wx_;
 		/// The double-precision Y and Z components of the quaternion
 		__m128d yz_;
 
+		/// @}
+
 	public:
+		/// @name Configuration Types
+		/// @{
+
 		/// Tag specifying the SIMD revision ID
 		using Revision = ark::hal::simd::Sse2;
 
 		/// This specialization is specifically for doubles.
 		using Scalar = double;
+
+		/// @}
+
+		/// @name noexcept Tests
+		/// @{
+
+		/** @brief Can a conversion from Q class's Scalar be nothrow converted to Scalar?
+		 *  @tparam Q The type of the quaternion being copied from
+		 *  @details If another quaternion's Scalar values may be nothrow
+		 *  converted to this QuaternBasic's Scalar type then the copy
+		 *  is also nothrow as it is only composed of 4 Scalar instances.
+		 */
+		template<typename Q>
+		constexpr static bool IsNoThrowConvertible = std::is_nothrow_convertible_v<typename Q::Scalar, Scalar>;
+
+		/// @}
 
 		/// @name Constructors
 		/// @{
@@ -149,14 +173,14 @@ namespace ark::math
 		 *  leaves storage uninitialized, just like the behavior of 
 		 *  built-in types.
 		 */					
-		QuatDoubleSse2() = default;
+		QuatDoubleSse2() noexcept = default;
 
 
 		/** @brief Component Constructor
 		 *  @details Constructor taking the 4 quaternion components 
 		 *  explicitly as separate, individual parameters.
 		 */
-		QuatDoubleSse2(Scalar w, Scalar x, Scalar y, Scalar z)
+		QuatDoubleSse2(Scalar w, Scalar x, Scalar y, Scalar z) noexcept
 		{
 			wx_ = _mm_set_pd(x, w);
 			yz_ = _mm_set_pd(z, y);
@@ -168,7 +192,7 @@ namespace ark::math
 		 *  the Quaternion concept.
 		 */
 		template<Quaternion Q>
-		QuatDoubleSse2(const Q& rhs)
+		QuatDoubleSse2(const Q& rhs) noexcept(IsNoThrowConvertible<typename Q::Scalar>)
 			: QuatDoubleSse2(static_cast<Scalar>(rhs.w()), static_cast<Scalar>(rhs.x()), static_cast<Scalar>(rhs.y()), static_cast<Scalar>(rhs.z()))
 		{}
 
@@ -180,29 +204,29 @@ namespace ark::math
 		 *  good way to hide it. Do not use it in multi-platform code.
 		 *  @warning Only use in SSE2-specific algorithm implementations.
 		 */
-		QuatDoubleSse2(__m128d wx, __m128d yz)
+		QuatDoubleSse2(__m128d wx, __m128d yz) noexcept
 			: wx_(wx), yz_(yz)
 		{}
 		/// @}
 
 		/// @name Accessors
 		/// @{
-		Scalar w() const { return _mm_cvtsd_f64(SseWx()); }
-		Scalar x() const { return _mm_cvtsd_f64(_mm_unpackhi_pd(SseWx(), SseWx())); }
-		Scalar y() const { return _mm_cvtsd_f64 (SseYz()); }
-		Scalar z() const { return _mm_cvtsd_f64(_mm_unpackhi_pd(SseYz(), SseYz())); }
+		Scalar w() const noexcept { return _mm_cvtsd_f64(SseWx()); }
+		Scalar x() const noexcept { return _mm_cvtsd_f64(_mm_unpackhi_pd(SseWx(), SseWx())); }
+		Scalar y() const noexcept { return _mm_cvtsd_f64 (SseYz()); }
+		Scalar z() const noexcept { return _mm_cvtsd_f64(_mm_unpackhi_pd(SseYz(), SseYz())); }
 
 
 		/** @brief Accessor to SSE2-specific W and X components
 		 *  @warning Only use in SSE2-specific algorithm implementations.
 		 */
-		__m128d SseWx() const { return wx_; }
+		__m128d SseWx() const noexcept { return wx_; }
 
 
 		/** @brief Accessor to SSE2-specific Y and Z components
 		 *  @warning Only use in SSE2-specific algorithm implementations.
 		 */
-		__m128d SseYz() const { return yz_; }
+		__m128d SseYz() const noexcept { return yz_; }
 
 		/// @}
 	};
@@ -228,7 +252,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleSse2, operator-(const Q&)}
 	 ********************************************************************/
 	template<QuatSse2<double> Q>
-	inline auto operator-(Q q) -> Q
+	inline auto operator-(Q q) noexcept -> Q
 	{
 		__m128d z = _mm_setzero_pd();
 		__m128d wx = _mm_sub_pd(z, q.SseWx());
@@ -247,7 +271,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleSse2, operator*(const Q&)}
 	 ********************************************************************/
 	template<QuatSse2<double> Q>
-	inline auto operator*(Q q) -> Q
+	inline auto operator*(Q q) noexcept -> Q
 	{
 		__m128d z = _mm_setzero_pd();
 		__m128d wxi = q.SseWx();
@@ -268,7 +292,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleSse2, Dot(const QL&\, const QR&)}
 	 ********************************************************************/
 	template<QuatSse2<double> Q>
-	inline auto Dot(QuatDoubleSse2 lhs, QuatDoubleSse2 rhs) -> double
+	inline auto Dot(QuatDoubleSse2 lhs, QuatDoubleSse2 rhs) noexcept -> double
 	{
 		__m128d w2x2 = _mm_mul_pd(lhs.SseWx(), rhs.SseWx());
 		__m128d x2w2 = _mm_shuffle_pd(w2x2, w2x2, _MM_SHUFFLE2(0, 1));
@@ -294,7 +318,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleSse2, operator+(const QL&\, const QR&)}
 	 ********************************************************************/
 	template<QuatSse2<double> Q>
-	inline auto operator+(Q lhs, Q rhs) -> Q
+	inline auto operator+(Q lhs, Q rhs) noexcept -> Q
 	{
 		__m128d wx = _mm_add_pd(lhs.SseWx(), rhs.SseWx());
 		__m128d yz = _mm_add_pd(lhs.SseYz(), rhs.SseYz());
@@ -312,7 +336,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleSse2, operator-(const QL&\, const QR&)}
 	 ********************************************************************/
 	template<QuatSse2<double> Q>
-	inline auto operator-(Q lhs, Q rhs) -> Q
+	inline auto operator-(Q lhs, Q rhs) noexcept -> Q
 	{
 		__m128d wx = _mm_sub_pd(lhs.SseWx(), rhs.SseWx());
 		__m128d yz = _mm_sub_pd(lhs.SseYz(), rhs.SseYz());
@@ -332,7 +356,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleSse2, operator*(const Q&\, typename Q::Scalar s)}
 	 ********************************************************************/
 	template<QuatSse2<double> Q>
-	inline auto operator*(Q lhs, double rhs) -> Q
+	inline auto operator*(Q lhs, double rhs) noexcept -> Q
 	{
 		__m128d scalar = _mm_set1_pd(rhs);
 		__m128d wx = _mm_mul_pd(lhs.SseWx(), scalar);
@@ -353,7 +377,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleSse2, operator*(typename Q::Scalar\, const Q&)}
 	 ********************************************************************/
 	template<QuatSse2<double> Q>
-	inline auto operator*(double lhs, Q rhs) -> Q
+	inline auto operator*(double lhs, Q rhs) noexcept -> Q
 	{
 		__m128d scalar = _mm_set1_pd(lhs);
 		__m128d wx = _mm_mul_pd(scalar, rhs.SseWx());
@@ -373,7 +397,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleSse2,operator/(const Q&\, typename Q::Scalar)}
 	 ********************************************************************/
 	template<QuatSse2<double> Q>
-	inline auto operator/(Q lhs, double rhs) -> Q
+	inline auto operator/(Q lhs, double rhs) noexcept -> Q
 	{
 		__m128d scalar = _mm_set1_pd(rhs);
 		__m128d wx = _mm_div_pd(lhs.SseWx(), scalar);
@@ -392,7 +416,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleSse2, operator*(const QL&\, const QR&)}
 	 ********************************************************************/
 	template<QuatSse2<double> Q>
-	auto operator*(Q lhs, Q rhs) -> Q
+	auto operator*(Q lhs, Q rhs) noexcept -> Q
 	{
 		// Gather data
 		__m128d n0      = _mm_set_pd(0.0, -0.0); // Negate element 0

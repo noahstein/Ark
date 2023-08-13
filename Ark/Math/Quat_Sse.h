@@ -86,15 +86,39 @@ namespace ark::math
 	 */
 	class QuatFloatSse
 	{
+		/// @name Data
+		/// @{
+
 		/// SSE-optimized storage of 4 32-bit single-precision floats
 		__m128 value_;
 
+		/// @}
+
 	public:
+		/// @name Configuration Types
+		/// @{
+
 		/// Tag specifying the SIMD revision ID
 		using Revision = ark::hal::simd::Sse;
 
 		/// This specialization is specifically for floats.
 		using Scalar = float;
+
+		/// @}
+
+		/// @name noexcept Tests
+		/// @{
+
+		/** @brief Can a conversion from Q class's Scalar be nothrow converted to Scalar?
+		 *  @tparam Q The type of the quaternion being copied from
+		 *  @details If another quaternion's Scalar values may be nothrow
+		 *  converted to this QuaternBasic's Scalar type then the copy
+		 *  is also nothrow as it is only composed of 4 Scalar instances.
+		 */
+		template<typename Q>
+		constexpr static bool IsNoThrowConvertible = std::is_nothrow_convertible_v<typename Q::Scalar, Scalar>;
+
+		/// @}
 
 		/// @name Constructors
 		/// @{
@@ -104,14 +128,14 @@ namespace ark::math
 		 *  leaves storage uninitialized, just like the behavior of
 		 *  built-in types.
 		 */
-		QuatFloatSse() = default;
+		QuatFloatSse() noexcept = default;
 
 
 		/** @brief Component Constructor
 		 *  @details Constructor taking the 4 quaternion components
 		 *  explicitly as individual parameters.
 		 */
-		QuatFloatSse(Scalar w, Scalar x, Scalar y, Scalar z)
+		QuatFloatSse(Scalar w, Scalar x, Scalar y, Scalar z) noexcept
 		{
 			value_ = _mm_setr_ps(w, x, y, z);
 		}
@@ -122,7 +146,7 @@ namespace ark::math
 		 *  the Quaternion concept.
 		 */
 		template<Quaternion Q>
-		QuatFloatSse(const Q& rhs)
+		QuatFloatSse(const Q& rhs) noexcept(IsNoThrowConvertible<Q>)
 			: QuatFloatSse(static_cast<Scalar>(rhs.w()), static_cast<Scalar>(rhs.x()), static_cast<Scalar>(rhs.y()), static_cast<Scalar>(rhs.z()))
 		{}
 
@@ -134,22 +158,22 @@ namespace ark::math
 		 *  use it in multi-platform code.
 		 *  @warning Only use in SSE-specific algorithm implementations.
 		 */
-		QuatFloatSse(__m128 value)
+		QuatFloatSse(__m128 value) noexcept
 			: value_(value)
 		{}
 		/// @}
 
 		/// @name Accessors
 		/// @{
-		Scalar w() const { return _mm_cvtss_f32(SseVal()); }
-		Scalar x() const { return _mm_cvtss_f32(_mm_shuffle_ps(SseVal(), SseVal(), _MM_SHUFFLE(1, 1, 1, 1))); }
-		Scalar y() const { return _mm_cvtss_f32(_mm_shuffle_ps(SseVal(), SseVal(), _MM_SHUFFLE(2, 2, 2, 2))); }
-		Scalar z() const { return _mm_cvtss_f32(_mm_shuffle_ps(SseVal(), SseVal(), _MM_SHUFFLE(3, 3, 3, 3))); }
+		Scalar w() const noexcept { return _mm_cvtss_f32(SseVal()); }
+		Scalar x() const noexcept { return _mm_cvtss_f32(_mm_shuffle_ps(SseVal(), SseVal(), _MM_SHUFFLE(1, 1, 1, 1))); }
+		Scalar y() const noexcept { return _mm_cvtss_f32(_mm_shuffle_ps(SseVal(), SseVal(), _MM_SHUFFLE(2, 2, 2, 2))); }
+		Scalar z() const noexcept { return _mm_cvtss_f32(_mm_shuffle_ps(SseVal(), SseVal(), _MM_SHUFFLE(3, 3, 3, 3))); }
 
 		/** @brief Accessor to SSE-specific data
 		 *  @warning Only use in SSE-specific algorithm implementations.
 		 */
-		__m128 SseVal() const { return value_; }
+		__m128 SseVal() const noexcept { return value_; }
 		/// @}
 	};
 
@@ -173,7 +197,7 @@ namespace ark::math
 	 * @supersedes{QuatFloatSse, operator-(const Q&)}
 	 ********************************************************************/
 	template<QuatSse<float> Q>
-	inline auto operator-(Q q) -> Q
+	inline auto operator-(Q q) noexcept -> Q
 	{
 		__m128 result = _mm_sub_ps(_mm_setzero_ps(), q.SseVal());
 		return result;
@@ -190,7 +214,7 @@ namespace ark::math
 	 * @supersedes{QuatFloatSse, operator*(const Q&)}
 	 ********************************************************************/
 	template<QuatSse<float> Q>
-	inline auto operator*(Q q) -> Q
+	inline auto operator*(Q q) noexcept -> Q
 	{
 		__m128 result = _mm_move_ss((-q).SseVal(), q.SseVal());
 		return result;
@@ -208,7 +232,7 @@ namespace ark::math
 	 * @supersedes{QuatFloatSse, Dot(const QL&\, const QR&)}
 	 ********************************************************************/
 	template<QuatSse<float> Q>
-	inline auto Dot(Q lhs, Q rhs) -> float
+	inline auto Dot(Q lhs, Q rhs) noexcept -> float
 	{
 		__m128 squares = _mm_mul_ps(lhs.SseVal(), rhs.SseVal());
 		__m128 badc = _mm_shuffle_ps(squares, squares, _MM_SHUFFLE(2, 3, 0, 1));
@@ -230,7 +254,7 @@ namespace ark::math
 	 * @supersedes{QuatFloatSse, operator+(const QL&\, const QR&)}
 	 ********************************************************************/
 	template<QuatSse<float> Q>
-	inline auto operator+(Q lhs, Q rhs) -> Q
+	inline auto operator+(Q lhs, Q rhs) noexcept -> Q
 	{
 		return _mm_add_ps(lhs.SseVal(), rhs.SseVal());
 	}
@@ -246,7 +270,7 @@ namespace ark::math
 	 * @supersedes{QuatFloatSse, operator-(const QL&\, const QR&)}
 	 ********************************************************************/
 	template<QuatSse<float> Q>
-	inline auto operator-(Q lhs, Q rhs) -> Q
+	inline auto operator-(Q lhs, Q rhs) noexcept -> Q
 	{
 		return _mm_sub_ps(lhs.SseVal(), rhs.SseVal());
 	}
@@ -264,7 +288,7 @@ namespace ark::math
 	 * @supersedes{QuatFloatSse,operator*(const Q&\, typename Q::Scalar)}
 	 ********************************************************************/
 	template<QuatSse<float> Q>
-	inline auto operator*(Q lhs, float rhs) -> Q
+	inline auto operator*(Q lhs, float rhs) noexcept -> Q
 	{
 		__m128 scalar = _mm_set1_ps(rhs);
 		__m128 result = _mm_mul_ps(scalar, lhs.SseVal());
@@ -284,7 +308,7 @@ namespace ark::math
 	 * @supersedes{QuatFloatSse,operator*(typename Q::Scalar\, const Q&)}
 	 ********************************************************************/
 	template<QuatSse<float> Q>
-	inline auto operator*(float lhs, Q rhs) -> Q
+	inline auto operator*(float lhs, Q rhs) noexcept -> Q
 	{
 		__m128 scalar = _mm_set1_ps(lhs);
 		__m128 result = _mm_mul_ps(scalar, rhs.SseVal());
@@ -303,7 +327,7 @@ namespace ark::math
 	 * @supersedes{QuatFloatSse,operator/(const Q&\, typename Q::Scalar)}
 	 ********************************************************************/
 	template<QuatSse<float> Q>
-	inline auto operator/(Q lhs, float rhs) -> Q
+	inline auto operator/(Q lhs, float rhs) noexcept -> Q
 	{
 		__m128 scalar = _mm_set1_ps(rhs);
 		__m128 result = _mm_div_ps(lhs.SseVal(), scalar);
@@ -321,7 +345,7 @@ namespace ark::math
 	 * @supersedes{QuatFloatSse,operator*(const QL&\, const QR&)}
 	 ********************************************************************/
 	template<QuatSse<float> Q>
-	auto operator*(Q lhs, Q rhs) -> Q
+	auto operator*(Q lhs, Q rhs) noexcept -> Q
 	{
 		// Gather data
 		__m128 l = lhs.SseVal();

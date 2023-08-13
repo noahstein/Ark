@@ -124,15 +124,39 @@ namespace ark::math
 	 ********************************************************************/
 	class QuatDoubleAvx
 	{
+		/// @name Data
+		/// @{
+
 		/// All four double-precision components: w, x, y, and z
 		__m256d value_;
 
+		/// @}
+
 	public:
+		/// @name Configuration Types
+		/// @{
+
 		/// Tag specifying the SIMD revision ID
 		using Revision = ark::hal::simd::Avx;
 
 		/// This specialization is specifically for doubles.
 		using Scalar = double;
+
+		/// @}
+
+		/// @name noexcept Tests
+		/// @{
+
+		/** @brief Can a conversion from Q class's Scalar be nothrow converted to Scalar?
+		 *  @tparam Q The type of the quaternion being copied from
+		 *  @details If another quaternion's Scalar values may be nothrow
+		 *  converted to this QuaternBasic's Scalar type then the copy
+		 *  is also nothrow as it is only composed of 4 Scalar instances.
+		 */
+		template<typename Q>
+		constexpr static bool IsNoThrowConvertible = std::is_nothrow_convertible_v<typename Q::Scalar, Scalar>;
+
+		/// @}
 
 		/// @name Constructors
 		/// @{
@@ -142,14 +166,14 @@ namespace ark::math
 		 *  leaves storage uninitialized, just like the behavior of 
 		 *  built-in types.
 		 */					
-		QuatDoubleAvx() = default;
+		QuatDoubleAvx() noexcept = default;
 
 
 		/** @brief Component Constructor
 		 *  @details Constructor taking the 4 quaternion components 
 		 *  explicitly as separate, individual parameters.
 		 */
-		QuatDoubleAvx(Scalar w, Scalar x, Scalar y, Scalar z)
+		QuatDoubleAvx(Scalar w, Scalar x, Scalar y, Scalar z) noexcept
 		{
 			value_ = _mm256_set_pd(z, y, x, w);
 		}
@@ -160,7 +184,7 @@ namespace ark::math
 		 *  the Quaternion concept.
 		 */
 		template<Quaternion Q>
-		QuatDoubleAvx(const Q& rhs)
+		QuatDoubleAvx(const Q& rhs) noexcept(IsNoThrowConvertible<Q>)
 			: QuatDoubleAvx(static_cast<Scalar>(rhs.w()), static_cast<Scalar>(rhs.x()), static_cast<Scalar>(rhs.y()), static_cast<Scalar>(rhs.z()))
 		{}
 
@@ -171,25 +195,25 @@ namespace ark::math
 		 *  as it is stored in an instance. Unfortunately, there is no 
 		 *  good way to hide it. Do not use it in multi-platform code.
 		 */
-		QuatDoubleAvx(__m256d value)
+		QuatDoubleAvx(__m256d value) noexcept
 			: value_(value)
 		{}
 		/// @}
 
 		/// @name Accessors
 		/// @{
-		Scalar w() const
+		Scalar w() const noexcept
 		{
 			return _mm256_cvtsd_f64(AvxVal());
 		}
 	
-		Scalar x() const
+		Scalar x() const noexcept
 		{
 			__m256d x = _mm256_permute_pd(AvxVal(), 1);
 			return _mm256_cvtsd_f64(x);
 		}
 	
-		Scalar y() const
+		Scalar y() const noexcept
 		{
 			__m256d val = AvxVal();
 			__m256d y = _mm256_permute2f128_pd(val, val, 1);
@@ -197,7 +221,7 @@ namespace ark::math
 			return result;
 		}
 	
-		Scalar z() const
+		Scalar z() const noexcept
 		{
 			__m256d val = AvxVal();
 			__m256d yz = _mm256_permute2f128_pd(val, val, 1);
@@ -209,7 +233,7 @@ namespace ark::math
 		/** @brief Accessor to AVX-specific data
 		 *  @warning Only use in AVX-specific algorithm implementations.
 		 */
-		__m256d AvxVal() const { return value_; }
+		__m256d AvxVal() const noexcept { return value_; }
 		/// @}
 	};
 
@@ -235,7 +259,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleAvx, operator-(QuatDoubleSse2)}
 	 ********************************************************************/
 	template<QuatAvx<double> Q>
-	inline auto operator-(Q q) -> Q
+	inline auto operator-(Q q) noexcept -> Q
 	{
 		__m256d zero = _mm256_setzero_pd();
 		__m256d result = _mm256_sub_pd(zero, q.AvxVal());
@@ -254,7 +278,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleAvx, operator*(QuatDoubleSse2)}
 	 ********************************************************************/
 	template<QuatAvx<double> Q>
-	inline auto operator*(Q q) -> Q
+	inline auto operator*(Q q) noexcept -> Q
 	{
 		__m256d val = q.AvxVal();
 		__m256d neg = (-q).AvxVal();
@@ -274,7 +298,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleAvx, Dot(QuatDoubleSse4\, QuatDoubleSse4)}
 	 ********************************************************************/
 	template<QuatAvx<double> Q>
-	inline auto Dot(Q lhs, Q rhs) -> double
+	inline auto Dot(Q lhs, Q rhs) noexcept -> double
 	{
 		__m256d w_x_y_z = _mm256_mul_pd(lhs.AvxVal(), rhs.AvxVal());
 		__m256d wx_yz = _mm256_hadd_pd(w_x_y_z, w_x_y_z);
@@ -295,7 +319,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleAvx, operator+(QuatDoubleSse2\, QuatDoubleSse2)}
 	 ********************************************************************/
 	template<QuatAvx<double> Q>
-	inline auto operator+(Q lhs, Q rhs) -> Q
+	inline auto operator+(Q lhs, Q rhs) noexcept -> Q
 	{
 		return _mm256_add_pd(lhs.AvxVal(), rhs.AvxVal());
 	}
@@ -312,7 +336,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleAvx, operator-(QuatDoubleSse2\, QuatDoubleSse2)}
 	 ********************************************************************/
 	template<QuatAvx<double> Q>
-	inline auto operator-(Q lhs, Q rhs) -> Q
+	inline auto operator-(Q lhs, Q rhs) noexcept -> Q
 	{
 		return _mm256_sub_pd(lhs.AvxVal(), rhs.AvxVal());
 	}
@@ -331,7 +355,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleAvx, operator*(QuatDoubleSse2\, double)}
 	 ********************************************************************/
 	template<QuatAvx<double> Q>
-	inline auto operator*(Q lhs, double rhs) -> Q
+	inline auto operator*(Q lhs, double rhs) noexcept -> Q
 	{
 		__m256d scalar = _mm256_set1_pd(rhs);
 		__m256d result = _mm256_mul_pd(scalar, lhs.AvxVal());
@@ -352,7 +376,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleAvx, operator*(double\, QuatDoubleSse2)}
 	 ********************************************************************/
 	template<QuatAvx<double> Q>
-	inline auto operator*(double lhs, Q rhs) -> Q
+	inline auto operator*(double lhs, Q rhs) noexcept -> Q
 	{
 		__m256d scalar = _mm256_set1_pd(lhs);
 		__m256d result = _mm256_mul_pd(scalar, rhs.AvxVal());
@@ -372,7 +396,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleAvx, operator/(QuatDoubleSse\, double)}
 	 ********************************************************************/
 	template<QuatAvx<double> Q>
-	inline auto operator/(Q lhs, double rhs) -> Q
+	inline auto operator/(Q lhs, double rhs) noexcept -> Q
 	{
 		__m256d scalar = _mm256_set1_pd(rhs);
 		__m256d result = _mm256_div_pd(lhs.AvxVal(), scalar);
@@ -391,7 +415,7 @@ namespace ark::math
 	 * @supersedes{QuatDoubleAvx, operator*(QuatDoubleSse3\, QuatDoubleSse3)}
 	 ********************************************************************/
 	template<QuatAvx<double> Q>
-	auto operator*(Q lhs, Q rhs) -> Q
+	auto operator*(Q lhs, Q rhs) noexcept -> Q
 	{
 		// Gather data
 		__m256d l      = lhs.AvxVal();

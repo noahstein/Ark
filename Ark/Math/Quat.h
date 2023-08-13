@@ -72,6 +72,9 @@ namespace ark::math
 	class QuatBasic
 	{
 	public:
+		/// @name Configuration Types
+		/// @{
+
 		/// Tag specifying the SIMD revision ID
 		using Revision = ark::hal::simd::None;
 
@@ -79,6 +82,38 @@ namespace ark::math
 		 *  class template parameter.
 		 */
 		using Scalar = S;
+
+		/// @}
+
+		/// @name noexcept Tests
+		/// @{
+
+		/** @brief Are instances of Scalar nothrow default constructible?
+		 *  @details If instances of Scalar are nothrow default 
+		 *  constructible then this QuatBasic class is also nothrow 
+		 *  default constructible as it is composed of only 4 Scalar 
+		 *  instances.
+		 */
+		constexpr static bool IsNoThrowDefaultConstructible = std::is_nothrow_default_constructible_v<Scalar>;
+
+		/** @brief Are instances of Scalar nothrow copy constructible?
+		 *  @details If instances of Scalar are nothrow copy 
+		 *  constructible then this QuatBasic class is also nothrow copy 
+		 *  constructible as it is only composed of only 4 Scalar 
+		 *  instances.
+		 */
+		constexpr static bool IsNoThrowCopy = std::is_nothrow_copy_constructible_v<Scalar>;
+
+		/** @brief Can a conversion from Q class's Scalar be nothrow converted to Scalar?
+		 *  @tparam Q The type of the quaternion being copied from
+		 *  @details If another quaternion's Scalar values may be nothrow
+		 *  converted to this QuaternBasic's Scalar type then the copy 
+		 *  is also nothrow as it is only composed of 4 Scalar instances.
+		 */
+		template<typename Q>
+		constexpr static bool IsNoThrowConvertible = std::is_nothrow_convertible_v<typename Q::Scalar, Scalar>;
+
+		/// @}
 
 	private:
 		Scalar w_, x_, y_, z_;
@@ -91,13 +126,13 @@ namespace ark::math
 		 *  @details The default constructor leaves storage 
 		 *  uninitialized, just like the behavior of built-in types.
 		 */			
-		QuatBasic() = default;
+		QuatBasic() noexcept(IsNoThrowDefaultConstructible) = default;
 
 		/** @brief Component-wise Constructor
 		 *  @details Constructor taking the 4 quaternion components 
 		 *  explicitly as separate, individual parameters.
 		 */
-		QuatBasic(Scalar w, Scalar x, Scalar y, Scalar z) noexcept(std::is_nothrow_copy_constructible_v<Scalar>)
+		QuatBasic(Scalar w, Scalar x, Scalar y, Scalar z) noexcept(IsNoThrowCopy)
 			: w_(w), x_(x), y_(y), z_(z)
 		{}
 
@@ -107,7 +142,7 @@ namespace ark::math
 		 */
 		template<Quaternion Q>
 			requires std::convertible_to<typename Q::Scalar, Scalar>
-		QuatBasic(const Q& rhs) noexcept(std::is_nothrow_convertible_v<typename Q::Scalar, Scalar>)
+		QuatBasic(const Q& rhs) noexcept(IsNoThrowConvertible<Q>)
 			: QuatBasic(Scalar{rhs.w()}, Scalar{rhs.x()}, Scalar{rhs.y()}, Scalar{rhs.z()})
 		{}
 		/// @}
@@ -118,7 +153,7 @@ namespace ark::math
 		 */
 		template<Quaternion Q>
 			requires std::convertible_to<typename Q::Scalar, Scalar>
-		QuatBasic& operator=(const Q& rhs) noexcept(std::is_nothrow_convertible_v<typename Q::Scalar, Scalar>)
+		QuatBasic& operator=(const Q& rhs) noexcept(IsNoThrowConvertible<Q>)
 		{
 			w_ = Scalar{rhs.w()};
 			x_ = Scalar{rhs.x()};
@@ -130,10 +165,10 @@ namespace ark::math
 
 		/// @name Accessors
 		/// @{
-		Scalar w() const { return w_; }
-		Scalar x() const { return x_; }
-		Scalar y() const { return y_; }
-		Scalar z() const { return z_; }
+		Scalar w() const noexcept(IsNoThrowCopy) { return w_; }
+		Scalar x() const noexcept(IsNoThrowCopy) { return x_; }
+		Scalar y() const noexcept(IsNoThrowCopy) { return y_; }
+		Scalar z() const noexcept(IsNoThrowCopy) { return z_; }
 		/// @}
 	};
 
