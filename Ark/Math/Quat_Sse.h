@@ -43,7 +43,7 @@ namespace ark::math
 	 */
 	template<typename Q, typename S>
 	concept QuatSse = QuaternionNone<Q, S> &&
-		std::derived_from<typename Q::Revision, ark::hal::simd::Sse>;
+		::ark::hal::simd::SseFamily<typename Q::Revision>;
 
 
 	/*********************************************************************

@@ -44,7 +44,7 @@ namespace ark::math
 	 */
 	template<typename Q, typename S>
 	concept QuatSse3 = QuatSse2<Q, S> &&
-		std::derived_from<typename Q::Revision, ark::hal::simd::Sse3>;
+		::ark::hal::simd::Sse3Family<typename Q::Revision>;
 
 
 	/*********************************************************************

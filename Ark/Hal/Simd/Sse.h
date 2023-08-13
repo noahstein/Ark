@@ -59,7 +59,7 @@ namespace ark::hal::simd
 	 * @see @ref SimdArchitecture
 	 ********************************************************************/
 	template<typename SIMD>
-	concept IsSse = std::is_base_of_v<Sse, SIMD>;
+	concept SseFamily = std::is_base_of_v<Sse, SIMD>;
 }
 
 

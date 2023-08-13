@@ -52,7 +52,7 @@ namespace ark::math
 	 */
 	template<typename Q, typename S>
 	concept QuatAvx = QuatSse4<Q, S> &&
-		std::derived_from<typename Q::Revision, ark::hal::simd::Avx>;
+		::ark::hal::simd::AvxFamily<typename Q::Revision>;
 
 
 	/*********************************************************************
