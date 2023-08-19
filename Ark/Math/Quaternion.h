@@ -269,7 +269,7 @@ namespace ark::math
 		 * @sa ark::math::Quaternion
 		 ****************************************************************/
 		template<Quaternion Q>
-			requires !IsQuaternionExpr<Q>
+			requires (!IsQuaternionExpr<Q>)
 		struct ResultSelector<Q, Q>
 		{
 			typedef Q type;
@@ -1226,7 +1226,7 @@ namespace ark::math
 	 * @sa @ref ExpressionTemplates
 	 ********************************************************************/
 	template<Quaternion QL, Quaternion QR>
-	inline auto operator/(const QL& lhs, const QR& rhs) noexcept -> QuaternionDivision<QL, QR>::Result
+	inline auto operator/(const QL& lhs, const QR& rhs) noexcept -> typename QuaternionDivision<QL, QR>::Result
 	{
 		return QuaternionDivision(lhs, rhs).result();
 	}

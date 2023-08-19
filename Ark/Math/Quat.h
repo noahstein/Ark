@@ -207,7 +207,7 @@ namespace ark::math
 	 * type based on the template parameters.
 	 ********************************************************************/
 	template<typename S, typename I = ark::hal::simd::HAL_SIMD>
-	using Quat = QuaternionSelector<S, I>::type;
+	using Quat = typename QuaternionSelector<S, I>::type;
 }
 
 
