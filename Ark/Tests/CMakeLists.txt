@@ -1,3 +1,9 @@
+#*******************************************************************************
+# CMakeLists.txt file for the Ark library's math unit tests executable.
+#
+# Copyright © 2023 Noah Stein. All Rights Reserved.
+#*******************************************************************************
+
 include(FetchContent)
 
 FetchContent_Declare(
