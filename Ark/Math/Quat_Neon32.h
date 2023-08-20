@@ -162,15 +162,15 @@ namespace ark::math
 
 		/// @name Accessors
 		/// @{
-		Scalar w() const noexcept { return vgetq_lane_f32(Neon32Val(), 0); }
-		Scalar x() const noexcept { return vgetq_lane_f32(Neon32Val(), 1); }
-		Scalar y() const noexcept { return vgetq_lane_f32(Neon32Val(), 2); }
-		Scalar z() const noexcept { return vgetq_lane_f32(Neon32Val(), 3); }
+		Scalar w() const noexcept { return vgetq_lane_f32(NeonVal(), 0); }
+		Scalar x() const noexcept { return vgetq_lane_f32(NeonVal(), 1); }
+		Scalar y() const noexcept { return vgetq_lane_f32(NeonVal(), 2); }
+		Scalar z() const noexcept { return vgetq_lane_f32(NeonVal(), 3); }
 
 		/** @brief Accessor to Neon32-specific data
 		 *  @warning Only use in SSE-specific algorithm implementations.
 		 */
-		float32x4_t Neon32Val() const noexcept { return value_; }
+		float32x4_t NeonVal() const noexcept { return value_; }
 		/// @}
 	};
 
@@ -197,7 +197,7 @@ namespace ark::math
 	template<QuatNeon32<float> Q>
 	inline auto operator-(Q q) noexcept -> Q
 	{
-		float32x4_t result = vnegq_f32(q.Neon32Val());
+		float32x4_t result = vnegq_f32(q.NeonVal());
 		return result;
 	}
 
@@ -214,8 +214,8 @@ namespace ark::math
 	template<QuatNeon32<float> Q>
 	inline auto operator*(Q q) noexcept -> Q
 	{
-		float32x4_t value = q.Neon32Val();
-		float32x4_t negation = -q.Neon32Val();
+		float32x4_t value = q.NeonVal();
+		float32x4_t negation = -q.NeonVal();
 		float32x4_t result = vcopyq_laneq_f32(negation, 0, value, 0);
 		return result;
 	}
@@ -234,7 +234,7 @@ namespace ark::math
 	template<QuatNeon32<float> Q>
 	inline auto Dot(Q lhs, Q rhs) noexcept -> float
 	{
-		float32x4_t muls = vmulq_f32(lhs.Neon32Val(), rhs.Neon32Val());
+		float32x4_t muls = vmulq_f32(lhs.NeonVal(), rhs.NeonVal());
 		float32x4_t rev = vrev64q_f32(muls);
 		float32x4_t pairs = vaddq_f32(muls, rev);
 		float aabb = vgetq_lane_f32(pairs, 0);
@@ -256,7 +256,7 @@ namespace ark::math
 	template<QuatNeon32<float> Q>
 	inline auto operator+(Q lhs, Q rhs) noexcept -> Q
 	{
-		return vaddq_f32(lhs.Neon32Val(), rhs.Neon32Val());
+		return vaddq_f32(lhs.NeonVal(), rhs.NeonVal());
 	}
 
 
@@ -273,7 +273,7 @@ namespace ark::math
 	template<QuatNeon32<float> Q>
 	inline auto operator-(Q lhs, Q rhs) noexcept -> Q
 	{
-		return vsubq_f32(lhs.Neon32Val(), rhs.Neon32Val());
+		return vsubq_f32(lhs.NeonVal(), rhs.NeonVal());
 	}
 
 
@@ -291,7 +291,7 @@ namespace ark::math
 	template<QuatNeon32<float> Q>
 	inline auto operator*(Q lhs, float rhs) noexcept -> Q
 	{
-		float32x4_t result = vmulq_n_f32(lhs.Neon32Val(), rhs);
+		float32x4_t result = vmulq_n_f32(lhs.NeonVal(), rhs);
 		return result;
 	}
 
@@ -310,7 +310,7 @@ namespace ark::math
 	template<QuatNeon32<float> Q>
 	inline auto operator*(float lhs, Q rhs) noexcept -> Q
 	{
-		float32x4_t result = vmulq_n_f32(rhs.Neon32Val(), lhs);
+		float32x4_t result = vmulq_n_f32(rhs.NeonVal(), lhs);
 		return result;
 	}
 
@@ -329,7 +329,7 @@ namespace ark::math
 	inline auto operator/(Q lhs, float rhs) noexcept -> Q
 	{
 		float32x4_t scalar = vdupq_n_f32(rhs);
-		float32x4_t result = vdivq_f32(lhs.Neon32Val(), scalar);
+		float32x4_t result = vdivq_f32(lhs.NeonVal(), scalar);
 		return result;
 	}
 
@@ -355,8 +355,8 @@ namespace ark::math
 		};
 
 		// Gather data
-		float32x4_t l = lhs.Neon32Val();
-		float32x4_t r = rhs.Neon32Val();
+		float32x4_t l = lhs.NeonVal();
+		float32x4_t r = rhs.NeonVal();
 		float32x4x3_t neg = vld3q_f32(negations);
 
 		// Compute first partial result

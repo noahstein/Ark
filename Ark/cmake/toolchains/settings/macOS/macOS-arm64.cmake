@@ -5,4 +5,4 @@
 #*******************************************************************************
 
 set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "" FORCE)
-set(HAL_SIMD Neon32)
+set(HAL_SIMD Neon64)

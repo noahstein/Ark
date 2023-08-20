@@ -29,6 +29,7 @@ Copyright
 #if !defined(ARK_HAL_SIMD_NEON32_H_INCLUDE_GUARD)
 #define ARK_HAL_SIMD_NEON32_H_INCLUDE_GUARD
 
+#define SIMD_HAS_NEON32
 
 //========================================================================
 //	Dependencies
