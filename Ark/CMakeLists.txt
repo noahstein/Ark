@@ -22,12 +22,6 @@ add_compile_definitions(
 	HAL_SIMD=${HAL_SIMD}
 )
 
-# Windows
-#add_compile_options(
-#	/bigobj
-#)
-
-
 include_directories(..)
 
 enable_testing()
