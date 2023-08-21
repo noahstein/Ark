@@ -46,12 +46,6 @@ namespace ark::math
 	private:
 		Scalar data_[N];
 
-	protected:
-		static constexpr auto Range()
-		{
-			return std::views::iota(std::size_t{ 0 }, N);
-		}
-
 	public:
 		constexpr Vec() noexcept(std::is_nothrow_constructible_v<Scalar>) = default;
 
@@ -59,9 +53,9 @@ namespace ark::math
 			requires (sizeof...(T) == N)
 		constexpr Vec(T && ... values) noexcept((std::is_nothrow_convertible_v<T, Scalar> && ...))
 		{
-			auto Set = [this, i = 0] <typename T> (T && value) mutable
+			auto Set = [this, i = 0] <typename U> (U && value) mutable
 			{
-				data_[i++] = static_cast<Scalar>(std::forward<T>(value));
+				data_[i++] = static_cast<Scalar>(std::forward<U>(value));
 			};
 
 			(Set(values), ...);
@@ -72,7 +66,11 @@ namespace ark::math
 			&& SameDimension<Vec, V>
 		constexpr Vec(const V& rhs) noexcept(std::is_nothrow_convertible_v<typename V::Scalar, Scalar>)
 		{
-			std::ranges::for_each(Range(), [&](std::size_t i) { data_[i] = static_cast<Scalar>(rhs(i)); });
+			std::size_t length = Size();
+			for (std::size_t i = 0; i < length; ++i)
+			{
+				data_[i] = static_cast<Scalar>(rhs(i));
+			}
 		}
 
 		template<Vector V>
@@ -80,14 +78,21 @@ namespace ark::math
 				&& SameDimension<Vec, V>
 		constexpr Vec& operator=(const Vec& rhs) noexcept(std::is_nothrow_convertible_v<typename V::Scalar, Scalar>)
 		{
-			std::ranges::for_each(Range(), [&](std::size_t i) { data_[i] = static_cast<Scalar>(rhs(i)); });
+			std::size_t length = Size();
+			for (std::size_t i = 0; i < length; ++i)
+			{
+				data_[i] = static_cast<Scalar>(rhs(i));
+			}
 			return *this;
 		}
 
 		constexpr Vec& operator=(int value)
 		{
-			static_assert(value == 0, "0 is the only valid scalar value that may be used to construct a vector.");
-			std::ranges::for_each(Range(), [&](std::size_t i) { data_[i] = static_cast<Scalar>(value); });
+			std::size_t length = Size();
+			for (std::size_t i = 0; i < length; ++i)
+			{
+				data_[i] = static_cast<Scalar>(value);
+			}
 		}
 
 		static constexpr size_t Size() noexcept { return N; }

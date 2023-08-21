@@ -65,11 +65,6 @@ namespace ark::math::test::vector_unit_tests
 	private:
 		Scalar data_[N];
 
-		static constexpr auto Range()
-		{
-			return std::views::iota(std::size_t{ 0 }, N);
-		}
-
 	public:
 		static constexpr std::size_t Size() { return N; } const
 		constexpr Scalar operator()(std::size_t index) const { return data_[index]; }
@@ -79,16 +74,20 @@ namespace ark::math::test::vector_unit_tests
 		template<ark::math::Vector V>
 		TestVec(const V& rhs)
 		{
-			std::ranges::for_each(Range(), [&](std::size_t i) { data_[i] = static_cast<Scalar>(rhs(i)); });
+			std::size_t length = Size();
+			for (std::size_t i = 0; i < length; ++i)
+			{
+				data_[i] = static_cast<Scalar>(rhs(i));
+			}
 		}
 
 		template<typename ... T>
 			requires (sizeof...(T) == N)
 		constexpr TestVec(T && ... values) noexcept((std::is_nothrow_convertible_v<T, Scalar> && ...))
 		{
-			auto Set = [this, i = 0] <typename T> (T && value) mutable
+			auto Set = [this, i = 0] <typename U> (U && value) mutable
 			{
-				data_[i++] = static_cast<Scalar>(std::forward<T>(value));
+				data_[i++] = static_cast<Scalar>(std::forward<U>(value));
 			};
 
 			(Set(values), ...);
@@ -97,7 +96,11 @@ namespace ark::math::test::vector_unit_tests
 		template<ark::math::Vector V>
 		const TestVec& operator=(const V& rhs)
 		{
-			std::ranges::for_each(Range(), [&](std::size_t i) { data_[i] = static_cast<Scalar>(rhs(i)); });
+			std::size_t length = Size();
+			for (std::size_t i = 0; i < length; ++i)
+			{
+				data_[i] = static_cast<Scalar>(rhs(i));
+			}
 			return *this;
 		}
 	};

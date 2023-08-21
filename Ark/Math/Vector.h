@@ -168,7 +168,7 @@ namespace ark::math
 		 * scalar components is usually the same as the sole operand's 
 		 * component scalar type.
 		 */
-		using Scalar = V::Scalar;
+		using Scalar = typename V::Scalar;
 	};
 
 
@@ -228,15 +228,7 @@ namespace ark::math
 		 * @return constexpr std::size_t Number of components
 		 */
 		static constexpr std::size_t Size() noexcept { return VL::Size(); }
-
-		/**
-		 *  @brief The components presented as a C++20 range.
-		 */
-		static constexpr auto Range()
-		{
-			return std::views::iota(std::size_t{ 0 }, Size());
-		}
-};
+	};
 
 
 	//====================================================================
@@ -324,13 +316,13 @@ namespace ark::math
 	template<Vector VL, Vector VR>
 	class VectorAddition : public VectorBinaryExpr<VL, VR>
 	{
-		using Expr = typename VectorBinaryExpr<VL, VR>;
+		using Expr = VectorBinaryExpr<VL, VR>;
 
 		VL const & l_;
 		VR const & r_;
 
 	public:
-		using Scalar = Expr::Scalar;
+		using Scalar = typename Expr::Scalar;
 
 		constexpr VectorAddition(const VL& lhs, const VR& rhs) noexcept
 			: l_(lhs), r_(rhs)
@@ -640,8 +632,15 @@ namespace ark::math
 	inline constexpr auto operator==(const VL& lhs, const VR& rhs) -> bool
 	{
 		using Expr = VectorBinaryExpr<VL, VR>;
-		bool result = std::ranges::all_of(Expr::Range(), [&](std::size_t i) { return lhs(i) == rhs(i); });
-		return result;
+		std::size_t length = lhs.Size();
+		for (std::size_t i = 0; i < length; ++i)
+		{
+			if (lhs(i) != rhs(i))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 
 
@@ -671,7 +670,11 @@ namespace ark::math
 	{
 		using Expr = VectorBinaryExpr<VL, VR>;
 		typename Expr::Scalar result{0};
-		std::ranges::for_each(Expr::Range(), [&](std::size_t i) { result += l(i) * r(i); });
+		std::size_t length = l.Size();
+		for (std::size_t i = 0; i < length; ++i)
+		{
+			result += l(i) * r(i);
+		}
 		return result;
 	}
 

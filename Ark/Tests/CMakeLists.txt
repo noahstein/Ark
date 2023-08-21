@@ -25,10 +25,10 @@ target_link_libraries(GTest::GTest INTERFACE gtest_main)
 set_simd_test(QUAT_SIMD_TESTS Quat)
 add_executable(MathTests
 
-	# VectorUnitTests.cpp
-	# VecUnitTests.cpp
-	# Vec2UnitTests.cpp
-	# Vec4UnitTests.cpp
+	VectorUnitTests.cpp
+	VecUnitTests.cpp
+	Vec2UnitTests.cpp
+	Vec4UnitTests.cpp
 
 	QuatUnitTests.h
 	QuaternionUnitTests.cpp
