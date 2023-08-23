@@ -11,6 +11,11 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 	include("cmake/toolchains/settings/${CMAKE_HOST_SYSTEM_NAME}.cmake")
 endif()
 
+# Handle Emscripten configuration
+if (EMSCRIPTEN)
+	include("cmake/toolchains/settings/Emscripten.cmake")
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
