@@ -317,7 +317,7 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 	{
 		// Given
 		typename TypeParam::Scalar scalar{1};
-		
+
 		// When
 		auto result = scalar * this->q2;
 
@@ -399,6 +399,7 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 		EXPECT_EQ(this->qr.z(), 9.5);
 	}
 
+#if !defined(MULTIPLICATION_UNSPECIALIZED)
 	TYPED_TEST(QUAT_TEST_CLASS, MultiplicationReturnsSpecializedTypeOrExpressionCorrectly)
 	{
 		// When
@@ -411,6 +412,7 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 
 		EXPECT_TRUE(isSameOrDerived ^ isBasicExpression);
 	}
+#endif
 
 
 	TYPED_TEST(QUAT_TEST_CLASS, I_x_I_eq_MinusOne)

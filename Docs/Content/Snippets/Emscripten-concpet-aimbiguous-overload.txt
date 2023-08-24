@@ -1,0 +1,5 @@
+@note As of August 23, 2023; Emscripten does not properly resolve overloads
+involving concepts; therefore, this function has not been implemented as a
+template using concepts as for other platforms. At such time as Emscripten
+does properly resolve overloads, the function signatures will switch to
+templates in order to maximize reusability like for other platforms.
