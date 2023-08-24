@@ -62,7 +62,7 @@ namespace ark::hal::simd
 	 * @see @ref SimdArchitecture
 	 ********************************************************************/
 	template<typename SIMD>
-	concept Wasm128Family = std::is_base_of_v<Wasm128, SIMD>;
+	concept Wasm128Family = std::derived_from<SIMD, Wasm128>;
 }
 
 

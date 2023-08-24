@@ -438,7 +438,7 @@ namespace ark::math
 	 * @sa @ref ExpressionTemplates
 	 ********************************************************************/
 	template<typename Q>
-	class QuaternionConjugation : QuaternionUnaryExpr<Q>
+	class QuaternionConjugation : public QuaternionUnaryExpr<Q>
 	{
 		/// A quaternion to return the conjugate of.
 		Q q_;

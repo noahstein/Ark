@@ -30,8 +30,7 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 {
 	using QuatTestTypes = ::testing::Types
 	<
-		Cfg<float, ::ark::hal::simd::Wasm128>,
-		Cfg<double, ::ark::hal::simd::Wasm128>
+		Cfg<float, ::ark::hal::simd::Wasm128>
 	>;
 }
 

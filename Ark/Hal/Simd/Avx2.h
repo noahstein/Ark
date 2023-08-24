@@ -56,7 +56,7 @@ namespace ark::hal::simd
 	 * @see @ref SimdArchitecture
 	 ********************************************************************/
 	template<typename SIMD>
-	concept Avx2Family = AvxFamily<SIMD> && std::is_base_of_v<Avx2, SIMD>;
+	concept Avx2Family = AvxFamily<SIMD> && std::derived_from<SIMD, Avx2>;
 }
 
 

@@ -70,7 +70,7 @@ namespace ark::hal::simd
 	 * @see @ref SimdArchitecture
 	 ********************************************************************/
 	template<typename SIMD>
-	concept Neon32Family = std::is_base_of_v<Neon32, SIMD>;
+	concept Neon32Family = std::derived_from<SIMD, Neon32>;
 }
 
 

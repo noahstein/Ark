@@ -70,7 +70,7 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 			q1 = Quat<Scalar, Isa>(3, 13, 7, 19);
 			q2 = Quat<Scalar, Isa>(5, 11, 23, 29);
 		}
-		
+
 		/// @name Quaternion Constants
 		/// @{
 		/// @brief The quaternion representing 1
@@ -88,6 +88,62 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 		Quat<Scalar, Isa> q1;
 		Quat<Scalar, Isa> q2;
 		Quat<Scalar, Isa> qr;
+		/// @}
+
+		/// @name Support Functions
+		/// @{
+
+		/**
+		 * @brief Predicate to determine if a result is of a basic
+		 * quaternion expression type. This is useful when determining if
+		 * the result value should be an optimized type.
+		 *
+		 * @tparam R The type of the quaternion result
+		 * @param result A result from a quaternion expression under test
+		 * @result True if basic expression, false if optimized type
+		 */
+		template<typename R>
+		bool IsResultTypeBasicExpression(R& result) const
+		{
+			bool derived = std::derived_from<R, QuaternionExpr>;
+			bool same = std::same_as<QuatBasic<Scalar>, Quat<Scalar, Isa>>;
+			return derived && same;
+		}
+
+
+		/**
+		 * @brief Predicate to determine if a result type the same as that
+		 * under test.
+		 *
+		 * @tparam R The type of the quaternion result
+		 * @param result A result from a quaternion expression under test
+		 * @result True if types are same, false if different
+		 */
+		template<typename R>
+		bool IsResultTypeSame(R& result) const
+		{
+			return std::same_as<R, Quat<Scalar, Isa>>;
+		}
+
+
+		/**
+		 * @brief Predicate to determine if a result type is correctly
+		 * either a basic expression or an optimized type, depending upon
+		 * whether the parameters are basic or optimized.
+		 *
+		 * @tparam R The type of the quaternion result
+		 * @param result A result from a quaternion expression under test
+		 * @result True if types are properly optimized, false if not.
+		 */
+		template<typename R>
+		bool IsSpecializedCorrectly(R& result) const
+		{
+			bool isBasicExpression = IsResultTypeBasicExpression(result);
+			bool isSame = IsResultTypeSame(result);
+			bool isCorrect = isBasicExpression ^ isSame;
+			return isCorrect;
+		}
+
 		/// @}
 	};
 
@@ -175,10 +231,8 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 		auto result = -this->q1;
 
 		// Then
-		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
-			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
-		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
-		EXPECT_TRUE(isSame ^ isBasicExpression);
+		bool correct = this->IsSpecializedCorrectly(result);
+		EXPECT_TRUE(correct);
 	}
 
 
@@ -201,10 +255,8 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 		auto result = *this->q1;
 
 		// Then
-		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
-			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
-		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
-		EXPECT_TRUE(isSame ^ isBasicExpression);
+		bool correct = this->IsSpecializedCorrectly(result);
+		EXPECT_TRUE(correct);
 	}
 
 
@@ -237,10 +289,8 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 		auto result = Inverse(this->q1);
 
 		// Then
-		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
-			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
-		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
-		EXPECT_TRUE(isSame ^ isBasicExpression);
+		bool correct = this->IsSpecializedCorrectly(result);
+		EXPECT_TRUE(correct);
 	}
 
 
@@ -267,10 +317,8 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 		auto result = this->q1 + this->q2;
 
 		// Then
-		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
-			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
-		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
-		EXPECT_TRUE(isSame ^ isBasicExpression);
+		bool correct = this->IsSpecializedCorrectly(result);
+		EXPECT_TRUE(correct);
 	}
 
 
@@ -293,10 +341,8 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 		auto result = this->q1 - this->q2;
 
 		// Then
-		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
-			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
-		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
-		EXPECT_TRUE(isSame ^ isBasicExpression);
+		bool correct = this->IsSpecializedCorrectly(result);
+		EXPECT_TRUE(correct);
 	}
 
 
@@ -322,10 +368,8 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 		auto result = scalar * this->q2;
 
 		// Then
-		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
-			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
-		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
-		EXPECT_TRUE(isSame ^ isBasicExpression);
+		bool correct = this->IsSpecializedCorrectly(result);
+		EXPECT_TRUE(correct);
 	}
 
 
@@ -351,10 +395,8 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 		auto result = this->q2 * scalar;
 
 		// Then
-		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
-			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
-		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
-		EXPECT_TRUE(isSame ^ isBasicExpression);
+		bool correct = this->IsSpecializedCorrectly(result);
+		EXPECT_TRUE(correct);
 	}
 
 
@@ -380,10 +422,8 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 		auto result = this->q2 / scalar;
 
 		// Then
-		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
-			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
-		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
-		EXPECT_TRUE(isSame ^ isBasicExpression);
+		bool correct = this->IsSpecializedCorrectly(result);
+		EXPECT_TRUE(correct);
 	}
 
 
@@ -406,11 +446,8 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 		auto result = this->q1 * this->q2;
 
 		// Then
-		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
-			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
-		bool isSameOrDerived = std::is_base_of_v<decltype(this->q1), decltype(result)>;
-
-		EXPECT_TRUE(isSameOrDerived ^ isBasicExpression);
+		bool correct = this->IsSpecializedCorrectly(result);
+		EXPECT_TRUE(correct);
 	}
 #endif
 
@@ -531,10 +568,8 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 		auto result = this->q1 / this->q2;
 
 		// Then
-		bool isBasicExpression = std::is_base_of_v<QuaternionExpr, decltype(result)>
-			&& std::is_same_v<QuatBasic<typename TypeParam::Scalar>, decltype(this->q1)>;
-		bool isSame = std::is_same_v<decltype(this->q1), decltype(result)>;
-		EXPECT_TRUE(isSame ^ isBasicExpression);
+		bool correct = this->IsSpecializedCorrectly(result);
+		EXPECT_TRUE(correct);
 	}
 
 
