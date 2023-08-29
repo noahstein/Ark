@@ -32,10 +32,6 @@
 
 namespace ark::math::test::VEC4_TEST_NAMESPACE
 {
-	using namespace ::ark::hal;
-	using namespace ::ark::math;
-
-
 	/*********************************************************************
 	 * @brief Parametric 2-D Vec Unit Tests Fixture
 	 *
@@ -59,9 +55,10 @@ namespace ark::math::test::VEC4_TEST_NAMESPACE
 	class VEC4_TEST_CLASS : public testing::Test
 	{
 	protected:
-		/// @brief Type of tests' quaternion scalar components
+		/// @brief Type of tests' vector scalar components
 		using Scalar = typename C::Scalar;
-		/// @brief the instruction set architecture to test
+
+		/// @brief SIMD instruction set architecture to test
 		using Isa = typename C::Isa;
 
 		/// @brief Set up a standard pair of quaternions for tests

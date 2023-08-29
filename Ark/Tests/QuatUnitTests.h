@@ -46,9 +46,6 @@
 
 namespace ark::math::test::QUAT_TEST_NAMESPACE
 {
-	using namespace ::ark::hal;
-	using namespace ::ark::math;
-
 	/*********************************************************************
 	 * @brief Quat Unit Parametric Tests Fixture
 	 * 
@@ -60,10 +57,9 @@ namespace ark::math::test::QUAT_TEST_NAMESPACE
 	class QUAT_TEST_CLASS : public testing::Test
 	{
 	protected:
-		/// @brief Type of tests' quaternion scalar components
 		using Scalar = typename C::Scalar;
-		/// @brief the instruction set architecture to test
 		using Isa = typename C::Isa;
+
 		/// @brief Set up a standard pair of quaternions for tests
 		void SetUp() override
 		{
