@@ -21,79 +21,84 @@ Copyright
 #include "gtest/gtest.h"
 #include "Ark/Math/Mtx.h"
 
-template<typename S> using Mtx = ark::math::Mtx<S, 2, 2>;
 
 
-/*========================================================================
- Fixtures
-========================================================================*/
-
-/*------------------------------------------------------------------------
- Mtx<float> Test Fixture
-------------------------------------------------------------------------*/
-class MtxUnitTests : public testing::Test
+namespace ark::math::test::matrix_unit_tests
 {
-protected:
-	void SetUp() override
+	template<typename S> using Mtx = Mtx<S, 2, 2>;
+
+
+	/*========================================================================
+	 Fixtures
+	========================================================================*/
+
+	/*------------------------------------------------------------------------
+	 Mtx<float> Test Fixture
+	------------------------------------------------------------------------*/
+	class MtxUnitTests : public testing::Test
 	{
-		m1 = Mtx<float>{3.2f, 13.5f,
-		                7.3f, 11.25f};
-		m2 = Mtx<float>{15, 11,
-		                23, 17};
+	protected:
+		void SetUp() override
+		{
+			m1 = Mtx<float>{3.2f, 13.5f,
+			                7.3f, 11.25f};
+			m2 = Mtx<float>{15, 11,
+			                23, 17};
+		}
+		Mtx<float> m1;
+		Mtx<float> m2;
+		Mtx<float> mr;
+	};
+
+
+	/*========================================================================
+	 Tests
+	========================================================================*/
+
+	TEST_F(MtxUnitTests, DefaultConstructor)
+	{
+		Mtx<int> v;
+		SUCCEED();
 	}
-	Mtx<float> m1;
-	Mtx<float> m2;
-	Mtx<float> mr;
-};
 
 
-/*========================================================================
- Tests
-========================================================================*/
+	TEST_F(MtxUnitTests, ElementConstructor)
+	{
+		// When
+		auto m = Mtx<float>{2.0f, 3.0f,
+		                    5.0f, 7.0f};
 
-TEST_F(MtxUnitTests, DefaultConstructor)
-{
-	Mtx<int> v;
-	SUCCEED();
-}
-
-
-TEST_F(MtxUnitTests, ElementConstructor)
-{
-	// When
-	auto m = Mtx<float>{2.0f, 3.0f,
-	                    5.0f, 7.0f};
-
-	// Then
-	EXPECT_EQ(m(0,0), 2.0f);
-	EXPECT_EQ(m(0,1), 3.0f);
-	EXPECT_EQ(m(1,0), 5.0f);
-	EXPECT_EQ(m(1,1), 7.0f);
-}
+		// Then
+		EXPECT_EQ(m(0, 0), 2.0f);
+		EXPECT_EQ(m(0, 1), 3.0f);
+		EXPECT_EQ(m(1, 0), 5.0f);
+		EXPECT_EQ(m(1, 1), 7.0f);
+	}
 
 
-TEST_F(MtxUnitTests, MatrixCopyConstructor)
-{
-	// When
-	Mtx<float> m{m1};
+	TEST_F(MtxUnitTests, MatrixCopyConstructor)
+	{
+		// When
+		Mtx<float> m{m1};
 
-	// Then
-	EXPECT_EQ(m(0,0), 3.2f);
-	EXPECT_EQ(m(0,1), 13.5f);
-	EXPECT_EQ(m(1,0), 7.3f);
-	EXPECT_EQ(m(1,1), 11.25f);
-}
+		// Then
+		EXPECT_EQ(m(0, 0), 3.2f);
+		EXPECT_EQ(m(0, 1), 13.5f);
+		EXPECT_EQ(m(1, 0), 7.3f);
+		EXPECT_EQ(m(1, 1), 11.25f);
+	}
 
 
-TEST_F(MtxUnitTests, Accessor)
-{
-	// When
-	Mtx<float> m{2.0f, 3.0f,
-	             5.0f, 7.0f};
+	TEST_F(MtxUnitTests, Accessor)
+	{
+		// When
+		Mtx<float> m{2.0f, 3.0f,
+		             5.0f, 7.0f};
 
-	// Then
-	EXPECT_EQ(m(0, 0), 2.0f);
-	EXPECT_EQ(m(0, 1), 3.0f);
-	EXPECT_EQ(m(1, 0), 5.0f);
-	EXPECT_EQ(m(1, 1), 7.0f);
+		// Then
+		EXPECT_EQ(m(0, 0), 2.0f);
+		EXPECT_EQ(m(0, 1), 3.0f);
+		EXPECT_EQ(m(1, 0), 5.0f);
+		EXPECT_EQ(m(1, 1), 7.0f);
+	}
 }

@@ -396,6 +396,38 @@ namespace ark::math
 
 
 	/*--------------------------------------------------------------------
+		Matrix Transpose Expression: Trans(m)
+	--------------------------------------------------------------------*/
+	template<Matrix M>
+	class MatrixTranspose : public MatrixUnaryExpr<M>
+	{
+		M const & m_;
+
+	public:
+		using Scalar = typename MatrixUnaryExpr<M>::Scalar;
+
+		constexpr MatrixTranspose(const M & m)
+			: m_(m)
+		{}
+
+		static constexpr size_t Width() noexcept { return M::Height(); }
+		static constexpr size_t Height() noexcept { return M::Width(); }
+		constexpr Scalar operator()(std::size_t row, std::size_t column) const
+		{
+			return m_(column, row);
+		}
+	};
+
+	/*--------------------------------------------------------------------
+		Matrix Transpose Function: Trans(m)
+	--------------------------------------------------------------------*/
+	template<Matrix M>
+	inline constexpr auto Trans(const M & m) noexcept -> MatrixTranspose<M>
+	{
+		return MatrixTranspose(m);
+	}
+
+	/*--------------------------------------------------------------------
 		Matrix Multiplication Expression: m1 * m2
 	--------------------------------------------------------------------*/
 	template<Matrix ML, Matrix MR>

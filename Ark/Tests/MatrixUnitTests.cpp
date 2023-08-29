@@ -18,10 +18,10 @@ Copyright
 /*========================================================================
  Local Class Definitions
 ========================================================================*/
-namespace ark::math
+namespace ark::math::test::matrix_unit_tests
 {
 	/*--------------------------------------------------------------------
-		TestMtx class implements the Matrix concept in a simple way to 
+		TestMtx class implements the Matrix concept in a simple way to
 		test the functionality implemented against the concept
 	--------------------------------------------------------------------*/
 	template<int R, int C>
@@ -38,7 +38,7 @@ namespace ark::math
 		static constexpr std::size_t Height() { return R; }
 		constexpr Scalar operator()(std::size_t row, std::size_t column) const
 		{
-			  return data_[row][column];
+			return data_[row][column];
 		}
 
 		TestMtx() = default;
@@ -50,7 +50,7 @@ namespace ark::math
 			{
 				for (std::size_t c = 0; c < rhs.Width(); ++c)
 				{
-					data_[r][c] = rhs(r, c);					
+					data_[r][c] = rhs(r, c);
 				}
 			}
 		}
@@ -79,208 +79,211 @@ namespace ark::math
 			{
 				for (std::size_t c = 0; c < rhs.Width(); ++c)
 				{
-					data_[r][c] = rhs(r, c);					
+					data_[r][c] = rhs(r, c);
 				}
 			}
 			return *this;
 		}
 	};
-}
-using Mtx = ark::math::TestMtx<2, 2>;
+
+	using Mtx = TestMtx<2, 2>;
 
 
-/*------------------------------------------------------------------------
-	Vector Test Fixture
-------------------------------------------------------------------------*/
-class MatrixUnitTests : public testing::Test
-{
-protected:
-	void SetUp() override
+	/*------------------------------------------------------------------------
+		Vector Test Fixture
+	------------------------------------------------------------------------*/
+	class MatrixUnitTests : public testing::Test
 	{
-		m = Mtx({ 2.0f, 3.0f,
-		          5.0f, 7.0f});
-		m1 = Mtx({ 2.0f, 3.0f,
-		           5.0f, 7.0f});
-		m2 = Mtx({ 11.0f, 13.0f,
-		           17.0f, 19.0f});
+	protected:
+		void SetUp() override
+		{
+			m = Mtx({ 2.0f, 3.0f,
+					  5.0f, 7.0f });
+			m1 = Mtx({ 2.0f, 3.0f,
+					   5.0f, 7.0f });
+			m2 = Mtx({ 11.0f, 13.0f,
+					   17.0f, 19.0f });
+		}
+
+		Mtx m;
+		Mtx m1;
+		Mtx m2;
+		Mtx mr;
+	};
+
+
+	/*========================================================================
+	 Tests
+	========================================================================*/
+
+	TEST_F(MatrixUnitTests, Negate)
+	{
+		// When
+		mr = -m;
+
+		// Then
+		EXPECT_EQ(mr(0, 0), -2.0f);
+		EXPECT_EQ(mr(0, 1), -3.0f);
+		EXPECT_EQ(mr(1, 0), -5.0f);
+		EXPECT_EQ(mr(1, 1), -7.0f);
 	}
 
-	Mtx m;
-	Mtx m1;
-	Mtx m2;
-	Mtx mr;
-};
+
+	TEST_F(MatrixUnitTests, Add)
+	{
+		// When
+		mr = m1 + m2;
+
+		// Then
+		EXPECT_EQ(mr(0, 0), 13.0f);
+		EXPECT_EQ(mr(0, 1), 16.0f);
+		EXPECT_EQ(mr(1, 0), 22.0f);
+		EXPECT_EQ(mr(1, 1), 26.0f);
+	}
 
 
-/*========================================================================
- Tests
-========================================================================*/
+	TEST_F(MatrixUnitTests, Subtract)
+	{
+		// When
+		mr = m1 - m2;
 
-TEST_F(MatrixUnitTests, Negate)
-{
-	// When
-	mr = -m;
-
-	// Then
-	EXPECT_EQ(mr(0, 0), -2.0f);
-	EXPECT_EQ(mr(0, 1), -3.0f);
-	EXPECT_EQ(mr(1, 0), -5.0f);
-	EXPECT_EQ(mr(1,1 ), -7.0f);
-}
+		// Then
+		EXPECT_EQ(mr(0, 0), -9.0f);
+		EXPECT_EQ(mr(0, 1), -10.0f);
+		EXPECT_EQ(mr(1, 0), -12.0f);
+		EXPECT_EQ(mr(1, 1), -12.0f);
+	}
 
 
-TEST_F(MatrixUnitTests, Add)
-{
-	// When
-	mr = m1 + m2;
+	TEST_F(MatrixUnitTests, ScalarMatrixMultiplication)
+	{
+		// When
+		mr = 10.0f * m;
 
-	// Then
-	EXPECT_EQ(mr(0, 0), 13.0f);
-	EXPECT_EQ(mr(0, 1), 16.0f);
-	EXPECT_EQ(mr(1, 0), 22.0f);
-	EXPECT_EQ(mr(1,1 ), 26.0f);
-}
-
-
-TEST_F(MatrixUnitTests, Subtract)
-{
-	// When
-	mr = m1 - m2;
-
-	// Then
-	EXPECT_EQ(mr(0, 0), -9.0f);
-	EXPECT_EQ(mr(0, 1), -10.0f);
-	EXPECT_EQ(mr(1, 0), -12.0f);
-	EXPECT_EQ(mr(1,1 ), -12.0f);
-}
+		// Then
+		EXPECT_EQ(mr(0, 0), 20.0f);
+		EXPECT_EQ(mr(0, 1), 30.0f);
+		EXPECT_EQ(mr(1, 0), 50.0f);
+		EXPECT_EQ(mr(1, 1), 70.0f);
+	}
 
 
-TEST_F(MatrixUnitTests, ScalarMatrixMultiplication)
-{
-	// When
-	mr = 10.0f * m;
+	TEST_F(MatrixUnitTests, MatrixScalarMultiplication)
+	{
+		// When
+		mr = m * 10.0f;
 
-	// Then
-	EXPECT_EQ(mr(0, 0), 20.0f);
-	EXPECT_EQ(mr(0, 1), 30.0f);
-	EXPECT_EQ(mr(1, 0), 50.0f);
-	EXPECT_EQ(mr(1,1 ), 70.0f);
-}
-
-
-TEST_F(MatrixUnitTests, MatrixScalarMultiplication)
-{
-	// When
-	mr = m * 10.0f;
-
-	// Then
-	EXPECT_EQ(mr(0, 0), 20.0f);
-	EXPECT_EQ(mr(0, 1), 30.0f);
-	EXPECT_EQ(mr(1, 0), 50.0f);
-	EXPECT_EQ(mr(1,1 ), 70.0f);
-}
+		// Then
+		EXPECT_EQ(mr(0, 0), 20.0f);
+		EXPECT_EQ(mr(0, 1), 30.0f);
+		EXPECT_EQ(mr(1, 0), 50.0f);
+		EXPECT_EQ(mr(1, 1), 70.0f);
+	}
 
 
-TEST_F(MatrixUnitTests, MatrixScalarDivision)
-{
-	// When
-	mr = m / 2.0f;
+	TEST_F(MatrixUnitTests, MatrixScalarDivision)
+	{
+		// When
+		mr = m / 2.0f;
 
-	// Then
-	EXPECT_EQ(mr(0, 0), 1.0f);
-	EXPECT_EQ(mr(0, 1), 1.5f);
-	EXPECT_EQ(mr(1, 0), 2.5f);
-	EXPECT_EQ(mr(1,1 ), 3.5f);
-}
-
-
-TEST_F(MatrixUnitTests, EqualityCheckSame)
-{
-	// When
-	bool result = m == m;
-
-	// Then
-	EXPECT_TRUE(result);
-}
+		// Then
+		EXPECT_EQ(mr(0, 0), 1.0f);
+		EXPECT_EQ(mr(0, 1), 1.5f);
+		EXPECT_EQ(mr(1, 0), 2.5f);
+		EXPECT_EQ(mr(1, 1), 3.5f);
+	}
 
 
-TEST_F(MatrixUnitTests, EqualityCheckDifferent)
-{
-	// When
-	bool result = m1 == m2;
+	TEST_F(MatrixUnitTests, EqualityCheckSame)
+	{
+		// When
+		bool result = m == m;
 
-	// Then
-	EXPECT_FALSE(result);
-}
-
-
-TEST_F(MatrixUnitTests, InequalityCheckSame)
-{
-	// When
-	bool result = m != m;
-
-	// Then
-	EXPECT_FALSE(result);
-}
+		// Then
+		EXPECT_TRUE(result);
+	}
 
 
-TEST_F(MatrixUnitTests, InequalityCheckDifferent)
-{
-	// When
-	bool result = m1 != m2;
+	TEST_F(MatrixUnitTests, EqualityCheckDifferent)
+	{
+		// When
+		bool result = m1 == m2;
 
-	// Then
-	EXPECT_TRUE(result);
-}
-
-
-TEST_F(MatrixUnitTests, Multiplication)
-{
-	// When
-	mr = m1 * m2;
-
-	// Then
-	EXPECT_EQ(mr(0, 0), 73.0f);
-	EXPECT_EQ(mr(0, 1), 83.0f);
-	EXPECT_EQ(mr(1, 0), 174.0f);
-	EXPECT_EQ(mr(1,1 ), 198.0f);
-}
+		// Then
+		EXPECT_FALSE(result);
+	}
 
 
-TEST_F(MatrixUnitTests, Determinant2x2)
-{
-	// When
-	float result = Det(m);
+	TEST_F(MatrixUnitTests, InequalityCheckSame)
+	{
+		// When
+		bool result = m != m;
 
-	// Then
-	EXPECT_EQ(result, -1.0f);
-}
-
-
-TEST_F(MatrixUnitTests, Determinant3x3)
-{
-	// Given
-	ark::math::TestMtx<3, 3> mtx({5, 2, 3,
-	                              4, 5, 6,
-	                              7, 8, 9});
-	// When
-	float result = Det(mtx);
-
-	// Then
-	EXPECT_EQ(result, -12.0f);
-}
+		// Then
+		EXPECT_FALSE(result);
+	}
 
 
-TEST_F(MatrixUnitTests, Determinant4x45)
-{
-	// Given
-	ark::math::TestMtx<4, 4> mtx({1, 3, 5, 9,
-	                              1, 3, 1, 7,
-	                              4, 3, 9, 7,
-	                              5, 2, 0, 9});
-	// When
-	float result = Det(mtx);
+	TEST_F(MatrixUnitTests, InequalityCheckDifferent)
+	{
+		// When
+		bool result = m1 != m2;
 
-	// Then
-	EXPECT_EQ(result, -376);
+		// Then
+		EXPECT_TRUE(result);
+	}
+
+
+	TEST_F(MatrixUnitTests, Multiplication)
+	{
+		// When
+		mr = m1 * m2;
+
+		// Then
+		EXPECT_EQ(mr(0, 0), 73.0f);
+		EXPECT_EQ(mr(0, 1), 83.0f);
+		EXPECT_EQ(mr(1, 0), 174.0f);
+		EXPECT_EQ(mr(1, 1), 198.0f);
+	}
+
+
+	TEST_F(MatrixUnitTests, Determinant2x2)
+	{
+		// When
+		float result = Det(m);
+
+		// Then
+		EXPECT_EQ(result, -1.0f);
+	}
+
+
+	TEST_F(MatrixUnitTests, Determinant3x3)
+	{
+		// Given
+		TestMtx<3, 3> mtx({ 5, 2, 3,
+		                    4, 5, 6,
+		                    7, 8, 9 });
+
+		// When
+		float result = Det(mtx);
+
+		// Then
+		EXPECT_EQ(result, -12.0f);
+	}
+
+
+	TEST_F(MatrixUnitTests, Determinant4x44)
+	{
+		// Given
+		TestMtx<4, 4> mtx({ 1, 3, 5, 9,
+		                    1, 3, 1, 7,
+		                    4, 3, 9, 7,
+		                    5, 2, 0, 9 });
+
+		// When
+		float result = Det(mtx);
+
+		// Then
+		EXPECT_EQ(result, -376);
+	}
 }

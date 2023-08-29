@@ -1,0 +1,4 @@
+The matrix assignment function copies the values from a source object 
+conforming to the matrix concept. The matrices must be of the same 
+dimension. The scalar types, however, may be different. The source 
+matrix's scalar type must be convetible to the destination's.

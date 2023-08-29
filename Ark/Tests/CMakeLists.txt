@@ -29,6 +29,10 @@ set_simd_test(VEC4_SIMD_TESTS Vec4)
 
 add_executable(MathTests
 
+	MatrixUnitTests.cpp
+	MtxUnitTests.cpp
+	Mtx4x4UnitTests.cpp
+
 	VectorUnitTests.cpp
 	Vec2UnitTests.cpp
 	${VEC2_SIMD_TESTS}
