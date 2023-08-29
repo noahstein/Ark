@@ -1,0 +1,3 @@
+@include{doc} DefaultConstructor.txt
+If the scalar type is user-defined, it may have a non-trivial default 
+constructor that gets executed once for each element.

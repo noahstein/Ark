@@ -1,0 +1,3 @@
+The scalaar constructor initializes the vector's elements from indivisual 
+arguments. The constructor must be called with the same number of 
+arguments as the dimension of the vector.

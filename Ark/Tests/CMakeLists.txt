@@ -22,13 +22,19 @@ FetchContent_MakeAvailable(googletest)
 add_library(GTest::GTest INTERFACE IMPORTED)
 target_link_libraries(GTest::GTest INTERFACE gtest_main)
 
+# Determine SIMD platform-specific test files names
 set_simd_test(QUAT_SIMD_TESTS Quat)
+set_simd_test(VEC2_SIMD_TESTS Vec2)
+set_simd_test(VEC4_SIMD_TESTS Vec4)
+
 add_executable(MathTests
 
 	VectorUnitTests.cpp
-	VecUnitTests.cpp
 	Vec2UnitTests.cpp
+	${VEC2_SIMD_TESTS}
+	Vec3UnitTests.cpp
 	Vec4UnitTests.cpp
+	${VEC4_SIMD_TESTS}
 
 	QuatUnitTests.h
 	QuaternionUnitTests.cpp

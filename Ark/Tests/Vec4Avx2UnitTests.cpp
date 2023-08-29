@@ -1,9 +1,9 @@
 /*************************************************************************
  * @file
- * @brief Unoptimized 4-D Vec Unit Tests
- * 
+ * @brief AVX2-optimized 4-D Vec Unit Tests
+ *
  * @author Noah Stein
- * @copyright © 2021-2023 Noah Stein. All Rights Reserved.
+ * @copyright © 2023 Noah Stein. All Rights Reserved.
  ************************************************************************/
 
  //************************************************************************
@@ -18,10 +18,10 @@
 //************************************************************************
 
 /// @brief @includedoc Test/ParameterizedSuitNamespace.txt
-#define VEC4_TEST_NAMESPACE vec4_unit_tests
+#define VEC4_TEST_NAMESPACE vec4_Avx2_unit_tests
 
 /// @brief @includedoc Test/ParameterizedSuitClass.txt
-#define VEC4_TEST_CLASS VecUnitTest
+#define VEC4_TEST_CLASS Vec4Avx2UnitTest
 
 
 namespace ark::math::test::VEC4_TEST_NAMESPACE
@@ -31,10 +31,10 @@ namespace ark::math::test::VEC4_TEST_NAMESPACE
 	* @details @includedoc Test/ParameterizedSuitTypesDetails.txt
 	*/
 	using TestTypes = ::testing::Types
-		<
-		Cfg<float, ::ark::hal::simd::None>,
-		Cfg<double, ::ark::hal::simd::None>
-		>;
+	<
+		Cfg<float, ::ark::hal::simd::Avx2>,
+		Cfg<double, ::ark::hal::simd::Avx2>
+	>;
 }
 
 

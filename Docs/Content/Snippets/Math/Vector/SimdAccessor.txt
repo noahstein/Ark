@@ -1,0 +1,8 @@
+Get SIMD-specific vector data. Optimizied function implementations use 
+this function to access SIMD-specific data to then perform computations.
+
+@warning The SIMD-specific data should not be accessed by general-purpose 
+code. The accessor should only be called by functions implementing 
+optimized versions of vector algorithms. Such optimized functions should 
+only be written after a generic version is implemented first to ensure 
+the algorithm is usable on all platforms.

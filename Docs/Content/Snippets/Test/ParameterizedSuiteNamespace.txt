@@ -1,0 +1,1 @@
+Preprocessor macro defining the namesapce in which the parameterized test suite will reside

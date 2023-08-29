@@ -1,0 +1,3 @@
+The vector default constructor uses the default constructor syntehsized 
+by the C++ compiler. The behavior of intrinsic data types is to be 
+efficient and leave data in an uninitialized state.

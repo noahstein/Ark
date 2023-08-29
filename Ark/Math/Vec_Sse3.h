@@ -1,20 +1,21 @@
-/*************************************************************************
- * @file
- * @brief Vec<S, N, SIMD> optimizations for the SSE3 ISA.
- * 
- * @details This file defines opitimizations to the basic Vec class for 
- * use on platforms with CPUs possessing SSE3 registers and instructions.
- * The SSE3 spec continues the register set of SSE2 and, for the purposes 
- * of vectors, adds a few instructions to simplify a few functions and 
- * make them faster.
- * 
- * @sa Vec.h
- * @sa Vec_Sse.h
- * @sa Vec_Sse2.h
- * 
- * @author Noah Stein
- * @copyright © 2021 Noah Stein. All Rights Reserved.
- ************************************************************************/
+ /*************************************************************************
+  * @file
+  * @brief SSE3-optimized Vec Implementation
+  *
+  * @details This file defines optimizations to the Vec type family
+  * utilizing the SSE3 SIMD ISA. The spec does not define a new register
+  * format necessitating a change to the data formats. It does, however, 
+  * introduce new instructions enabling more-efficient implementations of 
+  * a few algorithms for both single-precision and double-precision 
+  * floating-point vectors.
+  *
+  * @sa Vec.h
+  * @se Vec_Sse2.h
+  * @sa ::ark::hal::simd::Sse3
+  *
+  * @author Noah Stein
+  * @copyright © 2021-2023 Noah Stein. All Rights Reserved.
+  ************************************************************************/
 
 #if !defined(ARK_MATH_VEC_SSE3_H_INCLUDE_GUARD)
 #define ARK_MATH_VEC_SSE3_H_INCLUDE_GUARD
@@ -34,63 +35,129 @@
 namespace ark::math
 {
 	//====================================================================
+	//  Concepts
+	//====================================================================
+
+	/*********************************************************************
+	 * @brief SSE3-optimized Vector Parameter Concept
+	 *
+	 * @tparam V The type of vector client code is passing as an argument
+	 * @tparam S The type of scalar the function requires
+	 * @tparam N The dimension of the vector the function requires
+	 *
+	 * @details Concept for declaring parameters of SSE3-optimized
+	 * functions.It ensures the parameter is of a type optimized for the
+	 * SSE3 SIMD ISA but not earlier SSE specifications.
+	 * @includedoc Math/Vector/ParameterConcept.txt
+	 *
+	 * @sa ark::math::VecSse2
+	 * @sa ark::hal::simd::Sse3Family
+	 * @sa @ref SimdArchitecture
+	 */
+	template<typename V, typename S, std::size_t N>
+	concept VecSse3 = VecSse2<V, S, N> &&
+		::ark::hal::simd::Sse3Family<typename V::Revision>;
+
+	//====================================================================
 	//  ISA Register Set Promotion
 	//====================================================================
 
 	/*********************************************************************
-	 * @brief SSE3-optimized 2-D Vec Double Specialization
-	 * 
-	 * @details As the SSE3 specification does not change the hardware 
-	 * register set, the Intel intrinsic type representing the register 
-	 * format has not changed for double-precision floating-point 
-	 * vectors. For the SIMD versioning system to work, the SSE2 class is 
-	 * as-is for SSE3.
-	 * 
-	 * @sa Vec<double, 2, ark::hal::simd::Sse2>
-	 ********************************************************************/
-	template<>
-	class Vec<double, 2, ark::hal::simd::Sse3>
-		:	public Vec<double, 2, ark::hal::simd::Sse2>
+	 * @brief SSE3-optimized 4-D Single-precision Floating-point Vector
+	 *
+	 * @details The changes changes from SSE2 to SSE3 do not result in a 
+	 * new register specification applicable to further 4-D 
+	 * single-precision floating-point vectors.
+	 *
+	 * @sa Vec
+	 * @sa ::ark::math::Vector
+	 * @sa ::ark::math:Sse3Family
+	 */
+	class VecFloat4Sse3 : public VecFloat4Sse2
 	{
-		using Vec<double, 2, ark::hal::simd::Sse2>::Vec;
+	public:
+		using Revision = ark::hal::simd::Sse3;
+		using VecFloat4Sse2::VecFloat4Sse2;
 	};
 
 
 	/*********************************************************************
-	 * @brief SSE3-optimized 4-D Vec Float Specialization
-	 * 
-	 * @details As the SSE3 specification does not change the hardware 
-	 * register set, the Intel intrinsic type representing the register 
-	 * format has not changed for single-precision floating-point 
-	 * vectors. For the SIMD versioning system to work, the SSE2 class is 
-	 * as-is for SSE3.
-	 * 
-	 * @sa Vec<float, 4, ark::hal::simd::Sse2>
-	 ********************************************************** **********/
+	 * @brief Specialize VectorSelector<float, 4, Sse3> with
+	 * VecFloat4Sse3.
+	 *
+	 * @sa Vec
+	 * @sa VecFloat4Sse3
+	 */
 	template<>
-	class Vec<float, 4, ark::hal::simd::Sse3>
-		:	public Vec<float, 4, ark::hal::simd::Sse2>
+	struct VectorSelector<float, 4, ark::hal::simd::Sse3>
 	{
-		using Vec<float, 4, ark::hal::simd::Sse2>::Vec;
+		using type = VecFloat4Sse3;
 	};
 
 
 	/*********************************************************************
-	 * @brief SSE3-optimized 4-D Vec Double Specialization
-	 * 
-	 * @details As the SSE3 specification does not change the hardware 
-	 * register set, the Intel intrinsic type representing the register 
-	 * format has not changed for double-precision floating-point 
-	 * vectors. For the SIMD versioning system to work, the SSE2 class is 
-	 * as-is for SSE3.
-	 * 
-	 * @sa Vec<double, 4, ark::hal::simd::Sse2>
-	 ********************************************************************/
-	template<>
-	class Vec<double, 4, ark::hal::simd::Sse3>
-		:	public Vec<double, 4, ark::hal::simd::Sse2>
+	 * @brief SSE3-optimized 2-D Double-precision Floating-point Vector
+	 *
+	 * @details The changes changes from SSE2 to SSE3 do not result in a
+	 * new register specification applicable to further 2-D
+	 * double-precision floating-point vectors.
+	 *
+	 * @sa Vec
+	 * @sa ::ark::math::Vector
+	 * @sa ::ark::math:Sse3Family
+	 */
+	class VecDouble2Sse3 : public VecDouble2Sse2
 	{
-		using Vec<double, 4, ark::hal::simd::Sse2>::Vec;
+	public:
+		using Revision = ark::hal::simd::Sse3;
+		using VecDouble2Sse2::VecDouble2Sse2;
+	};
+
+
+	/*********************************************************************
+	 * @brief Specialize VectorSelector<double, 2, Sse3> with
+	 * VecDouble2Sse3.
+	 *
+	 * @sa Vec
+	 * @sa VecDouble2Sse3
+	 */
+	template<>
+	struct VectorSelector<double, 2, ark::hal::simd::Sse3>
+	{
+		typedef VecDouble2Sse3 type;
+	};
+
+
+	/*********************************************************************
+	 * @brief SSE3-optimized 4-D Double-precision Floating-point Vector
+	 *
+	 * @details The changes changes from SSE2 to SSE3 do not result in a
+	 * new register specification applicable to further 4-D
+	 * double-precision floating-point vectors.
+	 *
+	 * @sa Vec
+	 * @sa ::ark::math::Vector
+	 * @sa ::ark::math:Sse3Family
+	 */
+	class VecDouble4Sse3 : public VecDouble4Sse2
+	{
+	public:
+		using Revision = ark::hal::simd::Sse3;
+		using VecDouble4Sse2::VecDouble4Sse2;
+	};
+
+
+	/*********************************************************************
+	 * @brief Specialize VectorSelector<double, 4, Sse3> with
+	 * VecDouble4Sse3.
+	 *
+	 * @sa Vec
+	 * @sa VecDouble4Sse3
+	 */
+	template<>
+	struct VectorSelector<double, 4, ark::hal::simd::Sse3>
+	{
+		typedef VecDouble4Sse3 type;
 	};
 
 
@@ -99,26 +166,15 @@ namespace ark::math
 	//====================================================================
 
 	/*********************************************************************
-	 * @brief SSE3-optimized Vec<double, 2> Dot Product
-	 * 
-	 * @details Compute an SSE3-optimized dot product of two 
-	 * Vec<double, 2> vectors. This implementation is selected when the 
-	 * HAL_SIMD parameter is set to any SSE generation that uses the 
-	 * Vec<double, 2, ark::hal::simd::Sse3> specialization.  This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 2>.
-	 * 
-	 * The new intrinsic `_mm_hadd_pd` permits removing a shuffle to add 
-	 * the two multiplied components.
-	 * 
-	 * @include{doc} Math/Vector/DotProduct2D.txt
-	 * 
+	 * @brief SSE3-optimized 2-D Double-precision Vector Dot Product
+	 * @details @include{doc} Math/Vector/DotProduct2D.txt
+	 *
 	 * @sa Dot(const V& vl, const V& vr)
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse3 SIMD>
-	inline auto Dot(Vec<double, 2, SIMD> vl, Vec<double, 2, SIMD> vr) -> double
+	 */
+	template<VecSse3<double, 2> V>
+	inline auto Dot(V lhs, V rhs) noexcept -> double
 	{
-		__m128d m = _mm_mul_pd(vl.SseVal(), vr.SseVal()); // lxrx, lyry
+		__m128d m = _mm_mul_pd(lhs.SseVal(), rhs.SseVal()); // lxrx, lyry
 		__m128d a = _mm_hadd_pd(m, m); // lxrx+lyry, lxrx+lyry
 
 		double result = _mm_cvtsd_f64(a);
@@ -127,27 +183,16 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE3-optimized Vec<double, 2> Cross Product
-	 * 
-	 * @details Compute an SSE3-optimized cross product of two 
-	 * Vec<double, 2> vectors. This implementation is selected when the 
-	 * HAL_SIMD parameter is set to any SSE generation that uses the 
-	 * Vec<double, 2, ark::hal::simd::Sse3> specialization.  This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 2>.
-	 * 
-	 * The new intrinsic `_mm_hsub_pd` permits removing a shuffle to 
-	 * perform the subtraction of the second term from the first.
-	 * 
-	 * @include{doc} Math/Vector/CrossProduct2D.txt
-	 * 
-	 * @sa Cross(const V& vl, const V& vr)
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse3 SIMD>
-	inline auto Cross(Vec<double, 2, SIMD> vl, Vec<double, 2, SIMD> vr) -> double
+	 * @brief SSE3-optimized 2-D Double-precision Vector Dot Product
+	 * @details @include{doc} Math/Vector/DotProduct2D.txt
+	 *
+	 * @sa Dot(const V& vl, const V& vr)
+	 */
+	template<VecSse3<double, 2> V>
+	inline auto Cross(V lhs, V rhs) noexcept -> double
 	{
-		__m128d l01 = vl.SseVal();
-		__m128d r01 = vr.SseVal();
+		__m128d l01 = lhs.SseVal();
+		__m128d r01 = rhs.SseVal();
 
 		__m128d r10 = _mm_shuffle_pd(r01, r01, _MM_SHUFFLE2(0, 1)); // r1, r0
 		__m128d a01 = _mm_mul_pd(l01, r10); // l0r1, l1r0
@@ -163,29 +208,18 @@ namespace ark::math
 	//====================================================================
 
 	/*********************************************************************
-	 * @brief SSE3-optimized Vec<double, 4> Dot Product
-	 * 
-	 * @details Compute an SSE3-optimized dot product of two 
-	 * Vec<double, 4> vectors. This implementation is selected when the 
-	 * HAL_SIMD parameter is set to any SSE generation that uses the 
-	 * Vec<double, 4, ark::hal::simd::Sse3> specialization.  This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 4>.
-	 * 
-	 * The new intrinsic `_mm_hadd_pd` permits removing a shuffle both 
-	 * times two multiplied components in a register are added together.
-	 * 
-	 * @include{doc} Math/Vector/DotProduct4D.txt
-	 * 
+	 * @brief SSE3-optimized 4-D Double-precision Vector Dot Product
+	 * @details @include{doc} Math/Vector/DotProduct4D.txt
+	 *
 	 * @sa Dot(const V& vl, const V& vr)
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse3 SIMD>
-	inline auto Dot(Vec<double, 4, SIMD> vl, Vec<double, 4, SIMD> vr) -> double
+	 */
+	template<VecSse3<double, 4> V>
+	inline auto Dot(V lhs, V rhs) noexcept -> double
 	{
-		__m128d v01 = _mm_mul_pd(vl.Sse01(), vr.Sse01());
+		__m128d v01 = _mm_mul_pd(lhs.Sse01(), rhs.Sse01());
 		__m128d va = _mm_hadd_pd(v01, v01);
 
-		__m128d v23 = _mm_mul_pd(vl.Sse23(), vr.Sse23());
+		__m128d v23 = _mm_mul_pd(lhs.Sse23(), rhs.Sse23());
 		__m128d vb = _mm_hadd_pd(v23, v23);
 
 		__m128d dp = _mm_add_pd(va, vb);

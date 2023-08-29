@@ -62,7 +62,7 @@ namespace ark::math::test::vec_unit_tests
 	 * tests for SIMD specializations.
 	 ********************************************************************/
 	template<typename C>
-	class VecUnitTest : public testing::Test
+	class Vec3UnitTest : public testing::Test
 	{
 	protected:
 		/**
@@ -85,14 +85,14 @@ namespace ark::math::test::vec_unit_tests
 	/**
 	 * @brief Construct a new typed test suite object
 	 */
-	TYPED_TEST_SUITE(VecUnitTest, StdTypes);
+	TYPED_TEST_SUITE(Vec3UnitTest, StdTypes);
 
 
 	//************************************************************************
 	//  Tests
 	//************************************************************************
 
-	TYPED_TEST(VecUnitTest, DefaultConstructor)
+	TYPED_TEST(Vec3UnitTest, DefaultConstructor)
 	{
 		// Given
 		using Scalar = typename TypeParam::Scalar;
@@ -106,7 +106,7 @@ namespace ark::math::test::vec_unit_tests
 	}
 
 
-	TYPED_TEST(VecUnitTest, ElementConstructor)
+	TYPED_TEST(Vec3UnitTest, ElementConstructor)
 	{
 		// Given
 		using Scalar = typename TypeParam::Scalar;
@@ -121,7 +121,7 @@ namespace ark::math::test::vec_unit_tests
 	}
 
 
-	TYPED_TEST(VecUnitTest, VectorCopyConstructor)
+	TYPED_TEST(Vec3UnitTest, VectorCopyConstructor)
 	{
 		// Given
 		using Scalar = typename TypeParam::Scalar;
@@ -137,7 +137,7 @@ namespace ark::math::test::vec_unit_tests
 	}
 
 
-	TYPED_TEST(VecUnitTest, OperatorEqual)
+	TYPED_TEST(Vec3UnitTest, OperatorEqual)
 	{
 		// Given
 		using Scalar = typename TypeParam::Scalar;
@@ -159,7 +159,7 @@ namespace ark::math::test::vec_unit_tests
 	}
 
 
-	TYPED_TEST(VecUnitTest, AccessorAt0)
+	TYPED_TEST(Vec3UnitTest, AccessorAt0)
 	{
 		// Given
 		using Scalar = typename TypeParam::Scalar;
@@ -174,7 +174,7 @@ namespace ark::math::test::vec_unit_tests
 	}
 
 
-	TYPED_TEST(VecUnitTest, AccessorAt1)
+	TYPED_TEST(Vec3UnitTest, AccessorAt1)
 	{
 		// Given
 		using Scalar = typename TypeParam::Scalar;
@@ -189,7 +189,7 @@ namespace ark::math::test::vec_unit_tests
 	}
 
 
-	TYPED_TEST(VecUnitTest, AccessorAt2)
+	TYPED_TEST(Vec3UnitTest, AccessorAt2)
 	{
 		// Given
 		using Scalar = typename TypeParam::Scalar;

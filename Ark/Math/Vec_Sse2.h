@@ -1,25 +1,26 @@
-/*************************************************************************
- * @file
- * @brief Vec<S, N, SIMD> optimizations for the SSE2 ISA.
- * 
- * @details This file defines opitimizations to the basic Vec class for 
- * use on platforms with CPUs possessing SSE2 registers and instructions.
- * Given the definition of SSE2, this file more-specifically contains a 
- * specialization for Vecs with double-precision floating point 
- * components. The original SSE only included single-precision floating-
- * point numerics. Consequently, the SSE optimizations do not include 
- * doubles. As no new single-precision instructions were added useful to 
- * the vector algorithms, the SSE2 optimizations in this file are all 
- * double-precision implementations. There is a specialization of the 
- * Vec class for double-precision components and algorithms implemented 
- * against the class specialization.
- * 
- * @sa Vec.h
- * @sa Vec_Sse.h
- * 
- * @author Noah Stein
- * @copyright © 2021 Noah Stein. All Rights Reserved.
- ************************************************************************/
+ /*************************************************************************
+  * @file
+  * @brief SSE2-optimized Vec Implementation
+  *
+  * @details This file defines optimizations to the Vec type family
+  * utilizing the SSE2 SIMD ISA. The original SSE spec did not include 
+  * support for double-precision floating-point values. Intel added 
+  * such support in SSE2. It did not, however, increase the size of the 
+  * register set. Registers remain 128 bits wide. Thus, each register 
+  * holds only two doubles. Consequently, there is not only an optimized 
+  * 4-D double-precision vector but also a 2-D one; therefore, this 
+  * file defines two optimized SSE2 classes:
+  *
+  * - VecDouble2Sse2: 2-D double-precision vector (Vec<double, 2, Sse2>)
+  * - VecDouble4Sse2: 4-D double-precision vector (Vec<double, 4, Sse2>)
+  *
+  * @sa Vec.h
+  * @se Vec_Sse.h
+  * @sa ::ark::hal::simd::Sse2
+  *
+  * @author Noah Stein
+  * @copyright © 2021-2023 Noah Stein. All Rights Reserved.
+  ************************************************************************/
 
 #if !defined(ARK_MATH_VEC_SSE2_H_INCLUDE_GUARD)
 #define ARK_MATH_VEC_SSE2_H_INCLUDE_GUARD
@@ -39,101 +40,145 @@
 namespace ark::math
 {
 	//====================================================================
-	//  ISA Register Set Promotion
+	//  Concepts
 	//====================================================================
 
 	/*********************************************************************
-	 * @brief SSE2-optimized 4-D Vec Float Specialization
-	 * 
-	 * @details As the SSE2 specification does not change the hardware 
-	 * register set, the Intel intrinsic type representing the register 
-	 * format has not changed for single-precision floating-point 
-	 * vectors. For the SIMD versioning system to work, the original SSE 
-	 * class is used as-is for SSE2.
-	 * 
-	 * @sa Vec<float, 4, ark::hal::simd::Sse>
-	 ********************************************************************/
-	template<>
-	class Vec<float, 4, ark::hal::simd::Sse2> : public Vec<float, 4, ark::hal::simd::Sse>
+	 * @brief SSE2-optimized Vector Parameter Concept
+	 *
+	 * @tparam V The type of vector client code is passing as an argument
+	 * @tparam S The type of scalar the function requires
+	 * @tparam N The dimension of the vector the function requires
+	 *
+	 * @details Concept for declaring parameters of SSE2-optimized
+	 * functions.It ensures the parameter is of a type optimized for the
+	 * SSE2 SIMD ISA but not the original SSE.
+	 * @includedoc Math/Vector/ParameterConcept.txt
+	 *
+	 * @sa ark::math::VecSse
+	 * @sa ark::hal::simd::Sse2Family
+	 * @sa @ref SimdArchitecture
+	 */
+	template<typename V, typename S, std::size_t N>
+	concept VecSse2 = VecSse<V, S, N> &&
+		::ark::hal::simd::Sse2Family<typename V::Revision>;
+
+
+	//====================================================================
+	// 4-D Single-precision Vector
+	//====================================================================
+
+	/*********************************************************************
+	 * @brief SSE2-optimized 4-D Single-precision Floating-point Vector
+	 *
+	 * @details The changes changes from SSE to SSE2 do not result in a new 
+	 * register specification applicable to further 4-D single-precision 
+	 * floating-point vectors.
+	 *
+	 * @sa Vec
+	 * @sa ::ark::math::Vector
+	 * @sa ::ark::math:Sse2Family
+	 */
+	class VecFloat4Sse2 : public VecFloat4Sse
 	{
-		using Vec<float, 4, ark::hal::simd::Sse>::Vec;
+	public:
+		using Revision = ark::hal::simd::Sse2;
+		using VecFloat4Sse::VecFloat4Sse;
+	};
+
+
+	/*********************************************************************
+	 * @brief Specialize VectorSelector<float, 4, Sse2> with 
+	 * VecFloat4Sse2.
+	 *
+	 * @sa Vec
+	 * @sa VecFloat4Sse2
+	 */
+	template<>
+	struct VectorSelector<float, 4, ark::hal::simd::Sse2>
+	{
+		typedef VecFloat4Sse2 type;
 	};
 
 
 	//====================================================================
-	//  2-D Vec Double Specialization
+	//  2-D Double-precision Vector
 	//====================================================================
 
 	/*********************************************************************
-	 * @brief SSE2-optimized 2-D Vec Double Specialization
-	 * 
-	 * @details As the SSE2 specification does not change the size of the 
-	 * hardware registers, the new double-precision instructions operate 
-	 * on pairs of values; therefore, an optimized implementation makes
-	 * sense.
-	 * 
-	 * @see Vec
-	 ********************************************************************/
-	template<>
-	class Vec<double, 2, ark::hal::simd::Sse2>
+	 * @brief SSE2-optimized 2-D Double-precision Floating-point Vector
+	 *
+	 * @details This class defines the data of a 2-D double-precision 
+	 * vector using an SSE2 register format. It conforms to the 
+	 * ::ark::hal::Vector concept and is thus compatible with all 
+	 * unoptimized functions; however, it is designed to permit 
+	 * SSE-optimized functions, and optimized versions of essential 
+	 * vector math are defined below.
+	 *
+	 * @sa Vec
+	 * @sa ::ark::math::Vector
+	 * @sa ::ark::math:Sse2Family
+	 */
+	class VecDouble2Sse2
 	{
-		/// SSE-optimized storage of 2 64-bit double-precision floats
+		/// Intel intrinsic SSE register format of 2 64-bit floats
 		__m128d value_;
 
 	public:
-		/// This specialization is specifically for doubles.
+		using Revision = ark::hal::simd::Sse2;
 		using Scalar = double;
 
 		/// @name Constructors
 		/// @{
 
-		/** @brief Default Constructor
-		 *  @details Like the primary template, the default constructor 
-		 *  leaves storage uninitialized, just like the behavior of 
-		 *  built-in types.
-		 */					
-		Vec() = default;
-
-
-		/** @brief Component Constructor
-		 *  @details Constructor taking the 4 components explicitly as 
-		 *  individaul parameters.
+		/*****************************************************************
+		 * @brief Default Constructor
+		 * @details @includedoc Math/Vector/DefaultConstructor.txt
 		 */
-		Vec(Scalar x, Scalar y)
+		VecDouble2Sse2() = default;
+
+
+		/*****************************************************************
+		 * @brief Scalar Constructor
+		 * @details @includedoc Math/Vector/ScalarConstructor.txt
+		 */
+		VecDouble2Sse2(Scalar x, Scalar y)
 		{
 			value_ = _mm_setr_pd(x, y);
 		}
 
-		/** @brief Vector Concept Constructor
-		 *  @details Constructor from any type that is compatible with 
-		 *  the Vector concept. The Vector must also be 2-dimensional.
+
+		/*****************************************************************
+		 * @brief Vector Constructor
+		 * @details @includedoc Math/Vector/VectorConstructor.txt
 		 */
 		template<Vector V>
-			requires std::convertible_to<typename V::Scalar, Scalar>
-			&& SameDimension<Vec, V>
-		Vec(const V& rhs) noexcept(std::is_nothrow_convertible_v<typename V::Scalar, Scalar>)
-			: Vec(static_cast<Scalar>(rhs(0)), static_cast<Scalar>(rhs(1)))
+			requires std::convertible_to<typename V::Scalar, Scalar>&& SameDimension<VecDouble2Sse2, V>
+		VecDouble2Sse2(const V& rhs) noexcept(std::is_nothrow_convertible_v<typename V::Scalar, Scalar>)
+			: VecDouble2Sse2(static_cast<Scalar>(rhs(0)), static_cast<Scalar>(rhs(1)))
 		{}
 
-		/** @brief SSE Data Constructor
-		 *  @details Constructor to be used by only by SSE-optimized 
-		 *  versions of algorithms as it uses an SSE-specific data 
-		 *  type. Unfortunately, there is no good way to hide it. Do not 
-		 *  use it in multi-platform code.
-		 *  @warning Only use in SSE-specific algorithm implementations.
+
+		/*****************************************************************
+		 * @brief Raw SIMD Data Constructor
+		 * @details @includedoc Math/Vector/SimdConstructor.txt
 		 */
-		Vec(__m128d value)
+		VecDouble2Sse2(__m128d value)
 			: value_(value)
 		{}
+
 		/// @}
 
-		/// This specialization is only for 2-D vectors
+		/*****************************************************************
+		 * @brief The number of elements in the vector, its dimension = 4
+		 */
 		static constexpr size_t Size() noexcept { return 2; }
 
 		/// @name Accessors
 		/// @{
-		/** @brief Component Accessor
-		 *  @param index Which component to access, beginning at 0
+
+		/*****************************************************************
+		 * @brief Element Accessor
 		 */
 		Scalar operator()(size_t index) const noexcept
 		{
@@ -152,31 +197,40 @@ namespace ark::math
 			}
 		}
 
-		/** @brief Accessor to SSE-specific data
-		 *  @warning Only use in SSE-specific algorithm implementations.
+
+		/*****************************************************************
+		 * @brief SSE Data Accessor
+		 * @details @includedoc Math/Vector/SimdAccessor.txt
 		 */
-		__m128d SseVal() const { return value_; }	
+		__m128d SseVal() const { return value_; }
+
 		/// @}
 	};
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 2> Negation
-	 * 
-	 * @details Compute a negation of a double-precision floating-point 
-	 * 2-D Vec using an SSE2-optimized algorithm. This implementation is 
-	 * selected when the HAL_SIMD parameter is set to any SSE generation 
-	 * that uses the Vec<double, 2, ark::hal::simd::Sse2> specialization. 
-	 * This will supersede using the baseline VectorNegation expression 
-	 * node when performing a negation on a Vec<double, 2>.
-	 * 
-	 * @include{doc} Math/Vector/Negation2D.txt
-	 * 
-	 * @sa operator-(const V& v)
+	 * @brief Specialize VectorSelector<double, 2, Sse2> with 
+	 * VecDouble2Sse2.
+	 *
+	 * @sa Vec
+	 * @sa VecDouble2Sse2e
+	 */
+	template<>
+	struct VectorSelector<double, 2, ark::hal::simd::Sse2>
+	{
+		using type = VecDouble2Sse2;
+	};
+
+
+	/*********************************************************************
+	 * @brief SSE2-optimized 2-D Double-precision Vector Negation
+	 * @details @include{doc} Math/Vector/Negation2D.txt
+	 *
+	 * @supersedes(Vec,operator-(const V& v))
 	 * @sa VectorNegation
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator-(Vec<double, 2, SIMD> v) -> Vec<double, 2, SIMD>
+	 */
+	template<VecSse2<double, 2> V>
+	inline auto operator-(V v) noexcept -> V
 	{
 		__m128d result = _mm_sub_pd(_mm_setzero_pd(), v.SseVal());
 		return result;
@@ -184,144 +238,95 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 2> Addition
-	 * 
-	 * @details Compute an SSE2-optimized addition of two Vec<double, 2> 
-	 * vectors. This implementation is  selected when the HAL_SIMD 
-	 * parameter is set to any SSE generation that uses the 
-	 * Vec<double, 2, ark::hal::simd::Sse2> specialization.  This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 2>.
-	 * 
-	 * @include{doc} Math/Vector/Addition2D.txt
-	 * 
-	 * @sa operator+(const V& vl, const V& vr)
+	 * @brief SSE2-optimized 2-D Double-precision Vector Addition
+	 * @details @include{doc} Math/Vector/Addition2D.txt
+	 *
+	 * @supersedes operator+(const V& vl, const V& vr)
 	 * @sa VectorAddition
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator+(Vec<double, 2, SIMD> vl, Vec<double, 2, SIMD> vr) -> Vec<double, 2, SIMD>
+	 */
+	template<VecSse2<double, 2> V>
+	inline auto operator+(V lhs, V rhs) noexcept -> V
 	{
-		__m128d result = _mm_add_pd(vl.SseVal(), vr.SseVal());
+		__m128d result = _mm_add_pd(lhs.SseVal(), rhs.SseVal());
 		return result;
 	}
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 2> Subtraction
-	 * 
-	 * @details Compute an SSE2-optimized subtraction of one 
-	 * Vec<double, 2> vector from another. This implementation is 
-	 * selected when the HAL_SIMD parameter is set to any SSE generation 
-	 * that uses the Vec<double, 2, ark::hal::simd::Sse> specialization. 
-	 * This will supersede using the baseline VectorNegation expression 
-	 * node when performing a negation on a Vec<double, 2>.
-	 * 
-	 * @include{doc} Math/Vector/Subtraction2D.txt
-	 * 
+	 * @brief SSE2-optimized 2-D Double-precision Vector Subtraction
+	 * @details @include{doc} Math/Vector/Subtraction2D.txt
+	 *
 	 * @sa operator-(const V& vl, const V& vr)
 	 * @sa VectorSubtraction
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator-(Vec<double, 2, SIMD> vl, Vec<double, 2, SIMD> vr) -> Vec<double, 2, SIMD>
+	 */
+	template<VecSse2<double, 2> V>
+	inline auto operator-(V lhs, V rhs) noexcept -> V
 	{
-		__m128d result = _mm_sub_pd(vl.SseVal(), vr.SseVal());
+		__m128d result = _mm_sub_pd(lhs.SseVal(), rhs.SseVal());
 		return result;
 	}
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 2>-Scalar Multiplication
-	 * 
-	 * @details Compute an SSE2-optimized multiplication of a 
-	 * Vec<double, 2> by a scalar. This implementation is selected when 
-	 * the HAL_SIMD parameter is set to any SSE generation that uses the 
-	 * Vec<double, 2, ark::hal::simd::Sse2> specialization.  This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 2>.
-	 * 
-	 * @include{doc} Math/Vector/VectorScalarMultiplication2D.txt
-	 * 
+	 * @brief SSE2-optimized 2-D Double-precision Vector-Scalar
+	 * Multiplication
+	 * @details @include{doc} Math/Vector/VectorScalarMultiplication2D.txt
+	 *
 	 * @sa operator*(const V& v, const S& s)
 	 * @sa VectorScalarMultiplication
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD, typename S>
-		requires std::is_convertible_v<S, double>
-	inline auto operator*(Vec<double, 2, SIMD> v, const S& s) -> Vec<double, 2, SIMD>
+	 */
+	template<VecSse2<double, 2> V>
+	inline auto operator*(V lhs, double rhs) noexcept -> V
 	{
-		__m128d scalar = _mm_set1_pd(static_cast<double>(s));
-		__m128d result = _mm_mul_pd(v.SseVal(), scalar);
+		__m128d scalar = _mm_set1_pd(rhs);
+		__m128d result = _mm_mul_pd(lhs.SseVal(), scalar);
 		return result;
 	}
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Scalar-Vec<double, 2> Multiplication
-	 * 
-	 * @details Compute an SSE2-optimized multiplication of a 
-	 * Vec<double, 2> by a preceding scalar. This implementation is 
-	 * selected when the HAL_SIMD parameter is set to any SSE generation 
-	 * that uses the Vec<double, 2, ark::hal::simd::Sse2> specialization. 
-	 * This will supersede using the baseline VectorNegation expression 
-	 * node when performing a negation on a Vec<double, 2>.
-	 * 
-	 * @include{doc} Math/Vector/ScalarVectorMultiplication2D.txt
-	 * 
+	 * @brief SSE2-optimized 2-D Double-precision Scalar-Vector
+	 * Multiplication
+	 * @details @include{doc} Math/Vector/ScalarVectorMultiplication2D.txt
+	 *
 	 * @sa operator*(const S& s, const V& v)
 	 * @sa VectorScalarMultiplication
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD, typename S>
-		requires std::is_convertible_v<S, double>
-	inline auto operator*(const S& s, Vec<double, 2, SIMD> v) -> Vec<double, 2, SIMD>
+	 */
+	template<VecSse2<double, 2> V>
+	inline auto operator*(double lhs, V rhs) noexcept -> V
 	{
-		__m128d scalar = _mm_set1_pd(static_cast<double>(s));
-		__m128d result = _mm_mul_pd(scalar, v.SseVal());
+		__m128d scalar = _mm_set1_pd(lhs);
+		__m128d result = _mm_mul_pd(scalar, rhs.SseVal());
 		return result;
 	}
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 2>-Scalar Division
-	 * 
-	 * @details Compute an SSE2-optimized division of a Vec<double, 2> by 
-	 * a scalar. This implementation is selected when the HAL_SIMD 
-	 * parameter is set to any SSE generation that uses the 
-	 * Vec<double, 2, ark::hal::simd::Sse2> specialization.  This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 2>.
-	 * 
-	 * @include{doc} Math/Vector/ScalarDivision2D.txt
-	 * 
+	 * @brief SSE-optimized 2-D Double-precision Vector-Scalar Division
+	 * @details @include{doc} Math/Vector/ScalarDivision2D.txt
+	 *
 	 * @sa operator/(const V& v, const S& s)
 	 * @sa VectorScalarDivision
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD, typename S>
-		requires std::is_convertible_v<S, double>
-	inline auto operator/(Vec<double, 2, SIMD> v, const S& s) -> Vec<double, 2, SIMD>
+	 */
+	template<VecSse2<double, 2> V>
+	inline auto operator/(V lhs, double rhs) noexcept -> V
 	{
-		__m128d scalar = _mm_set1_pd(static_cast<double>(s));
-		__m128d result = _mm_div_pd(v.SseVal(), scalar);
+		__m128d scalar = _mm_set1_pd(rhs);
+		__m128d result = _mm_div_pd(lhs.SseVal(), scalar);
 		return result;
 	}
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 2> Equality
-	 * 
-	 * @details Compute an SSE2-optimized comparison of two Vec<double, 2> 
-	 * vectors to each other. This implementation is selected when the
-	 * HAL_SIMD parameter is set to any SSE generation that uses the 
-	 * Vec<double, 2, ark::hal::simd::Sse2> specialization.  This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 2>.
-	 * 
-	 * @include{doc} Math/Vector/Equality2D.txt
-	 * 
+	 * @brief SSE2-optimized 2-D Double-precision Vector Equality
+	 * @details @include{doc} Math/Vector/Equality2D.txt
+	 *
 	 * @sa operator==(const V& vl, const V& vr)
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator==(Vec<double, 2, SIMD> vl, Vec<double, 2, SIMD> vr) -> bool
+	 */
+	template<VecSse2<double, 2> V>
+	inline auto operator==(V lhs, V rhs) noexcept -> bool
 	{
-		__m128d c = _mm_cmpeq_pd(vl.SseVal(), vr.SseVal());
+		__m128d c = _mm_cmpeq_pd(lhs.SseVal(), rhs.SseVal());
 		int mask = _mm_movemask_pd(c);
 		bool result = mask == 0x3;
 		return result;
@@ -329,23 +334,15 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 2> Dot Product
-	 * 
-	 * @details Compute an SSE2-optimized dot product of two 
-	 * Vec<double, 2> vectors. This implementation is selected when the 
-	 * HAL_SIMD parameter is set to any SSE generation that uses the 
-	 * Vec<double, 2, ark::hal::simd::Sse2> specialization.  This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 2>.
-	 * 
-	 * @include{doc} Math/Vector/DotProduct2D.txt
-	 * 
+	 * @brief SSE2-optimized 2-D Double-precision Vector Dot Product
+	 * @details @include{doc} Math/Vector/DotProduct2D.txt
+	 *
 	 * @sa Dot(const V& vl, const V& vr)
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto Dot(Vec<double, 2, SIMD> vl, Vec<double, 2, SIMD> vr) -> double
+	 */
+	template<VecSse2<double, 2> V>
+	inline auto Dot(V lhs, V rhs) noexcept -> double
 	{
-		__m128d m = _mm_mul_pd(vl.SseVal(), vr.SseVal()); // lxrx, lyry
+		__m128d m = _mm_mul_pd(lhs.SseVal(), rhs.SseVal()); // lxrx, lyry
 		__m128d s = _mm_shuffle_pd(m, m, _MM_SHUFFLE2(0, 1)); // lyry, lxrx
 		__m128d a = _mm_add_pd(m, s); // lxrx+lyry, lxrx+lyry
 		double result = _mm_cvtsd_f64(a);
@@ -354,24 +351,16 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 2> Cross Product
-	 * 
-	 * @details Compute an SSE2-optimized cross product of two 
-	 * Vec<double, 2> vectors. This implementation is selected when the 
-	 * HAL_SIMD parameter is set to any SSE generation that uses the 
-	 * Vec<double, 2, ark::hal::simd::Sse2> specialization.  This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 2>.
-	 * 
-	 * @include{doc} Math/Vector/CrossProduct2D.txt
-	 * 
+	 * @brief SSE2-optimized 2-D Double-precision Vector Cross Product
+	 * @details @include{doc} Math/Vector/CrossProduct2D.txt
+	 *
 	 * @sa Cross(const V& vl, const V& vr)
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto Cross(Vec<double, 2, SIMD> vl, Vec<double, 2, SIMD> vr) -> double
+	 */
+	template<VecSse2<double, 2> V>
+	inline auto Cross(V lhs, V rhs) noexcept -> double
 	{
-		__m128d l01 = vl.SseVal();
-		__m128d r01 = vr.SseVal();
+		__m128d l01 = lhs.SseVal();
+		__m128d r01 = rhs.SseVal();
 
 		__m128d r10 = _mm_shuffle_pd(r01, r01, _MM_SHUFFLE2(0, 1)); // r1, r0
 		__m128d a01 = _mm_mul_pd(l01, r10); // l0r1, l1r0
@@ -388,22 +377,22 @@ namespace ark::math
 	//====================================================================
 
 	/*********************************************************************
-	 * @brief SSE2-optimized 4-D Vec Double Specialization
-	 * 
-	 * @details This class specialization defines the Vec class for SSE2 
-	 * and double-precision floating-point scalars. The specialization 
-	 * utilizes the type __m128d to store data. As registers are still 
-	 * 128-bits wide, it takes two members to store all 4 64-bit doubles 
-	 * representing a 4-D vector. Internally, these are the same 
-	 * registers used for single-precision floats in SSE; however, they 
-	 * contain 2 doubles instead of 4 singles. 
-	 * 
-	 * @note This specialization superseded in AVX.
-	 * 
+	 * @brief SSE2-optimized 4-D Double-precision Floating-point Vector
+	 *
+	 * @details This class defines the data of a 4-D double-precision 
+	 * vector using an SSE2 register format. It conforms to the 
+	 * ::ark::hal::Vector concept and is thus compatible with all 
+	 * unoptimized functions; however, it is designed to permit 
+	 * SSE-optimized functions, and optimized versions of essential 
+	 * vector math are defined below. The SSE2 specification did not 
+	 * extend the size of the registers; they remain 128-bits. As such, 
+	 * it requires two data to represent a 4-D vector.
+	 *
 	 * @sa Vec
-	 ********************************************************************/
-	template<>
-	class Vec<double, 4, ark::hal::simd::Sse2>
+	 * @sa ::ark::math::Vector
+	 * @sa ::ark::math:Sse2Family
+	 */
+	class VecDouble4Sse2
 	{
 		/// The double-precision components at indices 0 and 1
 		__m128d v01_;
@@ -411,61 +400,93 @@ namespace ark::math
 		__m128d v23_;
 
 	public:
-		/// This specialization is specifically for doubles.
+		using Revision = ark::hal::simd::Sse2;
 		using Scalar = double;
 
 		/// @name Constructors
 		/// @{
 
-		/** @brief Default Constructor
-		 *  @details Like the primary template, the default constructor 
-		 *  leaves storage uninitialized, just like the behavior of 
-		 *  built-in types.
-		 */					
-		Vec() = default;
-
-
-		/** @brief Component Constructor
-		 *  @details Constructor taking the 4 components explicitly as 
-		 *  individaul parameters.
+		/*****************************************************************
+		 * @brief Default Constructor
+		 * @details @includedoc Math/Vector/DefaultConstructor.txt
 		 */
-		Vec(Scalar x, Scalar y, Scalar z, Scalar w)
+		VecDouble4Sse2() = default;
+
+
+		/*****************************************************************
+		 * @brief Scalar Constructor
+		 * @details @includedoc Math/Vector/ScalarConstructor.txt
+		 */
+		VecDouble4Sse2(Scalar x, Scalar y, Scalar z, Scalar w)
 		{
 			v01_ = _mm_setr_pd(x, y);
 			v23_ = _mm_setr_pd(z, w);
 		}
 
-		/** @brief Vector Concept Constructor
-		 *  @details Constructor from any type that is compatible with 
-		 *  the Vector concept. The Vector must also be 4-dimensional.
+		/*****************************************************************
+		 * @brief Vector Constructor
+		 * @details @includedoc Math/Vector/VectorConstructor.txt
 		 */
 		template<Vector V>
 			requires std::convertible_to<typename V::Scalar, Scalar>
 			&& SameDimension<Vec, V>
-		Vec(const V& rhs) noexcept(std::is_nothrow_convertible_v<typename V::Scalar, Scalar>)
-			: Vec(static_cast<Scalar>(rhs(0)), static_cast<Scalar>(rhs(1)), static_cast<Scalar>(rhs(2)), static_cast<Scalar>(rhs(3)))
+		VecDouble4Sse2(const V& rhs) noexcept(std::is_nothrow_convertible_v<typename V::Scalar, Scalar>)
+			: VecDouble4Sse2(static_cast<Scalar>(rhs(0)), static_cast<Scalar>(rhs(1)), static_cast<Scalar>(rhs(2)), static_cast<Scalar>(rhs(3)))
 		{}
 
-		/** @brief SSE Data Constructor
-		 *  @details Constructor to be used by only by SSE-optimized 
-		 *  versions of algorithms as it uses an SSE-specific data 
-		 *  type. Unfortunately, there is no good way to hide it. Do not 
-		 *  use it in multi-platform code.
-		 *  @warning Only use in SSE-specific algorithm implementations.
-		 */
-		Vec(__m128d v01, __m128d v23)
+			/*****************************************************************
+			 * @brief Raw SIMD Data Constructor
+			 * 
+			 * @param v01 Vector components at indices 0 and 1
+			 * @param v23 Vector components at indices 2 and 3
+			 * 
+			 * @details @includedoc Math/Vector/SimdConstructor.txt
+			 */
+			VecDouble4Sse2(__m128d v01, __m128d v23)
 			: v01_(v01)
 			, v23_(v23)
 		{}
 		/// @}
 
-		/// This specialization is only for 4-D vectors
+		/// @name Assignment Functions
+		/// @{
+
+		/*****************************************************************
+		 * @brief Vector Assignment
+		 * @details @includedoc Math/Vector/VectorAssignment.txt
+		 */
+		template<Vector V>
+			requires std::convertible_to<typename V::Scalar, Scalar>&& SameDimension<VecDouble4Sse2, V>
+		VecDouble4Sse2& operator=(const V& rhs) noexcept(std::is_nothrow_convertible_v<typename V::Scalar, Scalar>)
+		{
+			v01_ = _mm_setr_pd
+			(
+				static_cast<Scalar>(rhs(0)),
+				static_cast<Scalar>(rhs(1))
+			);
+
+			v23_ = _mm_setr_pd
+			(
+				static_cast<Scalar>(rhs(2)),
+				static_cast<Scalar>(rhs(3))
+			);
+
+			return *this;
+		}
+
+		/// @}
+
+		/*****************************************************************
+		 * @brief The number of elements in the vector, its dimension = 4
+		 */
 		static constexpr size_t Size() noexcept { return 4; }
+
 
 		/// @name Accessors
 		/// @{
-		/** @brief Component Accessor
-		 *  @param index Which component to access, beginning at 0
+
+		/*****************************************************************
+		 * @brief Element Accessor
 		 */
 		Scalar operator()(size_t index) const noexcept
 		{
@@ -489,36 +510,46 @@ namespace ark::math
 			}
 		}
 
-		/** @brief Accessor to SSE-specific data of first two components
-		 *  @warning Only use in SSE-specific algorithm implementations.
+		/*****************************************************************
+		 * @brief SSE Data Accessor - Elements 0 and 1
+		 * @details @includedoc Math/Vector/SimdAccessor.txt
 		 */
-		__m128d Sse01() const { return v01_; }	
+		__m128d Sse01() const { return v01_; }
 
-		/** @brief Accessor to SSE-specific data of last two components
-		 *  @warning Only use in SSE-specific algorithm implementations.
+		/*****************************************************************
+		 * @brief SSE Data Accessor - Elements 2 and 3
+		 * @details @includedoc Math/Vector/SimdAccessor.txt
 		 */
-		__m128d Sse23() const { return v23_; }	
+		__m128d Sse23() const { return v23_; }
+
 		/// @}
 	};
 
 
+
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 4> Negation
-	 * 
-	 * @details Compute a negation of a double-precision floating-point 
-	 * 4-D Vec using an SSE2-optimized algorithm. This implementation is 
-	 * selected when the HAL_SIMD parameter is set to any SSE generation 
-	 * that uses the Vec<double, 4, ark::hal::simd::Sse2> specialization. 
-	 * This will supersede using the baseline VectorNegation expression 
-	 * node when performing a negation on a Vec<double, 4>.
-	 * 
-	 * @include{doc} Math/Vector/Negation4D.txt
-	 * 
-	 * @sa operator-(const V& v)
+	 * @brief Specialize VectorSelector<double, 4, Sse2> with 
+	 * VecDouble4Sse2.
+	 *
+	 * @sa Vec
+	 * @sa VecFloat4Sse
+	 */
+	template<>
+	struct VectorSelector<double, 4, ark::hal::simd::Sse2>
+	{
+		typedef VecDouble4Sse2 type;
+	};
+
+
+	/*********************************************************************
+	 * @brief SSE2-optimized 4-D Double-precision Vector Negation
+	 * @details @include{doc} Math/Vector/Negation4D.txt
+	 *
+	 * @supersedes(Vec,operator-(const V& v))
 	 * @sa VectorNegation
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator-(Vec<double, 4, SIMD> v) -> Vec<double, 4, SIMD>
+	 */
+	template<VecSse2<double, 4> V>
+	inline auto operator-(V v) noexcept -> V
 	{
 		__m128d zero = _mm_setzero_pd();
 		__m128d v01 = _mm_sub_pd(zero, v.Sse01());
@@ -528,148 +559,102 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 4> Addition
-	 * 
-	 * @details Compute an SSE2-optimized addition of two Vec<double, 4> 
-	 * vectors. This implementation is selected when the HAL_SIMD 
-	 * parameter is set to any SSE generation that uses the 
-	 * Vec<double, 4, ark::hal::simd::Sse2> specialization.  This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 4>.
-	 * 
-	 * @include{doc} Math/Vector/Addition4D.txt
-	 * 
-	 * @sa operator+(const V& vl, const V& vr)
+	 * @brief SSE2-optimized 4-D Double-precision Vector Addition
+	 * @details @include{doc} Math/Vector/Addition4D.txt
+	 *
+	 * @supersedes operator+(const V& vl, const V& vr)
 	 * @sa VectorAddition
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator+(Vec<double, 4, SIMD> vl, Vec<double, 4, SIMD> vr) -> Vec<double, 4, SIMD>
+	 */
+	template<VecSse2<double, 4> V>
+	inline auto operator+(V lhs, V rhs) noexcept -> V
 	{
-		__m128d v01 = _mm_add_pd(vl.Sse01(), vr.Sse01());
-		__m128d v23 = _mm_add_pd(vl.Sse23(), vr.Sse23());
+		__m128d v01 = _mm_add_pd(lhs.Sse01(), rhs.Sse01());
+		__m128d v23 = _mm_add_pd(lhs.Sse23(), rhs.Sse23());
 		return {v01, v23};
 	}
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 4> Subtraction
-	 * 
-	 * @details Compute an SSE2-optimized subtraction of one 
-	 * Vec<double, 4> vector from another. This implementation is 
-	 * selected when the HAL_SIMD parameter is set to any SSE generation 
-	 * that uses the Vec<double, 4, ark::hal::simd::Sse2> specialization.  
-	 * This will supersede using the baseline VectorNegation expression 
-	 * node when performing a negation on a Vec<double, 4>.
-	 * 
-	 * @include{doc} Math/Vector/Subtraction4D.txt
-	 * 
+	 * @brief SSE2-optimized 4-D Double-precision Vector Subtraction
+	 * @details @include{doc} Math/Vector/Subtraction4D.txt
+	 *
 	 * @sa operator-(const V& vl, const V& vr)
 	 * @sa VectorSubtraction
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator-(Vec<double, 4, SIMD> vl, Vec<double, 4, SIMD> vr) -> Vec<double, 4, SIMD>
+	 */
+	template<VecSse2<double, 4> V>
+	inline auto operator-(V lhs, V rhs) noexcept -> V
 	{
-		__m128d v01 = _mm_sub_pd(vl.Sse01(), vr.Sse01());
-		__m128d v23 = _mm_sub_pd(vl.Sse23(), vr.Sse23());
+		__m128d v01 = _mm_sub_pd(lhs.Sse01(), rhs.Sse01());
+		__m128d v23 = _mm_sub_pd(lhs.Sse23(), rhs.Sse23());
 		return {v01, v23};
 	}
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 4>-Scalar Multiplication
-	 * 
-	 * @details Compute an SSE2-optimized multiplication of a 
-	 * Vec<double, 4> by a scalar. This implementation is selected when 
-	 * the HAL_SIMD parameter is set to any SSE generation that uses the 
-	 * Vec<double, 4, ark::hal::simd::Sse2> specialization. This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 4>.
-	 * 
-	 * @include{doc} Math/Vector/VectorScalarMultiplication4D.txt
-	 * 
+	 * @brief SSE2-optimized 4-D double-precision Vector-Scalar
+	 * Multiplication
+	 * @details @include{doc} Math/Vector/VectorScalarMultiplication4D.txt
+	 *
 	 * @sa operator*(const V& v, const S& s)
 	 * @sa VectorScalarMultiplication
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator*(Vec<double, 4, SIMD> v, double s) -> Vec<double, 4, SIMD>
+	 */
+	template<VecSse2<double, 4> V>
+	inline auto operator*(V lhs, double rhs) noexcept -> V
 	{
-		__m128d scalar = _mm_set1_pd(s);
-		__m128d v01 = _mm_mul_pd(v.Sse01(), scalar);
-		__m128d v23 = _mm_mul_pd(v.Sse23(), scalar);
+		__m128d scalar = _mm_set1_pd(rhs);
+		__m128d v01 = _mm_mul_pd(lhs.Sse01(), scalar);
+		__m128d v23 = _mm_mul_pd(lhs.Sse23(), scalar);
 		return {v01, v23};
 	}
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Scalar-Vec<double, 4> Multiplication
-	 * 
-	 * @details Compute an SSE2-optimized multiplication of a 
-	 * Vec<double, 4> by a preceding scalar. This implementation is 
-	 * selected when the HAL_SIMD parameter is set to any SSE generation 
-	 * that uses the Vec<double, 4, ark::hal::simd::Sse2> specialization. 
-	 * This will supersede using the baseline VectorNegation expression 
-	 * node when performing a negation on a Vec<double, 4>.
-	 * 
-	 * @include{doc} Math/Vector/ScalarVectorMultiplication4D.txt
-	 * 
+	 * @brief SSE2-optimized 4-D Double-precision Scalar-Vector
+	 * Multiplication
+	 * @details @include{doc} Math/Vector/ScalarVectorMultiplication4D.txt
+	 *
 	 * @sa operator*(const S& s, const V& v)
 	 * @sa VectorScalarMultiplication
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD, double>
-	inline auto operator*(double s, Vec<double, 4, SIMD> v) -> Vec<double, 4, SIMD>
+	 */
+	template<VecSse2<double, 4> V>
+	inline auto operator*(double lhs, V rhs) noexcept -> V
 	{
-		__m128d scalar = _mm_set1_pd(s);
-		__m128d v01 = _mm_mul_pd(scalar, v.Sse01());
-		__m128d v23 = _mm_mul_pd(scalar, v.Sse23());
+		__m128d scalar = _mm_set1_pd(lhs);
+		__m128d v01 = _mm_mul_pd(scalar, rhs.Sse01());
+		__m128d v23 = _mm_mul_pd(scalar, rhs.Sse23());
 		return {v01, v23};
 	}
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 4>-Scalar Division
-	 * 
-	 * @details Compute an SSE2-optimized division of a Vec<double, 4> by 
-	 * a scalar. This implementation is selected when the HAL_SIMD 
-	 * parameter is set to any SSE generation that uses the 
-	 * Vec<double, 4, ark::hal::simd::Sse2> specialization.  This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 4>.
-	 * 
-	 * @include{doc} Math/Vector/ScalarDivision4D.txt
-	 * 
+	 * @brief SSE2-optimized 4-D Double-precision Vector-Scalar Division
+	 * @details @include{doc} Math/Vector/ScalarDivision4D.txt
+	 *
 	 * @sa operator/(const V& v, const S& s)
 	 * @sa VectorScalarDivision
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator/(Vec<double, 4, SIMD> v, double s) -> Vec<double, 4, SIMD>
+	 */
+	template<VecSse2<double, 4> V>
+	inline auto operator/(V lhs, double rhs) noexcept -> V
 	{
-		__m128d scalar = _mm_set1_pd(s);
-		__m128d v01 = _mm_div_pd(v.Sse01(), scalar);
-		__m128d v23 = _mm_div_pd(v.Sse23(), scalar);
+		__m128d scalar = _mm_set1_pd(rhs);
+		__m128d v01 = _mm_div_pd(lhs.Sse01(), scalar);
+		__m128d v23 = _mm_div_pd(lhs.Sse23(), scalar);
 		return {v01, v23};
 	}
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 4> Equality
-	 * 
-	 * @details Compute an SSE2-optimized comparison of two 
-	 * Vec<double, 4> vectors to each other. This implementation is 
-	 * selected when theHAL_SIMD parameter is set to any SSE generation 
-	 * that uses the Vec<double, 4, ark::hal::simd::Sse2> specialization. 
-	 * This will supersede using the baseline VectorNegation expression 
-	 * node when performing a negation on a Vec<double, 4>.
-	 * 
-	 * @include{doc} Math/Vector/Equality4D.txt
-	 * 
+	 * @brief SSE2-optimized 4-D Double-precision Vector Equality
+	 * @details @include{doc} Math/Vector/Equality4D.txt
+	 *
 	 * @sa operator==(const V& vl, const V& vr)
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto operator==(Vec<double, 4, SIMD> vl, Vec<double, 4, SIMD> vr) -> bool
+	 */
+	template<VecSse2<double, 4> V>
+	inline auto operator==(V lhs, V rhs) noexcept -> bool
 	{
-		__m128d c01 = _mm_cmpeq_pd(vl.Sse01(), vr.Sse01());
+		__m128d c01 = _mm_cmpeq_pd(lhs.Sse01(), rhs.Sse01());
 		int m01 = _mm_movemask_pd(c01);
-		__m128d c23 = _mm_cmpeq_pd(vl.Sse23(), vr.Sse23());
+		__m128d c23 = _mm_cmpeq_pd(lhs.Sse23(), rhs.Sse23());
 		int m23 = _mm_movemask_pd(c23);
 		bool mask = (m01 & m23) == 0x3;
 		return mask;
@@ -677,27 +662,19 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE2-optimized Vec<double, 4> Dot Product
-	 * 
-	 * @details Compute an SSE2-optimized dot product of two 
-	 * Vec<double, 4> vectors. This implementation is selected when the 
-	 * HAL_SIMD parameter is set to any SSE generation that uses the 
-	 * Vec<double, 4, ark::hal::simd::Sse2> specialization.  This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 4>.
-	 * 
-	 * @include{doc} Math/Vector/DotProduct4D.txt
-	 * 
+	 * @brief SSE2-optimized 4-D Double-precision Vector Dot Product
+	 * @details @include{doc} Math/Vector/DotProduct4D.txt
+	 *
 	 * @sa Dot(const V& vl, const V& vr)
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto Dot(Vec<double, 4, SIMD> vl, Vec<double, 4, SIMD> vr) -> double
+	 */
+	template<VecSse2<double, 4> V>
+	inline auto Dot(V lhs, V rhs) noexcept -> double
 	{
-		__m128d v01 = _mm_mul_pd(vl.Sse01(), vr.Sse01());
+		__m128d v01 = _mm_mul_pd(lhs.Sse01(), rhs.Sse01());
 		__m128d v10 = _mm_shuffle_pd(v01, v01, _MM_SHUFFLE2(0, 1));
 		__m128d va = _mm_add_pd(v01, v10);
 
-		__m128d v23 = _mm_mul_pd(vl.Sse23(), vr.Sse23());
+		__m128d v23 = _mm_mul_pd(lhs.Sse23(), rhs.Sse23());
 		__m128d v32 = _mm_shuffle_pd(v23, v23, _MM_SHUFFLE2(0, 1));
 		__m128d vb = _mm_add_pd(v23, v32);
 
@@ -708,27 +685,19 @@ namespace ark::math
 
 
 	/*********************************************************************
-	 * @brief SSE-optimized Vec<double, 4> Cross Product
-	 * 
-	 * @details Compute an SSE-optimized cross product of two 
-	 * Vec<double, 4> vectors. This implementation is selected when the 
-	 * HAL_SIMD parameter is set to any SSE generation that uses the 
-	 * Vec<double, 4, ark::hal::simd::Sse> specialization.  This will 
-	 * supersede using the baseline VectorNegation expression node when 
-	 * performing a negation on a Vec<double, 4>.
-	 * 
-	 * @include{doc} Math/Vector/CrossProduct4D.txt
-	 * 
+	 * @brief SSE2-optimized 4-D Double-precision Vector Cross Product
+	 * @details @include{doc} Math/Vector/CrossProduct4D.txt
+	 *
 	 * @sa Cross(const V& vl, const V& vr)
-	 ********************************************************************/
-	template<ark::hal::simd::IsSse2 SIMD>
-	inline auto Cross(Vec<double, 4, SIMD> vl, Vec<double, 4, SIMD> vr) -> Vec<double, 4, SIMD>
+	 */
+	template<VecSse2<double, 4> V>
+	inline auto Cross(V lhs, V rhs) noexcept -> V
 	{
 		// Gather Data
-		__m128d l01 = vl.Sse01();
-		__m128d l23 = vl.Sse23();
-		__m128d r01 = vr.Sse01();
-		__m128d r23 = vr.Sse23();
+		__m128d l01 = lhs.Sse01();
+		__m128d l23 = lhs.Sse23();
+		__m128d r01 = rhs.Sse01();
+		__m128d r23 = rhs.Sse23();
 		__m128d zzz = _mm_setzero_pd();
 
 		// Compute first two components

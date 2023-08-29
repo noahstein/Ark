@@ -1,0 +1,13 @@
+Vector parameter concepts have three template parameters. The first, the 
+vector type, is deduced by the C++ compiler at the invocation site. The 
+other two are specified in the optimized function definition. For 
+example, the signature of an SSE-optimized addition function for two 4-D 
+vectors of floats could look like this:
+
+@code
+template<SseFamily<float, 4> V>
+inline auto operator+(V lhs, V rhs) noexcept -> V
+{
+	// Implmentation here...
+}
+@endcode

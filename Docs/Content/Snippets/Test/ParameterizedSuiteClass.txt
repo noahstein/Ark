@@ -1,0 +1,1 @@
+Preprocessor macro defining the name of the parameterized test suite

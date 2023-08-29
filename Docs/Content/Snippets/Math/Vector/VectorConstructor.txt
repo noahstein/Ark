@@ -1,0 +1,5 @@
+The vector constructor is very nearly a copy constructor. The difference 
+is that it accepts any object that models the Vector concept, not just 
+an object of the same type. The vectors must be of the same dimension. 
+The scalar types, however, may be different. The source vector's scalar 
+type must be convetible to the destination's.

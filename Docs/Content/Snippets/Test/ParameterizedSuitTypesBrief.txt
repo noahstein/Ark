@@ -1,0 +1,1 @@
+Array of types to test in the parameterized suite

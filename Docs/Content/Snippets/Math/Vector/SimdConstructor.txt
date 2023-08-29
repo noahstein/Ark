@@ -1,0 +1,9 @@
+Constructs the vector from the raw SIMD ISA data. This constructor is 
+to be used by SIMD-specific functions to create vectors once they've 
+computed the SIMD-specific result.
+
+@warning This constructor should not be used in general application code 
+as it will not be generic across platforms and will fail to compile on 
+those CPUs that lack the SIMD architecture. It cannot be made private or 
+protected, though, as non-member functions that implement  SIMD-optimized 
+algorithms require access to the SIMD-specfiic data.

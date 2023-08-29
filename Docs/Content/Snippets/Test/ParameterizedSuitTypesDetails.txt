@@ -1,0 +1,3 @@
+A type alias modeling a list of types, each type in the array 
+representing the configuration of a concrete specialization of the suite 
+toe be tested.

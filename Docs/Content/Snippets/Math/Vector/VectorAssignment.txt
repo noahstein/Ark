@@ -1,0 +1,4 @@
+The vector assignment function copies the values from one object 
+conforming to the vector concept. The vectors must be of the same 
+dimension. The scalar types, however, may be different. The source 
+vector's scalar type must be convetible to the destination's.
