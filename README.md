@@ -1,20 +1,16 @@
 # Ark
-Musings on a modern C++ game engine architecture
+Musings on a modern C++ game engine architecture. It's currently a long, long way from doing anything. It's merely a test-bed for seeing what 
+I think would be a good way to implement an engine from scratch in a post-C++20 world.
 
 ## Building
-The project uses Google's [Bazel](https://bazel.build/).
-To install, merely copy the executable file to somewhere in your path.
-Right now, there are only some tests written using the Google Test framework.
-To build and run the tests, execute the following command:
-```
-bazel test //Ark/Tests:ArkTests
-```
+The project had been using Bazel; however, it is now using CMake.
+
 ## Engine Design
 There are a few major aims of the project:
 
 * **Mult-platform Code**. The majority of the code should be identical on all platforms.
-* **Optimized Code**. The code should be highly-optimized for the platforms it runs on. There's no point in attempting to write multi-platform code if it runs efficiently on only one—or possibly no—system.
-* **Clean code**. Codebases too often are loaded up with all kinds of conditional compilation blocks for various reasons: select certain header files in certain circumstances, call platform-specific functions, or little blocks of build-specific code. A major objective is to minimize the use of the proprocessor, especially the use of `#ifdef`.
+* **Optimized Code**. The code should be highly-optimized for the platforms it runs on. There's no point in attempting to write multi-platform code if it runs efficiently on only one—or possibly no—system. The architecture is designed to isolate optimizations from polluting platform-independent code.
+* **Clean code**. Codebases too often are loaded up with all kinds of conditional compilation blocks for various reasons: select certain header files in certain circumstances, call platform-specific functions, or little blocks of build-specific code. A major objective is to minimize the use of the proprocessor, especially the use of `#ifdef`. The goal of no `#ifdef` blocks might not be reached, but they will certainly be minimized more so than with other engines.
 
 ### Feature-specific Include Files
 
@@ -56,3 +52,12 @@ template<> class Quat<float, ark::hal::Sse>
 The body of the class contains an SSE-specific data type and implements the quaternion algebra using SSE compiler intrinsics. When client code defines a `Quat<float>`, the SSE architecture will automatically get picked up from the default through the macro, and the quaternion will use optimized unary operations for negation, conjugate, etc. If the other qaternion in a binary operation is also a `Quat<float>`, the operation will also use optimized SSE instructions. Whenever a `Quat<float>` is used in a binary operation with a type that meets the `Quaternion` concept but is not a `Quat<float>`, it will still be compiled and computed, it just won't be SSE optimized.
 
 Say SSE2 added a few instructions that makes one or two operations more efficient, but doesn't affect 95% of the code base. Here's where the class-based solution really shines. SSE2 is implemented as derived from SSE, so only the SSE2-specific functions need to be written, and the SSE one operations will get inherited almost for free. Please see *Quat_Sse2.h* for a contrived example to show just how easy it is to extend to a new generation of architectures.
+
+
+## Paradigm Branches
+
+The are currently two platform-independence paradigms designed with at least partial implementations of the basic math types vector, matrix, and quaternion. Additionally, there is an idea for a third paradigm that is a hybrid of the first two; hwoever, it has not yet been implemented yet. The three paradigms are:
+
+1. Template Selection: Select the SIMD-optimized via a using type alias. On branch math_template_selection
+2. Template Specialization: The SIMD-optimized impelementation is defined in a specialization of a single template class. On branch math_template_specialization
+3. Template Specialization via Inheritence: The SIMD-optimized implementation is written in its own class that is then used as a base class in the definition of template class specializsations. To be on branch math_template_specialization_via_inheritence
