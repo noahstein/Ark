@@ -1,182 +1,401 @@
 /*************************************************************************
- * @page SimdArchitecture SIMD Specialization Arhicecture
- * 
- * # Introduction
- *
- * The SIMD sub-module defines a methodology to structure platform-
- * dependent CPU-specfic SIMD optimizations such that they are included 
- * in the project in a platform-independent manner. The system permits 
- * cleanly adding new SIMD ISAs to the application. These facilities are 
- * designed to minimize the effort for programmers to add new SIMD 
- * architectures and versions with minimal effort beyond the specific 
- * algorithm implementations.
- * 
- * There are two main parts of this system: the SIMD ISA tags and the 
- * SIMD ISA concepts. The two work together to support the easy addition 
- * of new algorithm specializations.
- * 
- * To function, the architecture requires the user define the 
- * preprocessor macro HAL_SIMD to specify which SIMD ISA is being used 
- * in the build. There will be an error and the code will not build 
- * should it not be defined. For example, on a Windows 10 build for 
- * standard PC architecture, your build system should include a definition 
- * such as the following: `HAL_SIMD=AVX2`. The following SIMD ISAs are 
- * currently supported:
- * 
- * @include{doc} Supported-SIMD-ISAs.txt
- * 
- * # SIMD ISA Tags
- * 
- * Each SIMD ISA gets its own tag. Unlike other engines, the presence  of
- * a SIMD ISA is not assumed given a CPU type or platform. Additionally, 
- * the SIMD ISA is not merely defined in a preprocessor macro, although 
- * one is used to define it. The SIMD architecture uses a hierarchy of 
- * tag classes to define the ISA present, e.g. there are a number of SSE 
- * tags as each generation gets its own tag: SSE, SSE2, etc. ISA tags 
- * publicly derive from the tag for its prior generation, e.g. SSE2 derives 
- * from SSE. For those tags that identify the first generation of a SIMD 
- * ISA, it is to derive from None to create a proper hierarchy.
- * 
- * The inheritence hierarchy permits each generation to inherit the 
- * implementation of data structures and algorithms of prior generations 
- * and only implement that which is new. For example, the Quat SSE2 
- * single-precision floating-point implementations are entirely inherited 
- * from the SSE implementation as the SSE2 contains no new instructions 
- * that could result in a more-optimized implementation.
- * 
- * # SIMD ISA Concepts
- * 
- * The multi-platform architecture relies not just on tags but also 
- * concepts that use those tags to enable proper function overloading. 
- * When a concept is defined it requires both a check of the previous 
- * generation's concept as well as a new restriction for this generation. 
- * This results in a narrower acceptance criteria and ensures that the 
- * most-recent generation of impelementation is chosen over a prior 
- * generation, instead of a compiler error due to ambiguous overloads.
- * 
- * @note The None tag is unique in that is does not have an associated 
- * concept. This is because there is no speciaiization for a lack of 
- * SIMD ISA. This situation is covered by the primary template definition.
- * 
- * # Implementing a New SIMD ISA
- *
- * ## Creating the tag and concept for a SIMD generation
- * 
- * For our example here, we'll look at defining SSE2, given that we 
- * already hava an SSE implementation.
- * 
- * ### 1. Define a tag to represent the SSE2 ISA
- * 
- * @code{.cpp}
- * class Sse2 : public Sse
- * {
- * };
- * @endcode
- * 
- * See the `Sse2` class publicly derives from `Sse`, the prior generation 
- * of ISA in the same SIMD family. This rule only applies if the new 
- * generation is backwards-compatible with the prior generation. If it is 
- * not, derive from None instead of the prior generation. If a new 
- * generation is not a strict superset of the old one, use caution as you 
- * can inherit from the older one if all its implementations use only 
- * those elements still present in the new generation.
- *  
- * ### 2. Define a concept for SSE2
- * 
- * @code{.cpp}
- * template<typename SIMD>
- * concept IsSse2 = IsSse<SIMD> && std::is_base_of_v<Sse2, SIMD>;
- * @endcode
- * 
- * Concepts check to see that types meet certain requirements. If not, 
- * the definition is considered invalid and can result in either a 
- * failed copmile or, as it is used here, in establishing precedence 
- * resulting in proper overload resolution.
- * 
- * The C++ standard dictates concepts cannot inherit from other concepts. 
- * Instead, they can reference other concepts in their requirements, 
- * resulting in their inclusion through composition. In this definition, 
- * the SSE2 concept first checks to see the SSE concept is satisfied. 
- * Then it determines if SSE2 is valid. It does so by checking to see if 
- * the SIMD tag is either the Sse2 tag or derived from it. Please note, 
- * the SIMD tag isn't checked because of the `SIMD` in the `is_base_of<>` 
- * type trait. That SIMD is a reference to the template parameter defined 
- * in the line above. The declaration of the specialized class or 
- * function will pass its tag into this concept as seen in the next 
- * section.
- * 
- * ## Using the tag and concept in specializations
- * 
- * ### Using the tag and concept in class specialization
- * 
- * After defining the tag and concept, they may be used to write 
- * implementations of algorithms that will slot right into the SIMD 
- * architecture and get used appropriately. In the library, the classes 
- * only define a minimal definition of mathematical entities. The 
- * albegraic and other numerical algorithms are defined in free functions.
- * To understand how it works, first look at the primary template 
- * declaration of the Quat class:
- * 
- * @code{.cpp}
- * template<typename S, typename I = ark::hal::simd::HAL_SIMD>
- * class Quat
- * @endcode
- * 
- * The `Quat`'s template clause has two parameters. The first, `S`, is 
- * the class used for each numeric element in the quaternion. The second, 
- * `I`, contains the SIMD ISA tag. It has a default parameter of 
- * `ark::hal::simd::HAL_SIMD`. The macro definition gets passed in as the 
- * default SIMD ISA. This causes `Quat<float>` to default to SSE2 in our 
- * example. If a function is not defined for `Quat<float, Sse2.` then it 
- * will revert to a definition of `Quat<float, SSE>` if present; 
- * otherwise, it will revert to the non-SIMD implementation in the 
- * primary template definition. The SIMD ISA tag should be the final 
- * parameter in the list as it is defaulted and normally will not be 
- * specified in application code.
- * 
- * The class will define the data. It's possible that the data format 
- * will change from one generation to another. For example, the double-
- * precision Quat data format changes between SSE and AVX generations. In 
- * the SSE generations it is two 128-bit data elements as each one can 
- * only hold 2 doubles, but a Quat has 4 elements. AVX introduced a 
- * 256-bit data type, so all the elements may be stored in a single new 
- * data element. Older functions will fail to compile when first 
- * creating a new class. There are two options:
- * 
- * 1. Re-implmeent all the algorithms with the new data type. This is 
- * the preferable situations; however, that might not be realistic 
- * should the code base grow to include many optimized functions.
- * 
- * 2. Add an implicit casting operator to the prior generation's format. 
- * This is sub-optimal and should be avoided as much as possible, but it 
- * will solve the problem of being unable to even compile without all 
- * algorithms used getting reimplmeneted. 
- * 
- * ### Using the tag and concept in function specialization
- * 
- * With the mechanics of class defintiions covered, it's time to look at 
- * the specialization of functions to write SIMD ISA specializations:
- * 
- * @code{.cpp}
- * 	template<ark::hal::simd::IsSse SIMD>
- * 	inline auto operator-(Quat<float, SIMD> q) -> Quat<float, SIMD>
- * @endcode
- * 
- * The concept gets used in the definition of the template parameter in a 
- * similar way to the class. It creates a strong partial ordering for 
- * overload resolution permitting inherting old implementations that are 
- * still valid and only writing new implementations when it's useful or 
- * necessary.
- * 
- * Notice the class is used in the result type. This is mandatory. If the 
- * result type were fixed to the generation of the definition, it will 
- * not function properly should a future generation try to use it. 
- * Template deduction rules require an exact match, not merely a base 
- * class object; therefore, in our example, an inherited SSE function 
- * would return a `Quat<float, Sse>` which would result in an error 
- * when that result is then used in another operation that's looking for 
- * a `Quat<float, Sse2>`.
- *
- * @author Noah Stein
- * @copyright © 2021 Noah Stein. All Rights Reserved.
- ************************************************************************/
+@page SimdArchitecture SIMD Specialization Arhicecture
+ 
+# Introduction
+
+The SIMD sub-module defines a methodology to structure platform-
+dependent CPU-specfic SIMD optimizations such that they are included 
+in the project in a platform-independent manner. The system permits 
+cleanly adding new SIMD ISAs to the application. These facilities are 
+designed to minimize the effort for programmers to add new SIMD 
+architectures and versions with minimal effort beyond the specific 
+algorithm implementations.
+ 
+There are two main parts of this system: the SIMD ISA tags and the 
+SIMD ISA concepts. The two work together to support the easy addition 
+of new algorithm specializations.
+ 
+To function, the architecture requires the user define the 
+preprocessor macro HAL_SIMD to specify which SIMD ISA is being used 
+in the build. There will be an error and the code will not build 
+should it not be defined. For example, on a Windows 10 build for 
+standard PC architecture, your build system should include a definition 
+such as the following: `HAL_SIMD=AVX2`. The following SIMD ISAs are 
+currently supported:
+ 
+@include{doc} Supported-SIMD-ISAs.txt
+ 
+# SIMD ISA Tags
+ 
+Each SIMD ISA gets its own tag. Unlike other engines, the presence  of
+a SIMD ISA is not assumed given a CPU type or platform. Additionally, 
+the SIMD ISA is not merely defined in a preprocessor macro, although 
+one is used to define it. The SIMD architecture uses a hierarchy of 
+tag classes to define the ISA present, e.g. there are a number of SSE 
+tags as each generation gets its own tag: SSE, SSE2, etc. ISA tags 
+publicly derive from the tag for its prior generation, e.g. SSE2 derives 
+from SSE. For those tags that identify the first generation of a SIMD 
+ISA, it is to derive from None to create a proper hierarchy.
+ 
+The inheritence hierarchy permits each generation to inherit the 
+implementation of data structures and algorithms of prior generations 
+and only implement that which is new. For example, the Quat SSE2 
+single-precision floating-point implementations are entirely inherited 
+from the SSE implementation as the SSE2 contains no new instructions 
+that could result in a more-optimized implementation.
+ 
+# SIMD ISA Concepts
+ 
+The multi-platform architecture relies not just on tags but also 
+concepts that use those tags to enable proper function overloading. 
+When a concept is defined it requires both a check of the previous 
+generation's concept as well as a new restriction for this generation. 
+This results in a narrower acceptance criteria and ensures that the 
+most-recent generation of impelementation is chosen over a prior 
+generation, instead of a compiler error due to ambiguous overloads.
+ 
+@note The None tag is unique in that is does not have an associated 
+concept. This is because there is no speciaiization for a lack of 
+SIMD ISA. This situation is covered by the primary template definition.
+ 
+# Implementing a New SIMD ISA
+
+## Creating the tag and concept for a SIMD generation
+ 
+For our example here, we'll look at defining SSE 2, given that we 
+already hava an SSE implementation.
+ 
+### 1. Define a tag to represent the ISA
+
+For our SSE 2 example:
+@code{.cpp}
+class Sse2 : public Sse
+{
+};
+@endcode
+ 
+See the `Sse2` class publicly derives from `Sse`, the prior generation 
+of ISA in the same SIMD family. This rule only applies if the new 
+generation is backwards-compatible with the prior generation. If it is 
+not, derive from None instead of the prior generation. If a new 
+generation is not a strict superset of the old one, use caution as you 
+can inherit from the older one if all its implementations use only 
+those elements still present in the new generation.
+  
+### 2. Define a concept for the ISA
+ 
+@code{.cpp}
+template<typename SIMD>
+concept Sse2Family = SseFamily<SIMD> && std::derived_from<Sse2, SIMD>;
+@endcode
+ 
+The C++ standard dictates concepts cannot inherit from other concepts. 
+Instead, they can reference other concepts in their requirements, 
+resulting in their inclusion through composition. In this definition, 
+the `SSE2` concept first checks to see the `SSE` concept is satisfied. 
+Then it determines if `SSE2` is valid. It does so by checking to see if 
+the SIMD tag is either the Sse2 tag or derived from it. Please note, 
+the SIMD tag isn't checked because of the `SIMD` in the `derived_from<>` 
+concept. That SIMD is a reference to the template parameter defined 
+in the line above. The declaration of the specialized class or 
+function will pass its tag into this concept as seen in the next 
+section.
+
+To form a proper concept hieararhcy for overload resolution, the 
+definition must follow the preceding example. The following sample 
+definition is erroneous:
+
+@code{.cpp}
+concept Sse2Family = std::dervied_from<Sse2, SIMD>;
+@endcode
+
+It will result in ambiguous overload resolution in situations with 
+defintiions for multiple generations of implementations. In effect, 
+the correct and incorrect versions simplify down to checking to 
+see the SIMD type is derived from `Sse2`, the lack of inclusion of 
+the `Sse` concept does not create a narrowing concept hieararchy.
+ 
+# Using the tag and concept in specializations
+
+There are a three ways to implement multi-platform specialization of 
+SIMD math:
+
+-# Template Selection: Select the SIMD-optimized via a using type alias. 
+-# Template Specialization: The SIMD-optimized impelementation is 
+   defined in a specialization of a single template class.
+-# Template Specialization via Inheritence: The SIMD-optimized 
+   implementation is written in its own class that is then used as a 
+   base class in the definition of template class specializsations.
+
+Each method involves specializaing classes and the free functions 
+that take and return objects of those classes. The three styles will 
+be described below. Template speccialization was implemented first. It 
+can be found on the math_template_specialization branch. When on that 
+branch, please generate the documentation as some names have changed
+subsequently. The template speciaialization implementation was modified 
+to create the template selecttion paradigm implementation. It is on  
+the math_template_selection branch. This will be the paradigm 
+going forward and will end up on the master branch. Template 
+speciailization via inheritence paradigm is a hybrid of the other two. 
+It is described here but as of this writing has not been implemented.
+Should it be implemented, it will be found in the branch 
+math_template_specialization_via_inheritence.
+
+The important thing to note is that these three paradigms require the 
+impelementation of math types to be written in different ways; however, 
+they all implement the same interface to client code; therefore, one 
+implementation can be substituted for another yet not one single line 
+of multi-platform code required any change whatsoever.
+
+
+## 1. Template Selection [math_template_selection]
+
+The template selection paradigm is architected around non-template 
+classes to define each generation of SIMD architecture. The 
+independent classes are unified through the interface of a template 
+using declaration. The using relies upon an internal support template 
+type functionaing as a selector. The selector is then specialized to 
+define which type is to be used for which SIMD implementations.
+
+### The Using Declaration
+
+As with the other SIMD architectures, the mathematical classes are 
+accessed via a template. In the others, it is a tamplate class, but 
+in the selection system it is via a template using definition:
+
+@code{.cpp}
+template<typename S, typename I = ark::hal::simd::HAL_SIMD>
+using Quat = typename QuaternionSelector<S, I>::type;
+@endcode
+
+Note that the `Quat` teamplate has two parameters. The first is the 
+scalar type of the quaternion, and the second is the SIMD 
+architecture of the compiled platform. It is defaulted to the SIMD 
+ISA defined in the `HAL_SIMD` preprocessor macro. Normally, 
+application code will omit specifying this parameter and only indicate 
+the scalar type.
+
+The using relies upon a utility selector class. The selector class 
+and its specializations define a member typename `type` to specify 
+which concrete class implements the architecture's optimizations 
+for a scalar type. The base template is defined such:
+
+@code{.cpp}
+template<typename S, typename I = ark::hal::simd::HAL_SIMD>
+struct QuaternionSelector
+{
+  typedef QuatBasic<S> type;
+};
+@endcode
+
+This ensures that the basic, multi-platform quaternion type is 
+used by default. Thus, there is a funcxtioning quaternion type 
+from day 1 on a new platform, as long as it supports the scalar 
+types used in the project. When a SIMD archeticture has an 
+optimization for a scalar type, that optimization is then 
+specified in a template class specialization. For example, 
+SSE2 introduces support for 2-wide double computations and 
+is specified as such:
+
+@code{.cpp}
+template<>
+struct QuaternionSelector<double, ark::hal::simd::Sse2>
+{
+  typedef QuatDoubleSse2 type;
+};
+@endcode
+
+This specialization will be seen by the single using definition.
+Applicatin code will then use it when compiling for the SSE2 ISA 
+when declaring quaternions of double scalars: `Quat<double> quat`.
+
+### Implementation Classes
+
+Define a class for each mathematical structure (vector, quaternion, 
+etc.) for each scalar type supported by a SIMD ISA. For exaqmple, 
+SSE has a `QuatFloatSse`, and SSE2 has both a `QuatFloatSse` and a 
+`QuatDoubleSse`, with the former being a simple "promotion" of the 
+SSE defintion as the data format as the same.
+
+### SIMD Architecture Concept
+
+To support implementing SIMD optimizations, each mathematical class 
+(vector, quaternion, etc.) defines a concept for a SIMD ISA revision 
+that will be used to declare parameters and return types. For example, 
+the qautarnion concept hieararchy's root concept is defined:
+
+@code{.cpp}
+template<typename Q, typename S>
+concept QuaternionNone = Quaternion<Q> &&
+  std::same_as<typename Q::Scalar, S>;
+@endcode
+
+`QuaternionNone` models quaternion functions that require no speicifc 
+SIMD architecture; however, it is only used in functions that define 
+algoirthms optimized for specific SIMD architectures. This concept 
+ensures that the type is a valid quaternion and that its scalars are 
+of the specified type. This a fundamental check for all parameters as 
+the nature of SIMD implementations is that they rely upon SIMD ISAs 
+that define different operations for different scalar sizes.
+
+A new SIMD ISA will define itself with respect to `QuaternionNone` 
+and then adding any more specific requirements for proper overload 
+resolution. In the example of SSE-optimized quatenrions, the conept 
+is defined as such:
+
+@code{.cpp}
+template<typename Q, typename S>
+concept QuatSse = QuaternionNone<Q, S> &&
+  ::ark::hal::simd::SseFamily<typename Q::Revision>;
+@endcode
+
+The use of `QuaternionNone` ensures that the parameter will match 
+a quaternion concept and have the type specified. The second check 
+ensures that the quaternion data type is tagged as a revision of 
+the SSE family. Only classes designed for SSE optimizations will 
+pass the SseFamily concept check; therefore, functions can 
+implement SSE-optimized algorithsm. Future revisions are defined 
+in a slighly different way, For example, the SSE2 quaternion 
+concept is defined htis way:
+
+@code{.cpp}
+template<typename Q, typename S>
+concept QuatSse2 = QuatSse<Q, S> &&
+  ::ark::hal::simd::Sse2Family<typename Q::Revision>;
+@endcode
+
+Instead of using `QuaternionNon`, the definition uses a check of 
+`QuatSse`. As `QuatSse` checks `QuaternionNone`, this ensures the 
+type is a valid quaternion of a specific type. It also checks the
+quaternion type is part of the SSE family; that is, it is tagged 
+with a class that defines the SSE ISA or a class derived from the 
+SSE ISA, which the SSE2 tag is. This check itself is actually 
+irrelevent. The `Sse2Family` check will restroct tp only those 
+types with tags derived the SSE2 tag, which includes all 
+SSE-derived tags excluding the original. Although using 
+`QuaternionNone` instead of `QuatSse` would have resulted in the 
+same set of valid quaternion classes, using `QuatSse` is mandatory.
+It creates a priority chain in overload resolution. Using 
+`QuaternionNone` results in an ambiguous overload for any 
+functions that get overridden between generations. Using `QuatSse`
+as the base check here results in the compiler considering 
+`QuatSse2` to be more specialized than `QuatSse` as it contains 
+the "parent" concept in its definition as well as additional 
+constraints.
+
+### Using the tag and concept in function specialization
+
+Much of the functionality of the math types is implemented in free 
+functions. Using the example of quaternion negation, function 
+signatures are written similiary to the following:
+
+@code{.cpp}
+template<QuatSse2<double> Q>
+inline auto operator-(Q q) noexcept -> Q
+@endcode
+
+Note that the function is templated upon the quaternion SIMD 
+concept. It both takes and returns the same type. It's 
+possible to be less restrictive and use different types; however,
+that's totally unnecessary in normal application code as it 
+generally relies upon a specific SIMD architecture. Dealing with 
+such scenarios is left as an exercise to the reader as it's 
+generally unnecessary.
+
+
+## 2. Template Specialization [math_template_specialization]
+
+The template specialization paradigm is defined by declaring the type 
+(vectork, matrix, quaternion, etc.) with the SIMD tag as a template 
+parameter. The main definition is for the generic implementation. Class 
+specializations then impelemnt specific versions of SIMD archetictures.
+
+### Using the tag and concept in class specialization
+
+After defining the tag and concept, they may be used to write 
+implementations of algorithms that will slot right into the SIMD 
+architecture and get used appropriately. In the library, the classes 
+only define a minimal definition of mathematical entities. The 
+albegraic and other numerical algorithms are defined in free functions.
+To understand how it works, first look at the primary template 
+declaration of the Quat class:
+ 
+@code{.cpp}
+template<typename S, typename I = ark::hal::simd::HAL_SIMD>
+class Quat
+@endcode
+ 
+The `Quat`'s template clause has two parameters. The first, `S`, is 
+the class used for each numeric element in the quaternion. The second, 
+`I`, contains the SIMD ISA tag. It has a default parameter of 
+`ark::hal::simd::HAL_SIMD`. The macro definition gets passed in as the 
+default SIMD ISA. This causes `Quat<float>` to default to SSE2 in our 
+example. If a function is not defined for `Quat<float, Sse2.` then it 
+will revert to a definition of `Quat<float, SSE>` if present; 
+otherwise, it will revert to the non-SIMD implementation in the 
+primary template definition. The SIMD ISA tag should be the final 
+parameter in the list as it is defaulted and normally will not be 
+specified in application code.
+ 
+The class will define the data. It's possible that the data format 
+will change from one generation to another. For example, the double-
+precision Quat data format changes between SSE and AVX generations. In 
+the SSE generations it is two 128-bit data elements as each one can 
+only hold 2 doubles, but a Quat has 4 elements. AVX introduced a 
+256-bit data type, so all the elements may be stored in a single new 
+data element. Older functions will fail to compile when first 
+creating a new class. There are two options:
+ 
+1. Re-implmeent all the algorithms with the new data type. This is 
+the preferable situations; however, that might not be realistic 
+should the code base grow to include many optimized functions.
+ 
+2. Add an implicit casting operator to the prior generation's format. 
+This is sub-optimal and should be avoided as much as possible, but it 
+will solve the problem of being unable to even compile without all 
+algorithms used getting reimplmeneted. 
+ 
+### Using the tag and concept in function specialization
+ 
+With the mechanics of class defintiions covered, it's time to look at 
+the specialization of functions to write SIMD ISA specializations:
+ 
+@code{.cpp}
+	template<ark::hal::simd::IsSse SIMD>
+ 	inline auto operator-(Quat<float, SIMD> q) -> Quat<float, SIMD>
+@endcode
+ 
+The concept gets used in the definition of the template parameter in a 
+similar way to the class. It creates a strong partial ordering for 
+overload resolution permitting inherting old implementations that are 
+still valid and only writing new implementations when it's useful or 
+necessary.
+ 
+Notice the class is used in the result type. This is mandatory. If the 
+result type were fixed to the generation of the definition, it will 
+not function properly should a future generation try to use it. 
+Template deduction rules require an exact match, not merely a base 
+class object; therefore, in our example, an inherited SSE function 
+would return a `Quat<float, Sse>` which would result in an error 
+when that result is then used in another operation that's looking for 
+a `Quat<float, Sse2>`.
+
+## 3. Template Specialization via Inheritence
+      [math_template_specialization_via_inheritence]
+
+Template specializatin via inhertience may be considered a hybrid of 
+the other two paradigms. Consider template specializations as the 
+basic structure of this system. Instead of directly implementing the 
+specific SIMD optimizations in the class specializations, bring in 
+the independent non-template classes. Then class template 
+specializaitons will derive from the non-template definitions and 
+pull in the constructors. This removes the using and selector class, 
+so it's structurally simpler than the template selection paradigm.
+
+@note There are currently no plans to implement the hybrid approach.
+      At such time as it is implemented, this section will be 
+      expanded upon.
+
+@author Noah Stein
+@copyright © 2021-2023 Noah Stein. All Rights Reserved.
+************************************************************************/
